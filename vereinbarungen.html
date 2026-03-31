@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bbz bank – Vereinbarungen</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:    #004078;
+  --blue-dk: #002d57;
+  --blue-lt: #dce8f4;
+  --red:     #950e13;
+  --green:   #15803d;
+  --amber:   #b45309;
+  --ink:     #0f172a;
+  --ink-2:   #334155;
+  --ink-3:   #64748b;
+  --ink-4:   #94a3b8;
+  --surface: #ffffff;
+  --bg:      #f1f5f9;
+  --line:    #e2e8f0;
+  --font:    'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--blue-dk);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; overflow: hidden;
+}
+
+/* ── CANVAS ── */
+.canvas {
+  width: 95vw; aspect-ratio: 16/9; max-height: 95vh;
+  background: var(--bg);
+  display: grid; grid-template-rows: 6vh 1fr 4vh;
+  overflow: hidden;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.55);
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2vw 0 2.2vw; gap: 1vw;
+}
+.logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
+.logo-mark {
+  width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
+  font-size: 0.68vw; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; border-radius: 3px;
+}
+.logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
+
+.mod-nav {
+  display: flex; align-items: center; gap: 0.15vw;
+  flex: 1; justify-content: center; overflow: hidden;
+}
+.mod-chip {
+  display: flex; align-items: center; gap: 0.2vw;
+  padding: 0.3vh 0.48vw; border-radius: 4px;
+  font-size: 0.52vw; font-weight: 700;
+  color: rgba(255,255,255,0.35); text-decoration: none;
+  white-space: nowrap; transition: color 0.15s, background 0.15s; flex-shrink: 0;
+}
+.mod-chip:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.07); }
+.mod-chip.active { background: white; color: var(--blue); }
+.chip-num { font-size: 0.44vw; font-weight: 900; opacity: 0.55; }
+.mod-chip.active .chip-num { opacity: 0.45; }
+.nav-sep { width: 1px; height: 1.8vh; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 0.18vw; }
+.topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; flex-shrink: 0; }
+
+/* ── MAIN SPLIT ── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  overflow: hidden; min-height: 0;
+}
+
+/* ── PHASE PANEL (shared) ── */
+.panel {
+  display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+  background: var(--surface);
+}
+.panel-right { background: var(--bg); }
+
+.panel-head {
+  padding: 1.4vh 1.6vw 1vh;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 0.5vh;
+}
+.panel-title {
+  font-size: 1.05vw; font-weight: 800; color: var(--blue); letter-spacing: -0.02em;
+}
+.panel-sub {
+  font-size: 0.55vw; font-weight: 600; color: var(--ink-4);
+}
+
+/* ── CHIPS ROW (Sparte + Reifegrad) ── */
+.chips-area {
+  padding: 0.8vh 1.6vw 0.6vh;
+  flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 0.5vh;
+  border-bottom: 1px solid var(--line);
+}
+.chips-label {
+  font-size: 0.46vw; font-weight: 800; color: var(--blue);
+  display: flex; align-items: center; gap: 0.3vw;
+}
+.chips-label::before {
+  content: ''; display: block; width: 2px; height: 1vh;
+  background: var(--red); border-radius: 2px;
+}
+.chips-row { display: flex; flex-wrap: wrap; gap: 0.3vw; }
+
+#reifegradWrap { animation: fadeSlide 0.18s ease-out; }
+
+.chip {
+  padding: 0.3vh 0.6vw; border-radius: 3px;
+  font-size: 0.5vw; font-weight: 700;
+  border: 1px solid var(--line);
+  background: var(--bg); color: var(--ink-3);
+  cursor: pointer; transition: all 0.12s;
+  font-family: var(--font);
+}
+.chip:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+.chip.sel-sparte { background: var(--blue); color: white; border-color: var(--blue); }
+.chip.sel-reifegrad { background: var(--blue-lt); color: var(--blue); border-color: var(--blue); }
+
+/* ── LIVE PREVIEW ROW ── */
+.live-preview-row {
+  padding: 0.55vh 1.6vw 0;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 0.4vw; min-height: 2.2vh;
+}
+.live-preview-arrow {
+  font-size: 0.52vw; color: var(--ink-4); flex-shrink: 0; margin-right: 0.1vw;
+}
+.live-preview-empty {
+  font-size: 0.48vw; font-weight: 500; color: var(--ink-4); font-style: italic;
+}
+
+/* ── TEXTAREA ZONE ── */
+.text-area-zone {
+  padding: 0.4vh 1.6vw 0.8vh;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 0.4vh;
+}
+.text-area-label {
+  font-size: 0.46vw; font-weight: 800; color: var(--blue);
+  display: flex; align-items: center; gap: 0.3vw;
+}
+.text-area-label::before {
+  content: ''; display: block; width: 2px; height: 1vh;
+  background: var(--red); border-radius: 2px;
+}
+.vereinbarung-input {
+  width: 100%; resize: none;
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 4px; padding: 0.5vh 0.6vw;
+  font-size: 0.7vw; font-weight: 500; color: var(--ink);
+  font-family: var(--font); outline: none; line-height: 1.45;
+  transition: border-color 0.15s, background 0.15s;
+}
+.vereinbarung-input:focus { border-color: var(--blue); background: white; }
+.vereinbarung-input::placeholder { color: var(--ink-4); font-style: italic; }
+
+.hint-text {
+  font-size: 0.44vw; font-weight: 500; color: var(--ink-4); font-style: italic;
+}
+.hint-text.has-hint { color: var(--blue); font-style: normal; font-weight: 600; cursor: pointer; }
+.hint-text.has-hint:hover { text-decoration: underline; }
+
+/* ── ADD BUTTON ── */
+.add-btn-row {
+  padding: 0.6vh 1.6vw 0.7vh;
+  flex-shrink: 0;
+  display: flex; gap: 0.5vw; align-items: center;
+}
+.btn-add {
+  padding: 0.55vh 1vw; background: var(--blue); color: white;
+  font-size: 0.58vw; font-weight: 700; border: none; border-radius: 4px;
+  cursor: pointer; font-family: var(--font); transition: background 0.15s;
+  display: flex; align-items: center; gap: 0.3vw;
+}
+.btn-add:hover { background: var(--blue-dk); }
+.btn-add:disabled { background: var(--ink-4); cursor: not-allowed; }
+.btn-reset {
+  padding: 0.55vh 0.8vw; background: none; color: var(--ink-4);
+  font-size: 0.55vw; font-weight: 700; border: 1px solid var(--line); border-radius: 4px;
+  cursor: pointer; font-family: var(--font); transition: all 0.15s;
+}
+.btn-reset:hover { border-color: var(--ink-3); color: var(--ink-2); }
+
+/* ── LIST SCROLL ── */
+.list-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 0.6vh 1.2vw 0.8vh;
+  display: flex; flex-direction: column; gap: 0.45vh;
+}
+.list-scroll::-webkit-scrollbar { width: 3px; }
+.list-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+
+/* ── VEREINBARUNG CARD ── */
+.v-card {
+  background: white; border: 1px solid var(--line);
+  border-radius: 5px; padding: 0.65vh 0.8vw;
+  display: flex; align-items: flex-start; gap: 0.5vw;
+  transition: border-color 0.12s; animation: fadeSlide 0.15s ease-out;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.v-card:hover { border-color: var(--blue-lt); }
+.v-card.editing { border-color: var(--blue); background: #f8fbff; }
+
+.v-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.3vh; }
+.v-card-tags { display: flex; flex-wrap: wrap; gap: 0.25vw; align-items: center; }
+
+.tag {
+  padding: 0.15vh 0.4vw; border-radius: 2px;
+  font-size: 0.42vw; font-weight: 800; letter-spacing: 0.02em;
+}
+.tag-sparte  { background: var(--blue); color: white; } /* Thema */
+.tag-reifegrad { background: var(--blue-lt); color: var(--blue); }
+
+.v-card-text {
+  font-size: 0.6vw; font-weight: 500; color: var(--ink-2);
+  line-height: 1.4; white-space: pre-wrap; word-break: break-word;
+}
+
+.v-card-actions { display: flex; flex-direction: column; gap: 0.25vh; flex-shrink: 0; }
+.btn-icon-sm {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-4); font-size: 0.6vw; padding: 0.2vh 0.25vw;
+  border-radius: 3px; transition: color 0.12s, background 0.12s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font);
+}
+.btn-icon-sm:hover       { color: var(--blue); background: var(--blue-lt); }
+.btn-icon-sm.del:hover   { color: var(--red); background: #fee2e2; }
+
+/* empty state */
+.empty-state {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.6vh; color: var(--ink-4); padding: 2vh;
+}
+.empty-icon { font-size: 2.5vh; opacity: 0.4; }
+.empty-text { font-size: 0.58vw; font-weight: 600; text-align: center; line-height: 1.5; }
+
+/* ── DIVIDER ── */
+.vdiv { background: var(--line); }
+
+/* ── RIGHT PANEL: IMAGE STATE (Phase 1) ── */
+.phase-image {
+  flex: 1; position: relative; overflow: hidden;
+  transition: opacity 0.5s ease;
+}
+.phase-image img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+  display: block;
+}
+.phase-image-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(0,40,87,0.45) 0%, rgba(0,20,55,0.65) 100%);
+}
+/* upload button — appears on hover, same pattern as vorstellung-bank */
+.phase-img-upload-btn {
+  position: absolute; top: 2vh; right: 1.5vw; z-index: 10;
+  background: rgba(0,20,55,0.55); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 50px;
+  padding: 0.7vh 1.1vw; display: flex; align-items: center; gap: 0.4vw;
+  cursor: pointer; opacity: 0; transition: opacity 0.2s, background 0.15s;
+  color: white; font-family: var(--font); font-size: 0.58vw; font-weight: 700;
+}
+.phase-img-upload-btn svg { width: 1.4vh; height: 1.4vh; }
+.phase-image:hover .phase-img-upload-btn { opacity: 1; }
+.phase-img-upload-btn:hover { background: rgba(0,40,100,0.75); }
+
+/* content panels fade in */
+.right-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 0.7vh 1.2vw 0.8vh;
+  display: flex; flex-direction: column; gap: 0.5vh;
+  animation: fadeIn 0.35s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.right-scroll::-webkit-scrollbar { width: 3px; }
+.right-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+
+/* Priorisierung card */
+.prio-card {
+  background: white; border: 1px solid var(--line); border-radius: 5px;
+  padding: 0.65vh 0.8vw;
+  display: flex; align-items: center; gap: 0.7vw;
+  animation: fadeSlide 0.15s ease-out;
+}
+.prio-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25vh; }
+.prio-tags { display: flex; flex-wrap: wrap; gap: 0.25vw; }
+.prio-text { font-size: 0.58vw; font-weight: 600; color: var(--ink-2); line-height: 1.35; }
+
+.prio-btns { display: flex; flex-direction: column; gap: 0.2vh; flex-shrink: 0; }
+.prio-btn {
+  padding: 0.25vh 0.5vw; border-radius: 3px;
+  font-size: 0.44vw; font-weight: 800;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink-4);
+  cursor: pointer; font-family: var(--font); transition: all 0.12s;
+  white-space: nowrap;
+}
+.prio-btn:hover { border-color: var(--blue); color: var(--blue); }
+.prio-btn.sel-sofort   { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+.prio-btn.sel-demnaechst { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
+.prio-btn.sel-gelegentlich { background: var(--blue-lt); color: var(--blue); border-color: #93c5fd; }
+
+/* Steps card */
+.step-card {
+  background: white; border: 1px solid var(--line); border-radius: 5px;
+  padding: 0.7vh 0.9vw;
+  display: flex; flex-direction: column; gap: 0.5vh;
+  animation: fadeSlide 0.15s ease-out;
+}
+.step-card-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5vw;
+}
+.step-card-meta { flex: 1; min-width: 0; }
+.step-card-tags { display: flex; flex-wrap: wrap; gap: 0.25vw; margin-bottom: 0.25vh; }
+.step-card-text { font-size: 0.56vw; font-weight: 600; color: var(--ink-2); line-height: 1.35; }
+
+.prio-badge {
+  padding: 0.15vh 0.45vw; border-radius: 2px;
+  font-size: 0.42vw; font-weight: 800; flex-shrink: 0;
+}
+.prio-badge.sofort     { background: #fee2e2; color: #991b1b; }
+.prio-badge.demnaechst { background: #fef9c3; color: #854d0e; }
+.prio-badge.gelegentlich { background: var(--blue-lt); color: var(--blue); }
+
+.step-fields {
+  display: grid; grid-template-columns: 1fr 1.4fr 1.6fr; gap: 0.4vw;
+}
+.step-field { display: flex; flex-direction: column; gap: 0.15vh; }
+.step-field label {
+  font-size: 0.42vw; font-weight: 800; color: var(--ink-4);
+}
+.step-field select,
+.step-field input {
+  padding: 0.35vh 0.45vw;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+  font-size: 0.58vw; font-weight: 600; color: var(--ink);
+  font-family: var(--font); outline: none;
+  transition: border-color 0.15s;
+}
+.step-field select:focus,
+.step-field input:focus { border-color: var(--blue); background: white; }
+.step-field input::placeholder { color: var(--ink-4); font-style: italic; font-size: 0.52vw; font-weight: 400; }
+
+.no-action-wrap {
+  display: flex; align-items: center; gap: 0.35vw;
+  padding-top: 0.2vh; border-top: 1px solid var(--line);
+}
+.no-action-wrap label { font-size: 0.48vw; font-weight: 600; color: var(--ink-3); cursor: pointer; }
+.no-action-wrap input[type=checkbox] { cursor: pointer; accent-color: var(--blue); }
+.no-action-reason {
+  flex: 1; padding: 0.3vh 0.45vw;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+  font-size: 0.54vw; font-weight: 500; color: var(--ink);
+  font-family: var(--font); outline: none;
+}
+.no-action-reason:focus { border-color: var(--blue); background: white; }
+
+/* ── EXTRA STEPS ── */
+.step-num-row {
+  display: flex; align-items: center; gap: 0.4vw;
+  padding-top: 0.35vh; border-top: 1px solid var(--line);
+}
+.step-num {
+  font-size: 0.42vw; font-weight: 900; color: var(--blue);
+  background: var(--blue-lt); border-radius: 2px;
+  padding: 0.1vh 0.35vw; flex-shrink: 0;
+}
+.step-num-divider { flex: 1; height: 1px; background: var(--line); }
+.btn-remove-step {
+  background: none; border: none; cursor: pointer; color: var(--ink-4);
+  font-size: 0.55vw; padding: 0.1vh 0.2vw; border-radius: 2px;
+  transition: color 0.12s; font-family: var(--font); line-height: 1;
+}
+.btn-remove-step:hover { color: var(--red); }
+.btn-add-step {
+  margin-top: 0.2vh; align-self: flex-start;
+  background: none; border: 1px dashed var(--line);
+  border-radius: 3px; padding: 0.3vh 0.7vw;
+  font-size: 0.48vw; font-weight: 700; color: var(--ink-4);
+  cursor: pointer; font-family: var(--font);
+  transition: all 0.12s; display: flex; align-items: center; gap: 0.25vw;
+}
+.btn-add-step:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+.btn-add-step:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.wann-chips { display: flex; gap: 0.25vw; flex-wrap: wrap; }
+.wann-chip {
+  padding: 0.28vh 0.55vw; border-radius: 3px;
+  font-size: 0.48vw; font-weight: 700;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink-3);
+  cursor: pointer; font-family: var(--font); transition: all 0.12s;
+}
+.wann-chip:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+.wann-chip.sel { background: var(--blue-lt); color: var(--blue); border-color: var(--blue); }
+.wann-date-opt {
+  margin-top: 0.2vh;
+  display: flex; align-items: center; gap: 0.4vw;
+}
+.wann-date-label { font-size: 0.42vw; font-weight: 700; color: var(--ink-4); }
+.wann-date-input {
+  padding: 0.28vh 0.4vw;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+  font-size: 0.54vw; font-weight: 600; color: var(--ink);
+  font-family: var(--font); outline: none; transition: border-color 0.15s;
+}
+.wann-date-input:focus { border-color: var(--blue); background: white; }
+.right-action-bar {
+  flex-shrink: 0; border-top: 1px solid var(--line);
+  padding: 0.65vh 1.6vw;
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6vw;
+  background: var(--surface);
+  transition: background 0.4s, border-color 0.4s;
+}
+.right-action-bar.on-image {
+  background: rgba(0,20,55,0.72);
+  border-top-color: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+}
+.right-action-bar.on-image .ph-dot { background: rgba(255,255,255,0.25); }
+.right-action-bar.on-image .ph-dot.active { background: white; }
+.right-action-bar.on-image .ph-label { color: rgba(255,255,255,0.45); }
+.phase-indicator {
+  display: flex; align-items: center; gap: 0.4vw;
+}
+.ph-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--line);
+}
+.ph-dot.done   { background: #22c55e; }
+.ph-dot.active { background: var(--blue); }
+.ph-label {
+  font-size: 0.46vw; font-weight: 700; color: var(--ink-4);
+}
+
+.btn-phase {
+  padding: 0.55vh 1vw; font-size: 0.58vw; font-weight: 700;
+  border: none; border-radius: 4px; cursor: pointer;
+  font-family: var(--font); transition: all 0.15s;
+  display: flex; align-items: center; gap: 0.3vw;
+}
+.btn-phase-primary { background: var(--blue); color: white; }
+.btn-phase-primary:hover { background: var(--blue-dk); }
+.btn-phase-secondary { background: var(--bg); color: var(--ink-3); border: 1px solid var(--line); }
+.btn-phase-secondary:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── ABSCHLUSS SCREEN (Phase 3 Overlay) ── */
+.abschluss-overlay {
+  position: absolute; inset: 0;
+  background: var(--blue-dk);
+  display: none; flex-direction: column;
+  z-index: 50; overflow: hidden;
+}
+.abschluss-overlay.visible { display: flex; }
+
+.abschluss-head {
+  padding: 1.6vh 2.2vw 1.2vh;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.abschluss-title {
+  font-size: 1.1vw; font-weight: 800; color: white; letter-spacing: -0.02em;
+}
+.abschluss-sub { font-size: 0.52vw; font-weight: 600; color: rgba(255,255,255,0.4); margin-top: 0.2vh; }
+
+.abschluss-grid {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  display: grid; grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  gap: 0 0; padding: 0;
+}
+.abschluss-grid::-webkit-scrollbar { width: 3px; }
+.abschluss-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+
+.abschluss-col-head {
+  font-size: 0.44vw; font-weight: 800; color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 0.8vh 2vw 0.6vh;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: sticky; top: 0; background: var(--blue-dk); z-index: 1;
+}
+.abschluss-col-head:first-child { border-right: 1px solid rgba(255,255,255,0.08); }
+
+.abschluss-item {
+  padding: 1.1vh 2vw;
+  display: flex; flex-direction: column; gap: 0.55vh;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.abschluss-item:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.07); }
+
+.abschluss-item-tags { display: flex; flex-wrap: wrap; gap: 0.25vw; align-items: center; }
+.tag-white { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); padding: 0.18vh 0.45vw; border-radius: 2px; font-size: 0.42vw; font-weight: 800; }
+.abschluss-item-text { font-size: 0.72vw; font-weight: 700; color: white; line-height: 1.4; }
+.abschluss-item-step { font-size: 0.6vw; color: rgba(255,255,255,0.55); line-height: 1.6; }
+.abschluss-item-step strong { color: rgba(255,255,255,0.85); font-weight: 700; }
+
+.abschluss-foot {
+  flex-shrink: 0; padding: 0.8vh 2.2vw;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.btn-neu-start {
+  padding: 0.55vh 1vw; font-size: 0.58vw; font-weight: 700;
+  background: rgba(255,255,255,0.12); color: white;
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+  cursor: pointer; font-family: var(--font); transition: all 0.15s;
+}
+.btn-neu-start:hover { background: rgba(255,255,255,0.2); }
+.btn-back-to-steps {
+  padding: 0.55vh 1vw; font-size: 0.58vw; font-weight: 700;
+  background: none; color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
+  cursor: pointer; font-family: var(--font); transition: all 0.15s;
+}
+.btn-back-to-steps:hover { color: white; border-color: rgba(255,255,255,0.35); }
+
+/* ── FOOTER ── */
+.footer {
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding: 0 3.2vw; display: flex; align-items: center; justify-content: space-between;
+}
+.footer-copy { font-size: 0.58vw; font-weight: 500; color: var(--ink-4); }
+.footer-saved { display: flex; align-items: center; gap: 0.35vw; font-size: 0.52vw; font-weight: 700; color: #16a34a; }
+.dot-live { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">bbz</div>
+    <span class="logo-name">Vereinbarungen</span>
+  </div>
+  <nav class="mod-nav">
+    <a href="gespraechsagenda.html"     class="mod-chip"><span class="chip-num">01</span>Agenda</a>
+    <a href="vorstellung-bank.html"     class="mod-chip"><span class="chip-num">02</span>Bank</a>
+    <a href="vorstellung-berater.html"  class="mod-chip"><span class="chip-num">03</span>Berater:in</a>
+    <a href="beratungsphilosophie.html" class="mod-chip"><span class="chip-num">04</span>Philosophie</a>
+    <a href="finanz-cockpit.html"       class="mod-chip"><span class="chip-num">05</span>Cockpit</a>
+    <a href="ziele-wuensche.html"       class="mod-chip"><span class="chip-num">06</span>Ziele</a>
+    <div class="nav-sep"></div>
+    <div style="display:flex;align-items:center;gap:0.18vw;flex-shrink:0;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.22);"></div>
+        <div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);"></div>
+        <div style="display:flex;gap:5px;">
+          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
+          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <a href="tragbarkeit.html"    class="mod-chip" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07a</span>Finanzieren</a>
+        <a href="anlegeranalyse.html" class="mod-chip" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07b</span>Anlegen</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <a href="vereinbarungen.html"       class="mod-chip active"><span class="chip-num">09</span>Vereinbarungen</a>
+    <a href="zufriedenheitsdialog.html" class="mod-chip"><span class="chip-num">10</span>Feedback</a>
+    <a href="verabschiedung.html"       class="mod-chip"><span class="chip-num">11</span>Abschluss</a>
+  </nav>
+  <span class="topbar-brand">bbz st.gallen ag</span>
+</header>
+
+<!-- MAIN CONTENT -->
+<div class="main" style="position:relative;">
+
+  <!-- LEFT: VEREINBARUNGEN ERFASSEN -->
+  <div class="panel" id="leftPanel">
+    <div class="panel-head">
+      <div class="panel-title">Was möchten wir festhalten?</div>
+    </div>
+
+    <!-- CHIPS: THEMA -->
+    <div class="chips-area">
+      <div class="chips-label">Thema</div>
+      <div class="chips-row" id="sparteChips"></div>
+      <div id="reifegradWrap" style="display:none;flex-direction:column;gap:0.5vh;">
+        <div class="chips-label" style="margin-top:0.35vh;">Fokus</div>
+        <div class="chips-row" id="reifegradChips"></div>
+      </div>
+    </div>
+
+    <!-- LIVE PREVIEW -->
+    <div class="live-preview-row" id="livePreviewRow">
+      <span class="live-preview-empty" id="livePreviewEmpty">Thema und Fokus wählen für die Vereinbarungskarte</span>
+    </div>
+
+    <!-- FREITEXT -->
+    <div class="text-area-zone">
+      <div class="text-area-label">Vereinbarung</div>
+      <textarea id="vereinbarungText" class="vereinbarung-input" rows="3"
+        placeholder="z. B. Zusätzliches 3a-Konto zur Verbesserung der Steuersituation einrichten"></textarea>
+      <div id="hintText" class="hint-text">Thema und Fokus wählen für einen Formulierungsvorschlag.</div>
+    </div>
+
+    <!-- ADD BUTTONS -->
+    <div class="add-btn-row">
+      <button id="addBtn" class="btn-add" disabled>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
+        Festhalten
+      </button>
+      <button id="resetBtn" class="btn-reset">Zurücksetzen</button>
+      <span id="editingBadge" style="display:none;font-size:0.48vw;font-weight:700;color:var(--blue);background:var(--blue-lt);padding:0.2vh 0.5vw;border-radius:3px;">Bearbeitung aktiv</span>
+    </div>
+
+    <!-- LIST -->
+    <div class="list-scroll" id="agreementList">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">◎</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vdiv"></div>
+
+  <!-- RIGHT: PRIO + SCHRITTE -->
+  <div class="panel panel-right" id="rightPanel">
+    <div class="panel-head" id="rightPanelHead" style="display:none;">
+      <div class="panel-title" id="rightTitle">Wie gehen wir weiter?</div>
+      <div class="panel-sub" id="rightSub">Erst alle Vereinbarungen erfassen, dann priorisieren</div>
+    </div>
+
+    <!-- IMAGE STATE (Phase 1) -->
+    <div class="phase-image" id="phaseLocked">
+      <img id="phaseImg"
+        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fit=crop"
+        alt="">
+      <div class="phase-image-overlay"></div>
+      <button class="phase-img-upload-btn" onclick="document.getElementById('phaseImgInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Bild ersetzen
+      </button>
+      <input type="file" id="phaseImgInput" accept="image/*" style="display:none;">
+    </div>
+
+    <!-- PRIO LIST (hidden initially) -->
+    <div class="right-scroll" id="prioList" style="display:none;"></div>
+
+    <!-- STEPS LIST (hidden initially) -->
+    <div class="right-scroll" id="stepsList" style="display:none;"></div>
+
+    <!-- ACTION BAR -->
+    <div class="right-action-bar" id="rightActionBar">
+      <div class="phase-indicator">
+        <div class="ph-dot active" id="dot1"></div>
+        <div class="ph-dot" id="dot2"></div>
+        <div class="ph-dot" id="dot3"></div>
+        <span class="ph-label" id="phaseLabel">Schritt 1 von 3 – Vereinbarungen erfassen</span>
+      </div>
+      <div style="display:flex;gap:0.4vw;align-items:center;">
+        <button class="btn-phase btn-phase-secondary" id="btnBack" style="display:none;" onclick="goBack()">← Zurück</button>
+        <button class="btn-phase btn-phase-primary" id="btnForward" onclick="goForward()">Bereit zur Priorisierung</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABSCHLUSS OVERLAY -->
+  <div class="abschluss-overlay" id="abschlussOverlay">
+    <div class="abschluss-head">
+      <div>
+        <div class="abschluss-title">Das haben wir heute vereinbart</div>
+        <div class="abschluss-sub" id="abschlussName"></div>
+      </div>
+      <button class="btn-back-to-steps" onclick="goBack()">← Zurück zu den Schritten</button>
+    </div>
+    <div class="abschluss-grid" id="abschlussGrid"></div>
+    <div class="abschluss-foot">
+      <div style="font-size:0.48vw;font-weight:600;color:rgba(255,255,255,0.3);">bbz bank st.gallen · Beratungsgespräch</div>
+      <button class="btn-neu-start" onclick="resetAll()">Neues Gespräch starten</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-copy">bbz st.gallen ag © 2026</span>
+  <div class="footer-saved"><span class="dot-live"></span>Automatisch gespeichert</div>
+</footer>
+
+</div><!-- /canvas -->
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'bbzData';
+const MOD_KEY     = 'vereinbarungen_v1';
+
+const SPARTEN = ['Zahlen','Sparen','Vorsorgen','Anlegen','Finanzieren','Sonstiges'];
+
+const REIFEGRADE = [
+  { id: 'ueberblick',  label: 'Überblick schaffen' },
+  { id: 'optionen',   label: 'Optionen prüfen' },
+  { id: 'entscheid',  label: 'Entscheidung treffen' },
+  { id: 'umsetzung',  label: 'Umsetzung starten' },
+  { id: 'optimieren', label: 'Bestehendes optimieren' },
+]; 
+
+// Suggestion map: vollständige Matrix 6 Themen × 5 Attribute = 30 Kombinationen
+const SUGGESTIONS = {
+  // ── ZAHLEN ──
+  'Zahlen|ueberblick':   'Überblick über Konten, Zahlungsverkehr und laufende Kosten schaffen',
+  'Zahlen|optionen':     'Möglichkeiten zur Vereinfachung des Zahlungsverkehrs und der Kontostruktur prüfen',
+  'Zahlen|entscheid':    'Passende Konto- und Kartenlösung auswählen und Entscheid festhalten',
+  'Zahlen|umsetzung':    'Passende Kontolösung eröffnen und in Betrieb nehmen',
+  'Zahlen|optimieren':   'Bestehende Kontostruktur vereinfachen und Kontoführungskosten optimieren',
+
+  // ── SPAREN ──
+  'Sparen|ueberblick':   'Sparverhalten und mögliche Sparlösungen im Überblick besprechen',
+  'Sparen|optionen':     'Verschiedene Sparmöglichkeiten und Zinskonditionen vergleichen',
+  'Sparen|entscheid':    'Passende Sparlösung und Zielbetrag festlegen',
+  'Sparen|umsetzung':    'Sparplan konkret starten und Dauerauftrag einrichten',
+  'Sparen|optimieren':   'Bestehende Sparlösung an das heutige Sparziel anpassen',
+
+  // ── VORSORGEN ──
+  'Vorsorgen|ueberblick':  'Überblick über die heutige Vorsorgesituation und mögliche Handlungsfelder schaffen',
+  'Vorsorgen|optionen':    'Vorsorgemöglichkeiten und Steueroptimierungspotenzial in der 2. und 3. Säule prüfen',
+  'Vorsorgen|entscheid':   'Passende Vorsorgelösung auswählen und Entscheid festhalten',
+  'Vorsorgen|umsetzung':   'Vorsorgelösung konkret einrichten und ersten Einzahlungsauftrag auslösen',
+  'Vorsorgen|optimieren':  'Zusätzliches 3a-Konto zur Verbesserung der Steuersituation einrichten',
+
+  // ── ANLEGEN ──
+  'Anlegen|ueberblick':   'Überblick über bestehende Anlagen, Risikoprofil und mögliche Optimierungen schaffen',
+  'Anlegen|optionen':     'Anlagemöglichkeiten und passendes Risikoprofil gemeinsam prüfen',
+  'Anlegen|entscheid':    'Bevorzugte Anlagestrategie eingrenzen und Entscheid vorbereiten',
+  'Anlegen|umsetzung':    'Anlagelösung konkret einrichten und ersten Schritt auslösen',
+  'Anlegen|optimieren':   'Bestehende Anlagelösung an heutiges Zielbild und Risikoprofil anpassen',
+
+  // ── FINANZIEREN ──
+  'Finanzieren|ueberblick':  'Finanzierungssituation, Tragbarkeit und mögliche Varianten transparent machen',
+  'Finanzieren|optionen':    'Hypothekarvarianten, Laufzeiten und Konditionen vergleichen',
+  'Finanzieren|entscheid':   'Bevorzugte Finanzierungsvariante festlegen und nächste Schritte definieren',
+  'Finanzieren|umsetzung':   'Finanzierungsantrag auslösen und notwendige Unterlagen zusammenstellen',
+  'Finanzieren|optimieren':  'Bestehende Hypothek auf Optimierungspotenzial bei Verlängerung oder Umstrukturierung prüfen',
+
+  // ── SONSTIGES ──
+  'Sonstiges|ueberblick':   'Überblick über die besprochenen Themen und offene Punkte schaffen',
+  'Sonstiges|optionen':     'Mögliche Lösungsansätze zum besprochenen Thema prüfen',
+  'Sonstiges|entscheid':    'Entscheid zum besprochenen Punkt festhalten',
+  'Sonstiges|umsetzung':    'Nächste konkrete Massnahme einleiten',
+  'Sonstiges|optimieren':   'Bestehende Lösung überprüfen und Verbesserungspotenzial identifizieren',
+};
+
+const WANN_CHIPS = [
+  { id: 'woche',  label: 'Diese Woche' },
+  { id: 'monat',  label: 'Diesen Monat' },
+  { id: 'jahr',   label: 'Dieses Jahr' },
+];
+
+const PRIO_ORDER = { sofort: 0, demnaechst: 1, gelegentlich: 2 };
+
+function wannChipLabel(id) { return WANN_CHIPS.find(c => c.id === id)?.label || ''; }
+function prioBadgeClass(p) { return p === 'sofort' ? 'sofort' : p === 'demnaechst' ? 'demnaechst' : p === 'gelegentlich' ? 'gelegentlich' : ''; }
+function prioLabel(p)      { return p === 'sofort' ? 'Sofort' : p === 'demnaechst' ? 'Demnächst' : p === 'gelegentlich' ? 'Gelegentlich' : '–'; }
+
+// Default action suggestions for next steps
+const DEFAULT_ACTIONS = {
+  'Vorsorgen':   'Unterlagen sichten und Eröffnung vorbereiten',
+  'Anlegen':     'Depoteröffnung oder Zeichnung koordinieren',
+  'Finanzieren': 'Offerte erstellen und Unterlagen einfordern',
+  'Sparen':      'Sparauftrag einrichten',
+  'Zahlen':      'Kontoeröffnung auslösen',
+  'Sonstiges':   'Nächste Massnahme konkretisieren',
+};
+
+let phase = 1; // 1=erfassen, 2=priorisieren, 3=schritte, 4=abschluss
+let editingId = null;
+let selectedSparte = null;
+let selectedReifegrad = null;
+
+let agreements = [];
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d[MOD_KEY] && Array.isArray(d[MOD_KEY].agreements)) {
+        agreements = d[MOD_KEY].agreements.map(a => ({
+          id: a.id || uid(),
+          sparte: a.sparte || '',
+          reifegrad: a.reifegrad || '',
+          reifegradLabel: a.reifegradLabel || '',
+          text: a.text || '',
+          prioritaet: a.prioritaet || null,
+          stepWer: a.stepWer || 'Berater:in',
+          stepWas: a.stepWas || '',
+          stepWann: a.stepWann || '',
+          stepWannChip: a.stepWannChip || null,
+          keineAktivitaet: a.keineAktivitaet || false,
+          keineAktivitaetGrund: a.keineAktivitaetGrund || '',
+          extraSteps: Array.isArray(a.extraSteps) ? a.extraSteps.map(s => ({
+            wer: s.wer || 'Berater:in',
+            was: s.was || '',
+            wann: s.wann || '',
+            wannChip: s.wannChip || null,
+          })) : [],
+        }));
+        phase = d[MOD_KEY].phase || 1;
+        if (phase > 3) phase = 3;
+      }
+      // Berater name for abschluss
+      if (d.beraterName) window._beraterName = d.beraterName;
+      // Restore hero image
+      if (d.vereinbarungenHeroImage) {
+        document.getElementById('phaseImg').src = d.vereinbarungenHeroImage;
+      }
+    }
+  } catch(e) {}
+
+  // Image upload handler
+  document.getElementById('phaseImgInput').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('phaseImg').src = e.target.result;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const d = raw ? JSON.parse(raw) : {};
+        d.vereinbarungenHeroImage = e.target.result;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+      } catch(err) {}
+    };
+    reader.readAsDataURL(file);
+    this.value = '';
+  });
+
+  renderChips();
+  updateLivePreview();
+  renderAgreementList();
+  applyPhase(false);
+})();
+
+// ─── SAVE ─────────────────────────────────────────────────────────────────────
+function save() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const d = raw ? JSON.parse(raw) : {};
+    d[MOD_KEY] = { agreements, phase };
+    // expose for other modules: flat list of vereinbarungen
+    d.vereinbarungen = agreements.map(a => ({
+      sparte: a.sparte, reifegrad: a.reifegrad, text: a.text,
+      prioritaet: a.prioritaet,
+      stepWer: a.stepWer, stepWas: a.stepWas, stepWann: a.stepWann,
+      keineAktivitaet: a.keineAktivitaet, keineAktivitaetGrund: a.keineAktivitaetGrund,
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  } catch(e) {}
+}
+
+// ─── UID ──────────────────────────────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ─── CHIP RENDERING ───────────────────────────────────────────────────────────
+function renderChips() {
+  const sc = document.getElementById('sparteChips');
+  const rc = document.getElementById('reifegradChips');
+  const wrap = document.getElementById('reifegradWrap');
+  sc.innerHTML = '';
+  rc.innerHTML = '';
+
+  SPARTEN.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (selectedSparte === s ? ' sel-sparte' : '');
+    btn.textContent = s;
+    btn.onclick = () => {
+      if (selectedSparte === s) {
+        // deselect — reset both
+        selectedSparte = null;
+        selectedReifegrad = null;
+      } else {
+        selectedSparte = s;
+        // reset reifegrad when switching theme
+        selectedReifegrad = null;
+      }
+      renderChips(); updateLivePreview(); updateHint(); updateAddBtn();
+    };
+    sc.appendChild(btn);
+  });
+
+  // Show/hide reifegrad section
+  wrap.style.display = selectedSparte ? 'flex' : 'none';
+
+  REIFEGRADE.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (selectedReifegrad === r.id ? ' sel-reifegrad' : '');
+    btn.textContent = r.label;
+    btn.onclick = () => {
+      selectedReifegrad = selectedReifegrad === r.id ? null : r.id;
+      renderChips(); updateLivePreview(); updateHint(); updateAddBtn();
+    };
+    rc.appendChild(btn);
+  });
+}
+
+function updateLivePreview() {
+  const row = document.getElementById('livePreviewRow');
+  const empty = document.getElementById('livePreviewEmpty');
+  // remove old tags
+  row.querySelectorAll('.tag').forEach(t => t.remove());
+  const arrow = row.querySelector('.live-preview-arrow');
+  if (arrow) arrow.remove();
+
+  if (!selectedSparte && !selectedReifegrad) {
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const arr = document.createElement('span');
+  arr.className = 'live-preview-arrow';
+  arr.textContent = '→';
+  row.insertBefore(arr, row.firstChild);
+
+  if (selectedSparte) {
+    const t = document.createElement('span');
+    t.className = 'tag tag-sparte';
+    t.textContent = selectedSparte;
+    row.appendChild(t);
+  }
+  if (selectedReifegrad) {
+    const label = REIFEGRADE.find(r => r.id === selectedReifegrad)?.label || selectedReifegrad;
+    const t = document.createElement('span');
+    t.className = 'tag tag-reifegrad';
+    t.textContent = label;
+    row.appendChild(t);
+  }
+}
+
+function updateHint() {
+  const hint = document.getElementById('hintText');
+  const textarea = document.getElementById('vereinbarungText');
+  if (!selectedSparte || !selectedReifegrad) {
+    hint.textContent = 'Thema und Fokus wählen für einen Formulierungsvorschlag.';
+    hint.className = 'hint-text';
+    hint.onclick = null;
+    textarea.placeholder = 'z. B. Zusätzliches 3a-Konto zur Verbesserung der Steuersituation einrichten';
+    return;
+  }
+  const key = `${selectedSparte}|${selectedReifegrad}`;
+  const sug = SUGGESTIONS[key];
+  if (sug) {
+    // Set placeholder to suggestion so it's visible before clicking
+    textarea.placeholder = sug;
+    hint.textContent = '→ Vorschlag übernehmen';
+    hint.className = 'hint-text has-hint';
+    hint.onclick = () => {
+      textarea.value = sug;
+      updateAddBtn();
+    };
+  } else {
+    textarea.placeholder = 'Vereinbarung in eigenen Worten formulieren…';
+    hint.textContent = 'Frei formulieren.';
+    hint.className = 'hint-text';
+    hint.onclick = null;
+  }
+}
+
+function updateAddBtn() {
+  const txt = document.getElementById('vereinbarungText').value.trim();
+  const btn = document.getElementById('addBtn');
+  const enabled = selectedSparte && selectedReifegrad && txt.length > 0;
+  btn.disabled = !enabled;
+  if (editingId) {
+    btn.textContent = '';
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg> Änderung speichern';
+  } else {
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg> Festhalten';
+  }
+}
+
+// ─── TEXTAREA LISTENER ────────────────────────────────────────────────────────
+document.getElementById('vereinbarungText').addEventListener('input', updateAddBtn);
+
+// ─── AGREEMENT CRUD ───────────────────────────────────────────────────────────
+document.getElementById('addBtn').onclick = () => {
+  const text = document.getElementById('vereinbarungText').value.trim();
+  if (!selectedSparte || !selectedReifegrad || !text) return;
+
+  const reifegradLabel = REIFEGRADE.find(r => r.id === selectedReifegrad)?.label || selectedReifegrad;
+
+  if (editingId) {
+    const item = agreements.find(a => a.id === editingId);
+    if (item) {
+      item.sparte = selectedSparte;
+      item.reifegrad = selectedReifegrad;
+      item.reifegradLabel = reifegradLabel;
+      item.text = text;
+    }
+    editingId = null;
+    document.getElementById('editingBadge').style.display = 'none';
+  } else {
+    agreements.push({
+      id: uid(),
+      sparte: selectedSparte,
+      reifegrad: selectedReifegrad,
+      reifegradLabel: reifegradLabel,
+      text: text,
+      prioritaet: null,
+      stepWer: 'Berater:in',
+      stepWas: '',
+      stepWann: '',
+      stepWannChip: null,
+      keineAktivitaet: false,
+      keineAktivitaetGrund: '',
+      extraSteps: [],
+    });
+  }
+
+  resetForm(false);
+  renderAgreementList();
+  updatePhaseButton();
+  save();
+};
+
+document.getElementById('resetBtn').onclick = () => {
+  if (editingId) {
+    // cancelling edit — no confirm needed
+    editingId = null;
+    document.getElementById('editingBadge').style.display = 'none';
+    resetForm(true);
+  } else if (document.getElementById('vereinbarungText').value.trim()) {
+    if (!confirm('Eingabe verwerfen?')) return;
+    resetForm(true);
+  } else {
+    resetForm(true);
+  }
+};
+
+function resetForm(clearAll) {
+  if (clearAll) { selectedSparte = null; selectedReifegrad = null; }
+  document.getElementById('vereinbarungText').value = '';
+  renderChips();
+  updateLivePreview();
+  updateHint();
+  updateAddBtn();
+}
+
+function editAgreement(id) {
+  const item = agreements.find(a => a.id === id);
+  if (!item) return;
+  editingId = id;
+  selectedSparte = item.sparte;
+  selectedReifegrad = item.reifegrad;
+  document.getElementById('vereinbarungText').value = item.text;
+  document.getElementById('editingBadge').style.display = '';
+  renderChips();
+  updateHint();
+  updateAddBtn();
+  // scroll to top of left panel
+  document.getElementById('agreementList').scrollTop = 0;
+}
+
+function deleteAgreement(id) {
+  agreements = agreements.filter(a => a.id !== id);
+  if (editingId === id) { editingId = null; document.getElementById('editingBadge').style.display='none'; resetForm(true); }
+  renderAgreementList();
+  updatePhaseButton();
+  save();
+}
+
+// ─── RENDER AGREEMENT LIST ────────────────────────────────────────────────────
+function renderAgreementList() {
+  const list = document.getElementById('agreementList');
+  const empty = document.getElementById('emptyState');
+
+  // remove old cards but keep empty state
+  Array.from(list.children).forEach(c => { if (c !== empty) c.remove(); });
+
+  if (agreements.length === 0) {
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  agreements.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'v-card' + (editingId === item.id ? ' editing' : '');
+    card.innerHTML = `
+      <div class="v-card-body">
+        <div class="v-card-tags">
+          <span class="tag tag-sparte">${item.sparte}</span>
+          <span class="tag tag-reifegrad">${item.reifegradLabel}</span>
+        </div>
+        <div class="v-card-text">${escHtml(item.text)}</div>
+      </div>
+      <div class="v-card-actions">
+        <button class="btn-icon-sm" title="Bearbeiten" onclick="editAgreement('${item.id}')">✎</button>
+        <button class="btn-icon-sm del" title="Löschen" onclick="deleteAgreement('${item.id}')">✕</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// ─── PHASE NAVIGATION ─────────────────────────────────────────────────────────
+function updatePhaseButton() {
+  const btn = document.getElementById('btnForward');
+  if (phase === 1) {
+    btn.disabled = agreements.length === 0;
+    btn.style.opacity = agreements.length === 0 ? '0.4' : '1';
+  }
+}
+
+function goForward() {
+  if (phase === 1) {
+    if (agreements.length === 0) return;
+    phase = 2;
+    save();
+    applyPhase(true);
+  } else if (phase === 2) {
+    const allPrio = agreements.every(a => a.prioritaet !== null);
+    if (!allPrio) {
+      // highlight unprioritised — just proceed anyway (UX: don't block)
+    }
+    phase = 3;
+    save();
+    applyPhase(true);
+  } else if (phase === 3) {
+    phase = 4;
+    save();
+    applyPhase(true);
+  }
+}
+
+function goBack() {
+  if (phase === 4) { phase = 3; applyPhase(true); return; }
+  if (phase === 3) { phase = 2; save(); applyPhase(true); return; }
+  if (phase === 2) { phase = 1; save(); applyPhase(true); }
+}
+
+function applyPhase(animate) {
+  const phaseLocked = document.getElementById('phaseLocked');
+  const prioList    = document.getElementById('prioList');
+  const stepsList   = document.getElementById('stepsList');
+  const abschluss   = document.getElementById('abschlussOverlay');
+  const dot1 = document.getElementById('dot1');
+  const dot2 = document.getElementById('dot2');
+  const dot3 = document.getElementById('dot3');
+  const phLabel = document.getElementById('phaseLabel');
+  const btnBack = document.getElementById('btnBack');
+  const btnFwd  = document.getElementById('btnForward');
+  const rightTitle = document.getElementById('rightTitle');
+  const rightSub   = document.getElementById('rightSub');
+
+  // Abschluss overlay
+  if (phase === 4) {
+    abschluss.classList.add('visible');
+    renderAbschluss();
+    return;
+  }
+  abschluss.classList.remove('visible');
+
+  // Show/hide right panel header
+  const rightHead = document.getElementById('rightPanelHead');
+  if (rightHead) rightHead.style.display = phase === 1 ? 'none' : '';
+
+  // Action bar image mode
+  const actionBar = document.getElementById('rightActionBar');
+  if (actionBar) actionBar.classList.toggle('on-image', phase === 1);
+
+  // Phase states
+  phaseLocked.style.display = phase === 1 ? 'flex' : 'none';
+  prioList.style.display    = phase === 2 ? 'flex' : 'none';
+  stepsList.style.display   = phase === 3 ? 'flex' : 'none';
+
+  // Dots
+  dot1.className = 'ph-dot ' + (phase === 1 ? 'active' : 'done');
+  dot2.className = 'ph-dot ' + (phase === 2 ? 'active' : phase > 2 ? 'done' : '');
+  dot3.className = 'ph-dot ' + (phase === 3 ? 'active' : '');
+
+  // Titles & labels
+  if (phase === 1) {
+    rightTitle.textContent = 'Wie gehen wir weiter?';
+    rightSub.textContent   = 'Erst alle Vereinbarungen erfassen, dann priorisieren';
+    phLabel.textContent    = 'Schritt 1 von 3 – Vereinbarungen erfassen';
+    btnBack.style.display  = 'none';
+    btnFwd.textContent     = 'Bereit zur Priorisierung →';
+    updatePhaseButton();
+  } else if (phase === 2) {
+    rightTitle.textContent = 'Was ist am wichtigsten?';
+    rightSub.textContent   = 'Jede Vereinbarung einordnen – Zeitgefühl leitet die Priorisierung';
+    phLabel.textContent    = 'Schritt 2 von 3 – Priorisierung';
+    btnBack.style.display  = '';
+    btnFwd.textContent     = 'Weiter zu den nächsten Schritten →';
+    btnFwd.disabled = false; btnFwd.style.opacity = '1';
+    renderPrioList();
+  } else if (phase === 3) {
+    rightTitle.textContent = 'Wie geht es konkret weiter?';
+    rightSub.textContent   = 'Wer macht was bis wann – nach Priorität sortiert';
+    phLabel.textContent    = 'Schritt 3 von 3 – Nächste Schritte';
+    btnBack.style.display  = '';
+    btnFwd.textContent     = 'Gespräch abschliessen →';
+    btnFwd.disabled = false; btnFwd.style.opacity = '1';
+    renderStepsList();
+  }
+}
+
+// ─── PRIO LIST ────────────────────────────────────────────────────────────────
+function renderPrioList() {
+  const container = document.getElementById('prioList');
+  container.innerHTML = '';
+
+  agreements.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'prio-card';
+    card.innerHTML = `
+      <div class="prio-card-body">
+        <div class="prio-tags">
+          <span class="tag tag-sparte">${item.sparte}</span>
+          <span class="tag tag-reifegrad">${item.reifegradLabel}</span>
+        </div>
+        <div class="prio-text">${escHtml(item.text)}</div>
+      </div>
+      <div class="prio-btns">
+        <button class="prio-btn${item.prioritaet==='sofort'?' sel-sofort':''}" onclick="setPrio('${item.id}','sofort',this)">Sofort</button>
+        <button class="prio-btn${item.prioritaet==='demnaechst'?' sel-demnaechst':''}" onclick="setPrio('${item.id}','demnaechst',this)">Demnächst</button>
+        <button class="prio-btn${item.prioritaet==='gelegentlich'?' sel-gelegentlich':''}" onclick="setPrio('${item.id}','gelegentlich',this)">Gelegentlich</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function setPrio(id, prio, btn) {
+  const item = agreements.find(a => a.id === id);
+  if (!item) return;
+  item.prioritaet = item.prioritaet === prio ? null : prio;
+  save();
+  // re-render just the buttons in this card
+  const card = btn.closest('.prio-card');
+  const btns = card.querySelectorAll('.prio-btn');
+  btns[0].className = 'prio-btn' + (item.prioritaet==='sofort'?' sel-sofort':'');
+  btns[1].className = 'prio-btn' + (item.prioritaet==='demnaechst'?' sel-demnaechst':'');
+  btns[2].className = 'prio-btn' + (item.prioritaet==='gelegentlich'?' sel-gelegentlich':'');
+}
+
+// ─── STEPS LIST ───────────────────────────────────────────────────────────────
+function sortedAgreements() {
+  return [...agreements].sort((a,b) => (PRIO_ORDER[a.prioritaet]??3) - (PRIO_ORDER[b.prioritaet]??3));
+}
+
+function makeStepFields(item, stepIdx, wer_options) {
+  // stepIdx 0 = main step, 1-2 = extra steps
+  const isMain = stepIdx === 0;
+  const wer  = isMain ? item.stepWer      : (item.extraSteps[stepIdx-1]?.wer  || 'Berater:in');
+  const was  = isMain ? item.stepWas      : (item.extraSteps[stepIdx-1]?.was  || '');
+  const wann = isMain ? item.stepWann     : (item.extraSteps[stepIdx-1]?.wann || '');
+  const chip = isMain ? item.stepWannChip : (item.extraSteps[stepIdx-1]?.wannChip || null);
+  const sid  = `${item.id}_${stepIdx}`;
+  const defaultAction = DEFAULT_ACTIONS[item.sparte] || 'Nächste Massnahme festhalten';
+
+  return `
+    <div class="step-fields" id="stepFields_${sid}" ${item.keineAktivitaet?'style="opacity:0.35;pointer-events:none;"':''}>
+      <div class="step-field">
+        <label>Wer</label>
+        <select onchange="updateStepField('${item.id}',${stepIdx},'wer',this.value)">
+          ${wer_options.map(w => `<option value="${escAttr(w)}" ${wer===w?'selected':''}>${escHtml(w)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="step-field">
+        <label>Was</label>
+        <input type="text" value="${escAttr(was)}" placeholder="${escAttr(defaultAction)}"
+          oninput="updateStepField('${item.id}',${stepIdx},'was',this.value)">
+      </div>
+      <div class="step-field">
+        <label>Wann</label>
+        <div class="wann-chips">
+          ${WANN_CHIPS.map(c => `<button class="wann-chip${chip===c.id?' sel':''}" onclick="setWannChipEx('${item.id}',${stepIdx},'${c.id}',this)">${c.label}</button>`).join('')}
+        </div>
+        <div class="wann-date-opt">
+          <span class="wann-date-label">Datum (optional)</span>
+          <input type="date" class="wann-date-input" value="${escAttr(wann)}"
+            onchange="updateStepField('${item.id}',${stepIdx},'wann',this.value)">
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderStepsList() {
+  const container = document.getElementById('stepsList');
+  container.innerHTML = '';
+  const beraterName = window._beraterName || 'Berater:in';
+  const wer_options = [beraterName, 'Kund:in', 'Gemeinsam'];
+
+  sortedAgreements().forEach(item => {
+    if (!item.extraSteps) item.extraSteps = [];
+    const totalSteps = 1 + item.extraSteps.length;
+    const canAdd = totalSteps < 3;
+
+    const card = document.createElement('div');
+    card.className = 'step-card';
+
+    // Header
+    let html = `
+      <div class="step-card-head">
+        <div class="step-card-meta">
+          <div class="step-card-tags">
+            <span class="tag tag-sparte">${item.sparte}</span>
+            <span class="tag tag-reifegrad">${item.reifegradLabel}</span>
+            ${item.prioritaet ? `<span class="prio-badge ${prioBadgeClass(item.prioritaet)}">${prioLabel(item.prioritaet)}</span>` : ''}
+          </div>
+          <div class="step-card-text">${escHtml(item.text)}</div>
+        </div>
+      </div>`;
+
+    // No-action toggle
+    html += `
+      <div class="no-action-wrap">
+        <input type="checkbox" id="na_${item.id}" ${item.keineAktivitaet?'checked':''}
+          onchange="toggleNoAction('${item.id}',this.checked)">
+        <label for="na_${item.id}">Kein Handlungsbedarf momentan</label>
+        <input type="text" class="no-action-reason" placeholder="Notiz oder Wiedervorlage…"
+          value="${escAttr(item.keineAktivitaetGrund)}"
+          style="${item.keineAktivitaet?'':'display:none;'}"
+          oninput="updateStep('${item.id}','keineAktivitaetGrund',this.value)"
+          id="naReason_${item.id}">
+      </div>`;
+
+    // Step 1 (main)
+    if (totalSteps > 1) {
+      html += `<div class="step-num-row"><span class="step-num">Schritt 1</span><div class="step-num-divider"></div></div>`;
+    }
+    html += makeStepFields(item, 0, wer_options);
+
+    // Extra steps
+    item.extraSteps.forEach((_, i) => {
+      const stepIdx = i + 1;
+      html += `
+        <div class="step-num-row">
+          <span class="step-num">Schritt ${stepIdx + 1}</span>
+          <div class="step-num-divider"></div>
+          <button class="btn-remove-step" onclick="removeExtraStep('${item.id}',${i})">✕</button>
+        </div>`;
+      html += makeStepFields(item, stepIdx, wer_options);
+    });
+
+    // Add step button
+    if (!item.keineAktivitaet) {
+      html += `<button class="btn-add-step" onclick="addExtraStep('${item.id}')" ${canAdd?'':'disabled'}>
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
+        ${canAdd ? 'Schritt hinzufügen' : 'Max. 3 Schritte erreicht'}
+      </button>`;
+    }
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+}
+
+function setWannChipEx(id, stepIdx, chipId, btn) {
+  const item = agreements.find(a => a.id === id);
+  if (!item) return;
+  if (stepIdx === 0) {
+    item.stepWannChip = item.stepWannChip === chipId ? null : chipId;
+  } else {
+    if (!item.extraSteps[stepIdx-1]) return;
+    item.extraSteps[stepIdx-1].wannChip = item.extraSteps[stepIdx-1].wannChip === chipId ? null : chipId;
+  }
+  save();
+  // update chip buttons within this step-fields block
+  const sid = `${id}_${stepIdx}`;
+  const fields = document.getElementById('stepFields_' + sid);
+  if (fields) {
+    fields.querySelectorAll('.wann-chip').forEach((b, i) => {
+      b.className = 'wann-chip' + (WANN_CHIPS[i].id === (stepIdx === 0 ? item.stepWannChip : item.extraSteps[stepIdx-1].wannChip) ? ' sel' : '');
+    });
+  }
+}
+
+// Keep legacy setWannChip alias for safety
+function setWannChip(id, chipId, btn) { setWannChipEx(id, 0, chipId, btn); }
+
+function updateStepField(id, stepIdx, field, value) {
+  const item = agreements.find(a => a.id === id);
+  if (!item) return;
+  if (stepIdx === 0) {
+    const map = { wer: 'stepWer', was: 'stepWas', wann: 'stepWann' };
+    item[map[field]] = value;
+  } else {
+    if (!item.extraSteps[stepIdx-1]) return;
+    item.extraSteps[stepIdx-1][field] = value;
+  }
+  save();
+}
+
+function updateStep(id, field, value) {
+  const item = agreements.find(a => a.id === id);
+  if (item) { item[field] = value; save(); }
+}
+
+function addExtraStep(id) {
+  const item = agreements.find(a => a.id === id);
+  if (!item || item.extraSteps.length >= 2) return;
+  item.extraSteps.push({ wer: 'Berater:in', was: '', wann: '', wannChip: null });
+  save();
+  renderStepsList();
+}
+
+function removeExtraStep(id, idx) {
+  const item = agreements.find(a => a.id === id);
+  if (!item) return;
+  item.extraSteps.splice(idx, 1);
+  save();
+  renderStepsList();
+}
+
+function toggleNoAction(id, checked) {
+  const item = agreements.find(a => a.id === id);
+  if (!item) return;
+  item.keineAktivitaet = checked;
+  if (!checked) item.keineAktivitaetGrund = '';
+  save();
+  renderStepsList();
+}
+
+// ─── ABSCHLUSS ────────────────────────────────────────────────────────────────
+function renderAbschluss() {
+  const grid = document.getElementById('abschlussGrid');
+  const nameEl = document.getElementById('abschlussName');
+  nameEl.textContent = window._beraterName ? `Beratung mit ${window._beraterName}` : 'Beratungsgespräch';
+
+  // Build two-column structure: left=Vereinbarungen, right=Nächste Schritte
+  const sorted = sortedAgreements();
+  let html = '';
+  html += '<div class="abschluss-col-head">Was wir festgehalten haben</div>';
+  html += '<div class="abschluss-col-head">Wie es weitergeht</div>';
+
+  sorted.forEach(item => {
+    const beraterName = window._beraterName || 'Berater:in';
+    const was = item.stepWas || DEFAULT_ACTIONS[item.sparte] || '–';
+    const wann = item.stepWannChip ? wannChipLabel(item.stepWannChip) + (item.stepWann ? ', ' + fmtDate(item.stepWann) : '') : (item.stepWann ? fmtDate(item.stepWann) : '–');
+    const wer = item.stepWer || beraterName;
+
+    html += `<div class="abschluss-item">
+      <div class="abschluss-item-tags">
+        <span class="tag-white">${item.sparte}</span>
+        <span class="tag-white">${item.reifegradLabel}</span>
+        ${item.prioritaet ? `<span class="tag-white">${prioLabel(item.prioritaet)}</span>` : ''}
+      </div>
+      <div class="abschluss-item-text">${escHtml(item.text)}</div>
+    </div>`;
+
+    if (item.keineAktivitaet) {
+      html += `<div class="abschluss-item">
+        <div class="abschluss-item-text" style="color:rgba(255,255,255,0.5);font-style:italic;">Kein Handlungsbedarf momentan</div>
+        ${item.keineAktivitaetGrund ? `<div class="abschluss-item-step">${escHtml(item.keineAktivitaetGrund)}</div>` : ''}
+      </div>`;
+    } else {
+      const allSteps = [
+        { wer: item.stepWer||beraterName, was: item.stepWas||DEFAULT_ACTIONS[item.sparte]||'–', wann: item.stepWannChip ? wannChipLabel(item.stepWannChip)+(item.stepWann?', '+fmtDate(item.stepWann):'') : (item.stepWann?fmtDate(item.stepWann):'–') },
+        ...(item.extraSteps||[]).map(s => ({ wer: s.wer||beraterName, was: s.was||'–', wann: s.wannChip ? wannChipLabel(s.wannChip)+(s.wann?', '+fmtDate(s.wann):'') : (s.wann?fmtDate(s.wann):'–') }))
+      ];
+      const showNums = allSteps.length > 1;
+      html += `<div class="abschluss-item">`;
+      allSteps.forEach((s, i) => {
+        if (showNums) html += `<div style="font-size:0.42vw;font-weight:900;color:rgba(255,255,255,0.4);margin-bottom:0.2vh;${i>0?'margin-top:0.6vh;border-top:1px solid rgba(255,255,255,0.08);padding-top:0.5vh;':''}">SCHRITT ${i+1}</div>`;
+        html += `<div class="abschluss-item-step"><strong>Was:</strong> ${escHtml(s.was)}</div>
+        <div class="abschluss-item-step"><strong>Wer:</strong> ${escHtml(s.wer)}</div>
+        <div class="abschluss-item-step"><strong>Wann:</strong> ${s.wann}</div>`;
+      });
+      html += `</div>`;
+    }
+  });
+
+  grid.innerHTML = html;
+}
+
+function resetAll() {
+  agreements = [];
+  phase = 1;
+  editingId = null;
+  selectedSparte = null;
+  selectedReifegrad = null;
+  save();
+  renderChips();
+  updateHint();
+  updateAddBtn();
+  renderAgreementList();
+  applyPhase(false);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function escHtml(s) { return String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escAttr(s) { return escHtml(s||''); }
+function fmtDate(d) {
+  if (!d) return '–';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('de-CH', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+// Init forward button state
+updatePhaseButton();
+</script>
+</body>
+</html>

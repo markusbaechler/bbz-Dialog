@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bbz bank – Eigenheimfinanzierung</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:    #004078;
+  --blue-dk: #002d57;
+  --blue-lt: #dce8f4;
+  --red:     #950e13;
+  --green:   #15803d;
+  --amber:   #b45309;
+  --ink:     #0f172a;
+  --ink-2:   #334155;
+  --ink-3:   #64748b;
+  --ink-4:   #94a3b8;
+  --surface: #ffffff;
+  --bg:      #f1f5f9;
+  --line:    #e2e8f0;
+  --font:    'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--blue-dk);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; overflow: hidden;
+}
+
+.canvas {
+  width: 95vw; aspect-ratio: 16/9; max-height: 95vh;
+  background: var(--bg);
+  display: grid; grid-template-rows: 6vh 1fr 4vh;
+  overflow: hidden;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.55);
+}
+
+/* TOPBAR */
+.topbar {
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2vw 0 2.2vw; gap: 1vw;
+}
+.logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
+.logo-mark {
+  width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
+  font-size: 0.68vw; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; border-radius: 3px;
+}
+.logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
+
+.mod-nav {
+  display: flex; align-items: center; gap: 0.15vw;
+  flex: 1; justify-content: center; overflow: hidden;
+}
+.mod-chip {
+  display: flex; align-items: center; gap: 0.2vw;
+  padding: 0.3vh 0.48vw; border-radius: 4px;
+  font-size: 0.52vw; font-weight: 700;
+  color: rgba(255,255,255,0.35); text-decoration: none;
+  white-space: nowrap; transition: color 0.15s, background 0.15s; flex-shrink: 0;
+}
+.mod-chip:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.07); }
+.mod-chip.active { background: white; color: var(--blue); }
+.chip-num { font-size: 0.44vw; font-weight: 900; opacity: 0.55; }
+.mod-chip.active .chip-num { opacity: 0.45; }
+.nav-sep { width: 1px; height: 1.8vh; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 0.18vw; }
+.topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; flex-shrink: 0; }
+.gear-btn {
+  background: rgba(255,255,255,0.1); border: none; border-radius: 5px;
+  padding: 0.42vh 0.42vw; cursor: pointer; color: white;
+  display: flex; align-items: center; transition: background 0.15s; flex-shrink: 0;
+}
+.gear-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* MAIN */
+.main { display: grid; grid-template-columns: 15.5vw 1fr; overflow: hidden; min-height: 0; }
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+}
+.sb-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 1.1vh 1vw 1vh;
+  display: flex; flex-direction: column; gap: 0.65vh;
+}
+.sb-scroll::-webkit-scrollbar { width: 3px; }
+.sb-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+
+.tab-sw {
+  display: flex; gap: 2px;
+  background: var(--bg); border-radius: 5px; padding: 2px;
+  flex-shrink: 0; margin-bottom: 0.2vh;
+}
+.tab-btn {
+  flex: 1; padding: 0.55vh 0;
+  font-size: 0.62vw; font-weight: 700;
+  border: none; background: none; cursor: pointer;
+  border-radius: 4px; color: var(--ink-3);
+  transition: all 0.15s; font-family: var(--font);
+}
+.tab-btn.on { background: white; color: var(--blue); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.sec-lbl {
+  font-size: 0.5vw; font-weight: 800; color: var(--blue);
+  display: flex; align-items: center; gap: 0.3vw; margin-top: 0.15vh;
+}
+.sec-lbl::before {
+  content: ''; display: block; width: 2px; height: 1.1vh;
+  background: var(--red); border-radius: 2px;
+}
+.field { display: flex; flex-direction: column; gap: 0.1vh; }
+.field label { font-size: 0.52vw; font-weight: 700; color: var(--ink-3); }
+.f-row { display: flex; align-items: center; gap: 0.25vw; }
+.f-row input {
+  flex: 1; min-width: 0; padding: 0.38vh 0.45vw;
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 4px; font-size: 0.7vw; font-weight: 700;
+  color: var(--blue); outline: none; font-family: var(--font);
+  transition: border-color 0.15s, background 0.15s;
+}
+.f-row input:focus { border-color: var(--blue); background: white; }
+.f-row input::placeholder { color: var(--ink-4); font-style: italic; font-size: 0.6vw; font-weight: 500; }
+.f-suf { font-size: 0.5vw; font-weight: 800; color: var(--ink-4); flex-shrink: 0; }
+.f-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4vw; }
+
+/* CONTENT */
+.content { overflow: hidden; min-height: 0; position: relative; }
+.view { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+.view.hidden { display: none; }
+
+/* ANALYSE VIEW */
+#viewAnalysis { padding: 1.1vh 1.4vw 0.8vh; gap: 0.8vh; }
+
+.status-banner {
+  padding: 0.65vh 1vw; border-radius: 6px;
+  font-size: 0.66vw; font-weight: 700;
+  display: flex; align-items: center; gap: 0.5vw;
+  flex-shrink: 0; transition: all 0.3s;
+}
+.s-ok   { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.s-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+.s-crit { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.s-idle { background: var(--bg); color: var(--ink-3); border: 1px solid var(--line); }
+
+.kpi-row {
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 0.55vw; flex-shrink: 0;
+}
+.kpi {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 0.6vh 0.7vw;
+}
+.kpi-l { font-size: 0.46vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.2vh; }
+.kpi-v { font-size: 1.85vh; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; line-height: 1; }
+.kpi-s { font-size: 0.44vw; color: var(--ink-4); margin-top: 0.18vh; }
+.kpi-v.warn { color: var(--amber); }
+.kpi-v.crit { color: var(--red); }
+
+/* Three-column row: gauge | house | amort */
+.viz-amort-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.55vw; flex: 1; min-height: 0;
+}
+.viz-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 0.7vh 0.9vw;
+  display: flex; flex-direction: column; min-height: 0;
+}
+.card-title { font-size: 0.49vw; font-weight: 800; color: var(--blue); margin-bottom: 0.25vh; flex-shrink: 0; }
+.viz-body {
+  flex: 1; display: flex; align-items: center;
+  justify-content: center; min-height: 0; flex-direction: column; gap: 0.3vh;
+}
+.viz-big { font-size: 5.5vh; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+
+/* Amort card */
+.amort-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 0.8vh 1vw;
+  display: flex; flex-direction: column; min-height: 0;
+  position: relative;
+}
+.amort-top { display: flex; gap: 2vw; flex-shrink: 0; margin-bottom: 0.5vh; }
+.amort-kv { display: flex; flex-direction: column; }
+.amort-l { font-size: 0.46vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.12vh; }
+.amort-v { font-size: 1.35vh; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.amort-v.red { color: var(--ink-3); }
+.amort-bars {
+  flex: 1; display: flex; align-items: flex-end; gap: 3px;
+  border-bottom: 2px solid var(--bg); min-height: 0;
+}
+.a-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+.a-seg { width: 100%; transition: height 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+.a-lbl { font-size: 0.42vw; font-weight: 700; color: var(--ink-4); text-align: center; margin-top: 2px; }
+.amort-badge {
+  background: var(--bg); color: var(--blue);
+  font-size: 0.44vw; font-weight: 800;
+  padding: 0.22vh 0.4vw; border-radius: 3px;
+  border: 1px solid var(--line); display: inline-block;
+}
+
+/* Warnings */
+.warnings-row { display: flex; flex-direction: column; gap: 0.32vh; flex-shrink: 0; }
+.warn-pill {
+  background: #fffbeb; border: 1px solid #fef3c7;
+  padding: 0.38vh 0.7vw; border-radius: 4px;
+  font-size: 0.54vw; color: #92400e;
+  display: flex; align-items: center; gap: 0.35vw;
+}
+
+/* VARIANTS VIEW */
+#viewComparison { padding: 1.1vh 1.4vw 0.8vh; }
+.variant-grid {
+  display: grid; grid-template-columns: 1.05fr 1fr 1fr 1fr;
+  gap: 0.65vw; height: 100%;
+}
+.v-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; display: flex; flex-direction: column;
+  overflow: hidden; min-height: 0;
+  transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+}
+.v-card:hover:not(.v-ref) { transform: translateY(-3px); box-shadow: 0 10px 24px -6px rgba(0,0,0,0.12); }
+.v-ref { background: var(--bg); border-style: dashed; cursor: default; }
+.v-head {
+  padding: 0.85vh 0.8vw; background: var(--blue); color: white;
+  font-weight: 800; font-size: 0.7vw; text-align: center; flex-shrink: 0;
+}
+.v-head.ref-head { background: var(--ink-3); }
+
+.v-tranches { flex-shrink: 0; }
+.t-box { padding: 0.6vh 0.8vw; border-bottom: 1px solid var(--bg); transition: all 0.2s; }
+.t-box.inactive { display: none; }
+.t-lbl { display: flex; justify-content: space-between; font-size: 0.45vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.22vh; }
+.t-inputs { display: flex; gap: 0.22vw; margin-bottom: 0.28vh; align-items: center; }
+.t-inputs select, .t-inputs input[type=text] {
+  padding: 0.26vh 0.32vw; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 3px; font-size: 0.5vw; font-weight: 700;
+  font-family: var(--font); outline: none;
+}
+.t-inputs select { flex: 1; color: var(--blue); }
+.t-inputs input[type=text] { width: 4.4vw; color: var(--blue); }
+input[type=range] {
+  width: 100%; height: 3px; background: var(--line);
+  border-radius: 3px; appearance: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none; width: 9px; height: 9px;
+  background: var(--red); border-radius: 50%; cursor: pointer; border: 2px solid white;
+}
+
+.ref-item { padding: 0.58vh 0.8vw; border-bottom: 1px solid var(--bg); }
+.ref-item-l { font-size: 0.45vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.1vh; }
+.ref-item-v { font-size: 1.3vh; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.v-chart-area {
+  position: relative;
+  height: 17vh; flex-shrink: 0;
+  margin-top: auto;
+}
+.v-chart-area canvas {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+.v-spacer { flex: 1; min-height: 0; }
+.v-foot {
+  padding: 0.7vh 0.8vw 0.75vh;
+  border-top: 1px solid var(--line); background: var(--bg); flex-shrink: 0;
+}
+.v-foot-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.1vh; }
+.v-foot-l { font-size: 0.44vw; font-weight: 800; color: var(--ink-4); }
+.v-total { font-size: 2.1vh; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; text-align: right; }
+.v-total.ref-total { color: var(--ink-3); text-align: left; }
+.v-diff {
+  font-size: 0.58vw; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.v-diff.saving { color: var(--green); }
+.v-diff.extra  { color: var(--red); }
+
+/* MODALS */
+.modal-ov {
+  position: fixed; inset: 0; background: rgba(0,20,55,0.75);
+  backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 500;
+}
+.modal-box { background: white; border-radius: 10px; width: 34vw; padding: 2.2vh 1.8vw; box-shadow: 0 30px 60px rgba(0,0,0,0.38); }
+.modal-hd { font-size: 1.5vh; font-weight: 800; color: var(--blue); margin-bottom: 1.4vh; display: flex; justify-content: space-between; align-items: center; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--ink-4); font-size: 1.1vh; transition: color 0.15s; }
+.modal-close:hover { color: var(--red); }
+.rates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7vh 0.8vw; }
+.r-field label { font-size: 0.5vw; font-weight: 700; color: var(--ink-3); display: block; margin-bottom: 0.1vh; }
+.r-row { display: flex; align-items: center; gap: 0.25vw; }
+.r-row input { flex: 1; padding: 0.35vh 0.4vw; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; font-size: 0.65vw; font-weight: 700; color: var(--blue); font-family: var(--font); outline: none; }
+.r-suf { font-size: 0.5vw; font-weight: 800; color: var(--ink-4); }
+.modal-btn { margin-top: 1.5vh; width: 100%; padding: 0.8vh; background: var(--blue); color: white; font-size: 0.7vw; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-family: var(--font); transition: background 0.15s; }
+.modal-btn:hover { background: var(--blue-dk); }
+.detail-t { display: flex; justify-content: space-between; align-items: center; padding: 0.65vh 0.7vw; background: var(--bg); border-radius: 5px; margin-bottom: 0.4vh; }
+.dt-l { font-size: 0.5vw; font-weight: 800; color: var(--ink-4); }
+.dt-v { font-size: 1.35vh; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
+.dt-sep { height: 1px; background: var(--line); margin: 0.9vh 0; }
+
+/* FOOTER */
+.footer { background: var(--surface); border-top: 1px solid var(--line); padding: 0 3.2vw; display: flex; align-items: center; justify-content: space-between; }
+.footer-copy { font-size: 0.58vw; font-weight: 500; color: var(--ink-4); }
+.footer-live { display: flex; align-items: center; gap: 0.35vw; font-size: 0.52vw; font-weight: 700; color: #16a34a; }
+.dot-live { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
+#gaugePath,#houseFill { transition: all 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">bbz</div>
+    <span class="logo-name">Eigenheimfinanzierung</span>
+  </div>
+  <nav class="mod-nav">
+    <a href="gespraechsagenda.html"    class="mod-chip"><span class="chip-num">01</span>Agenda</a>
+    <a href="vorstellung-bank.html"    class="mod-chip"><span class="chip-num">02</span>Bank</a>
+    <a href="vorstellung-berater.html" class="mod-chip"><span class="chip-num">03</span>Berater:in</a>
+    <a href="beratungsphilosophie.html"class="mod-chip"><span class="chip-num">04</span>Philosophie</a>
+    <a href="finanz-cockpit.html"      class="mod-chip"><span class="chip-num">05</span>Cockpit</a>
+    <a href="ziele-wuensche.html"      class="mod-chip"><span class="chip-num">06</span>Ziele</a>
+    <div class="nav-sep"></div>
+    <div style="display:flex;align-items:center;gap:0.18vw;flex-shrink:0;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.22);"></div>
+        <div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);"></div>
+        <div style="display:flex;gap:5px;">
+          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
+          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <a href="tragbarkeit.html"    class="mod-chip active" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07a</span>Finanzieren</a>
+        <a href="anlegeranalyse.html" class="mod-chip"        style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07b</span>Anlegen</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <a href="vereinbarungen.html"      class="mod-chip"><span class="chip-num">09</span>Vereinbarungen</a>
+    <a href="zufriedenheitsdialog.html"class="mod-chip"><span class="chip-num">10</span>Feedback</a>
+    <a href="verabschiedung.html"      class="mod-chip"><span class="chip-num">11</span>Abschluss</a>
+  </nav>
+  <div style="display:flex;align-items:center;gap:0.7vw;flex-shrink:0;">
+    <button class="gear-btn" onclick="openAdmin()" title="Marktzinsen anpassen">
+      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    </button>
+    <span class="topbar-brand">bbz bank</span>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+  <aside class="sidebar">
+    <div class="sb-scroll">
+      <div class="tab-sw">
+        <button class="tab-btn on" onclick="switchTab('analysis',this)">Analyse &amp; Tragbarkeit</button>
+        <button class="tab-btn"    onclick="switchTab('comparison',this)">Variantenvergleich</button>
+      </div>
+      <div class="sec-lbl">Parameter</div>
+      <div class="f-2col">
+        <div class="field"><label>Kalk. Zins</label><div class="f-row"><input type="text" id="calcRate" value="5.00"><span class="f-suf">%</span></div></div>
+        <div class="field"><label>Nebenkosten</label><div class="f-row"><input type="text" id="sideRate" value="0.75"><span class="f-suf">%</span></div></div>
+      </div>
+      <div class="sec-lbl">Kunde &amp; Einkommen</div>
+      <div class="field"><label>Bruttoeinkommen p.a.</label><div class="f-row"><input type="text" id="income" class="ni" value="" placeholder="aus Finanzcockpit"><span class="f-suf">CHF</span></div></div>
+      <div class="field"><label>Verpflichtungen p.a.</label><div class="f-row"><input type="text" id="obligations" class="ni" value="" placeholder="aus Finanzcockpit"><span class="f-suf">CHF</span></div></div>
+      <div class="field"><label>Aktuelle Wohnkosten (mtl.)</label><div class="f-row"><input type="text" id="currentRent" class="ni" value="" placeholder="hier erfassen"><span class="f-suf">CHF</span></div></div>
+      <div class="field"><label>Alter</label><div class="f-row"><input type="text" id="age" value="42" placeholder="aus Stammdaten"><span class="f-suf">Jahre</span></div></div>
+      <div class="sec-lbl">Objekt &amp; Eigenmittel</div>
+      <div class="field"><label>Kaufpreis</label><div class="f-row"><input type="text" id="price" class="ni" value="" placeholder="aus Ziele &amp; Wünsche"><span class="f-suf">CHF</span></div></div>
+      <div class="field"><label>Barmittel</label><div class="f-row"><input type="text" id="cashEquity" class="ni" value="" placeholder="hier erfassen"><span class="f-suf">CHF</span></div></div>
+      <div class="field"><label>2. Säule (Vorbezug)</label><div class="f-row"><input type="text" id="pensionWithdraw" class="ni" value="" placeholder="aus Finanzcockpit"><span class="f-suf">CHF</span></div></div>
+      <div class="field"><label>2. Säule (Verpfändung)</label><div class="f-row"><input type="text" id="pensionPledge" class="ni" value="0"><span class="f-suf">CHF</span></div></div>
+    </div>
+  </aside>
+
+  <div class="content">
+
+    <!-- ANALYSE -->
+    <div class="view" id="viewAnalysis">
+      <div id="statusBanner" class="status-banner s-idle">
+        <span id="statusIcon">○</span>
+        <span id="statusText">Bitte Kaufpreis und Eigenmittel erfassen</span>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-l">Tragbarkeit</div><div class="kpi-v" id="kpiAfford">–</div><div class="kpi-s">Kalkulatorisch</div></div>
+        <div class="kpi"><div class="kpi-l">Belehnung</div><div class="kpi-v" id="kpiLTV">–</div><div class="kpi-s">Loan-to-Value</div></div>
+        <div class="kpi"><div class="kpi-l">Harte Eigenmittel</div><div class="kpi-v" id="kpiEquity">–</div><div class="kpi-s">Cash + Vorbezug</div></div>
+        <div class="kpi"><div class="kpi-l">Monatskosten kalk.</div><div class="kpi-v" id="kpiMonthly">–</div><div class="kpi-s">CHF / Monat</div></div>
+        <div class="kpi"><div class="kpi-l">Hypothek</div><div class="kpi-v" id="kpiHypo">–</div><div class="kpi-s">Kreditbedarf CHF</div></div>
+      </div>
+      <div class="viz-amort-row">
+        <!-- Gauge -->
+        <div class="viz-card">
+          <div class="card-title">Tragbarkeits-Indikator</div>
+          <div class="viz-body">
+            <div class="viz-big" id="gaugeVal">–</div>
+            <svg style="width:92%;max-width:16vh;" viewBox="0 0 220 120">
+              <path d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="#e2e8f0" stroke-width="16" stroke-linecap="round"/>
+              <path id="gaugePath" d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="var(--blue)" stroke-width="16" stroke-linecap="round" stroke-dasharray="282" stroke-dashoffset="282"/>
+              <!-- 33.5% of 60% max → 55.83% of arc → angle from left = 180°×0.5583 = 100.5° from start
+                   Arc starts at 180° (left). Point angle from x-axis = 180° - 100.5° = 79.5°
+                   cos(79.5°)=0.184, sin(79.5°)=0.983
+                   Centre (110,110), r=90 → x=110+90×0.184=126.6, y=110-90×0.983=21.5
+                   Tick: from r=80 to r=100 along that direction -->
+              <line x1="124.6" y1="31.3" x2="128.6" y2="9.7"
+                stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.6"/>
+            </svg>
+            <div style="display:flex;justify-content:space-between;width:92%;max-width:16vh;">
+              <span style="font-size:0.44vw;font-weight:700;color:var(--ink-4);">0%</span>
+              <span style="font-size:0.44vw;font-weight:800;color:var(--ink-3);">Limit 33.5%</span>
+              <span style="font-size:0.44vw;font-weight:700;color:var(--red);">60%</span>
+            </div>
+          </div>
+        </div>
+        <!-- House -->
+        <div class="viz-card">
+          <div class="card-title">Belehnungsgrad</div>
+          <div class="viz-body">
+            <div class="viz-big" id="houseVal">–</div>
+            <svg style="width:65%;max-width:12vh;" viewBox="0 0 100 100">
+              <path d="M 10 90 L 10 40 L 50 10 L 90 40 L 90 90 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+              <clipPath id="houseClip"><path d="M 10 90 L 10 40 L 50 10 L 90 40 L 90 90 Z"/></clipPath>
+              <rect id="houseFill" x="0" y="90" width="100" height="0" fill="var(--blue)" clip-path="url(#houseClip)" opacity="0.85"/>
+              <!-- 66.7% threshold: fillH = 66.7/100*80 = 53.4 → y = 90-53.4 = 36.6 -->
+              <line x1="8" y1="36.6" x2="92" y2="36.6" stroke="#b45309" stroke-width="1" stroke-dasharray="3,2" opacity="0.6" clip-path="url(#houseClip)"/>
+              <!-- 80% threshold: fillH = 80/100*80 = 64 → y = 90-64 = 26 -->
+              <line x1="8" y1="26" x2="92" y2="26" stroke="#950e13" stroke-width="1" stroke-dasharray="3,2" opacity="0.6" clip-path="url(#houseClip)"/>
+            </svg>
+            <div id="houseBadge" style="min-height:1.4vh;text-align:center;"></div>
+          </div>
+        </div>
+        <!-- Amort (wide) -->
+        <div class="amort-card">
+          <div class="card-title">Amortisationsverlauf</div>
+          <div class="amort-top">
+            <div class="amort-kv">
+              <div class="amort-l">1. Hypothek (bis 66.7%)</div>
+              <div class="amort-v" id="h1Val">–</div>
+            </div>
+            <div class="amort-kv">
+              <div class="amort-l" id="h2Lbl">2. Hypothek / amortisationspflichtig</div>
+              <div class="amort-v" id="h2Val">–</div>
+            </div>
+            <div class="amort-kv" id="amortRateBox" style="display:none;">
+              <div class="amort-l">Amortisation p.a.</div>
+              <div class="amort-v" id="amortRateVal">–</div>
+            </div>
+          </div>
+          <div class="amort-bars" id="amortChart"></div>
+          <!-- Tooltip -->
+          <div id="amortTooltip" style="
+            display:none; position:absolute; z-index:100;
+            background:var(--blue); color:white;
+            font-size:0.55vw; font-weight:700;
+            padding:0.4vh 0.6vw; border-radius:5px;
+            pointer-events:none; white-space:nowrap;
+            box-shadow:0 4px 12px rgba(0,0,0,0.2);
+          "></div>
+        </div>
+      </div>
+      <div class="warnings-row" id="warningBox"></div>
+    </div>
+
+    <!-- VARIANTEN -->
+    <div class="view hidden" id="viewComparison">
+      <div class="variant-grid">
+        <!-- Ref -->
+        <div class="v-card v-ref">
+          <div class="v-head ref-head">Kalkulatorisch</div>
+          <div style="flex:1;display:flex;flex-direction:column;">
+            <div class="ref-item"><div class="ref-item-l">Zinssatz</div><div class="ref-item-v kalk-rate-disp">5.00 %</div></div>
+            <div class="ref-item"><div class="ref-item-l">Amortisation / Monat</div><div class="ref-item-v" id="refAmort">CHF –</div></div>
+            <div class="ref-item"><div class="ref-item-l">Nebenkosten / Monat</div><div class="ref-item-v" id="refSide">CHF –</div></div>
+            <div style="flex:1;"></div>
+          </div>
+          <div class="v-foot">
+            <div class="v-foot-l">Total Monatlich</div>
+            <div class="v-total ref-total" id="refTotal">–</div>
+          </div>
+        </div>
+        <div id="variantsContainer" style="display:contents;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <span class="footer-copy">bbz st.gallen ag © 2026</span>
+  <div class="footer-live"><span class="dot-live"></span>Live Berechnung</div>
+</footer>
+</div>
+
+<!-- ADMIN MODAL -->
+<div id="adminModal" class="modal-ov" onclick="if(event.target===this)closeAdmin()">
+  <div class="modal-box">
+    <div class="modal-hd">Marktzinsen anpassen <button class="modal-close" onclick="closeAdmin()">✕</button></div>
+    <div class="rates-grid" id="adminRatesGrid"></div>
+    <button class="modal-btn" onclick="closeAdmin()">Übernehmen</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detailModal" class="modal-ov" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-box" style="width:38vw;">
+    <div class="modal-hd">
+      <div>
+        <div id="detailTitle" style="font-size:1.4vh;font-weight:800;color:var(--blue);">Detail</div>
+        <div style="font-size:0.5vw;color:var(--ink-4);">Effektive Belastung pro Monat</div>
+      </div>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+
+    <!-- Tranche breakdown -->
+    <div id="detailBody"></div>
+
+    <div class="dt-sep"></div>
+
+    <!-- Cost comparison table: Kalk / Aktuell / Neu -->
+    <div style="font-size:0.5vw;font-weight:800;color:var(--ink-4);margin-bottom:0.7vh;">Gegenüberstellung Monatliche Kosten</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5vw;">
+      <div style="background:var(--bg);border-radius:6px;padding:0.8vh 0.8vw;border-left:3px solid #dce8f4;">
+        <div style="font-size:0.46vw;font-weight:800;color:var(--ink-4);margin-bottom:0.3vh;">Kalkulatorisch</div>
+        <div id="dtKalk" style="font-size:1.6vh;font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;">–</div>
+        <div id="dtKalkPct" style="font-size:0.48vw;font-weight:700;color:var(--ink-4);margin-top:0.2vh;"></div>
+      </div>
+      <div id="dtAktuellBox" style="background:var(--bg);border-radius:6px;padding:0.8vh 0.8vw;border-left:3px solid #cbd5e1;">
+        <div style="font-size:0.46vw;font-weight:800;color:var(--ink-4);margin-bottom:0.3vh;">Aktuelle Wohnkosten</div>
+        <div id="dtAktuell" style="font-size:1.6vh;font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;">–</div>
+        <div id="dtAktuellPct" style="font-size:0.48vw;font-weight:700;color:var(--ink-4);margin-top:0.2vh;"></div>
+      </div>
+      <div style="background:var(--blue-lt);border-radius:6px;padding:0.8vh 0.8vw;border-left:3px solid var(--blue);">
+        <div style="font-size:0.46vw;font-weight:800;color:var(--blue);margin-bottom:0.3vh;">Diese Variante</div>
+        <div id="dtNeu" style="font-size:1.6vh;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;">–</div>
+        <div id="dtNeuPct" style="font-size:0.48vw;font-weight:700;margin-top:0.2vh;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="vTpl">
+  <div class="v-card">
+    <div class="v-head">Variante <span class="vn"></span></div>
+    <div class="v-tranches">
+      <div class="t-box" data-ti="0">
+        <div class="t-lbl"><span>Tranche 1</span><span class="t-pct">100%</span></div>
+        <div class="t-inputs"><select class="v-prod"></select><input type="text" class="v-amt"></div>
+        <input type="range" class="v-sli" min="0" step="1000">
+      </div>
+      <div class="t-box" data-ti="1">
+        <div class="t-lbl"><span>Tranche 2</span><span class="t-pct">0%</span></div>
+        <div class="t-inputs"><select class="v-prod"></select><input type="text" class="v-amt"></div>
+        <input type="range" class="v-sli" min="0" step="1000">
+      </div>
+      <div class="t-box" data-ti="2">
+        <div class="t-lbl"><span>Tranche 3</span><span class="t-pct">0%</span></div>
+        <div class="t-inputs"><select class="v-prod"></select><input type="text" class="v-amt"></div>
+        <input type="range" class="v-sli" min="0" step="1000">
+      </div>
+    </div>
+    <div class="v-chart-area"><canvas class="v-ch"></canvas></div>
+    <div class="v-foot">
+      <div class="v-foot-top">
+        <div class="v-foot-l">Total Monatlich</div>
+        <div class="v-diff"></div>
+      </div>
+      <div class="v-total"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+const S = {
+  tab:'analysis',
+  rates:{'SARON':1.65,'2J':1.55,'3J':1.45,'4J':1.40,'5J':1.35,'6J':1.35,'7J':1.40,'8J':1.45,'9J':1.50,'10J':1.55},
+  variants:[
+    {id:1,tranches:[{p:'SARON',a:0},{p:'SARON',a:0},{p:'SARON',a:0}]},
+    {id:2,tranches:[{p:'10J',a:0},{p:'SARON',a:0},{p:'SARON',a:0}]},
+    {id:3,tranches:[{p:'SARON',a:0},{p:'10J',a:0},{p:'SARON',a:0}]}
+  ],
+  charts:[],C:{}
+};
+const $=id=>document.getElementById(id);
+const pN=s=>parseFloat(String(s).replace(/['\s]/g,'').replace(',','.'))||0;
+const fmt=(n,d=0)=>{
+  if(isNaN(n)||n===null||n===undefined)return'–';
+  const p=Math.abs(n).toFixed(d).split('.');
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,"'");
+  return(n<0?'-':'')+p.join('.');
+};
+
+(function preload(){
+  try{
+    const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
+
+    // Helper: set field only if currently empty
+    const setIfEmpty=(id,val)=>{
+      const e=$(id);
+      if(e&&val&&!pN(e.value)) e.value=fmt(val);
+    };
+    const setRaw=(id,val)=>{
+      const e=$(id);
+      if(e&&val!=null&&!pN(e.value)) e.value=val;
+    };
+
+    // Einkommen & Verpflichtungen aus Finanzcockpit (falls bereits persistiert)
+    if(d.cockpit_income)  setIfEmpty('income',      d.cockpit_income);
+    if(d.cockpit_oblig)   setIfEmpty('obligations',  d.cockpit_oblig);
+    if(d.cockpit_pk_saldo)setIfEmpty('pensionWithdraw', d.cockpit_pk_saldo);
+
+    // Kaufpreis aus erstem Wohnen-Ziel in Ziele & Wünsche
+    const ziele = Array.isArray(d.ziele) ? d.ziele : [];
+    const wohnZiel = ziele.find(z=>z.katId==='wohnen' && z.betrag>0);
+    if(wohnZiel) setIfEmpty('price', wohnZiel.betrag);
+
+    // Alter aus Geburtsdatum Person 1
+    if(d.p1geb){
+      const geb=new Date(d.p1geb);
+      const heute=new Date();
+      const alter=heute.getFullYear()-geb.getFullYear()
+        - (heute < new Date(heute.getFullYear(), geb.getMonth(), geb.getDate()) ? 1 : 0);
+      if(alter>0&&alter<100) setRaw('age', alter);
+    }
+
+  }catch(e){}
+})();
+
+function switchTab(tab,btn){
+  S.tab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  $('viewAnalysis').classList.toggle('hidden',tab!=='analysis');
+  $('viewComparison').classList.toggle('hidden',tab!=='comparison');
+  if(tab==='comparison'){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      S.variants.forEach((_,i)=>renderVChart(i));
+    }));
+  }
+}
+
+function openAdmin(){$('adminModal').style.display='flex';renderAdminRates();}
+function closeAdmin(){$('adminModal').style.display='none';calculate();}
+function renderAdminRates(){
+  $('adminRatesGrid').innerHTML=Object.entries(S.rates).map(([l,v])=>`
+    <div class="r-field"><label>${l}</label>
+    <div class="r-row"><input type="text" value="${v.toFixed(2)}" onchange="S.rates['${l}']=parseFloat(this.value)||0;">
+    <span class="r-suf">%</span></div></div>`).join('');
+}
+
+function openDetail(vIdx){
+  const v=S.variants[vIdx],R=S.C;
+  $('detailTitle').textContent=`Variante ${v.id} – Detailaufstellung`;
+
+  // Tranche breakdown
+  let html='';
+  v.tranches.forEach((t,i)=>{
+    if(t.a<=0)return;
+    const mi=(t.a*(S.rates[t.p]/100))/12;
+    html+=`<div class="detail-t"><div><div class="dt-l">Tranche ${i+1}: ${t.p} (${S.rates[t.p].toFixed(2)}%)</div>
+    <div style="font-size:1.1vh;font-weight:700;color:var(--ink-2);">CHF ${fmt(t.a)}</div></div>
+    <div style="text-align:right;"><div class="dt-l">Zins / Monat</div><div class="dt-v">CHF ${fmt(mi)}</div></div></div>`;
+  });
+  html+=`<div class="detail-t"><div><div class="dt-l">Amortisation / Monat</div></div>
+  <div style="text-align:right;"><div class="dt-v" style="color:var(--ink-3);">CHF ${fmt(R.annAmort/12)}</div></div></div>
+  <div class="detail-t"><div><div class="dt-l">Nebenkosten / Monat</div></div>
+  <div style="text-align:right;"><div class="dt-v" style="color:var(--ink-3);">CHF ${fmt(R.annSide/12)}</div></div></div>`;
+  $('detailBody').innerHTML=html;
+
+  // Cost comparison table
+  const kalkV  = R.totalAnn/12||0;
+  const rentV  = R.curRent||0;
+  const newV   = v.mtlTotal||0;
+
+  const pctVsKalk = kalkV>0?((newV/kalkV)-1)*100:0;
+  const pctVsRent = rentV>0?((newV/rentV)-1)*100:0;
+
+  $('dtKalk').textContent   = 'CHF '+fmt(kalkV);
+  $('dtKalkPct').textContent= '';
+
+  const aktuellBox=$('dtAktuellBox');
+  if(rentV>0){
+    aktuellBox.style.opacity='1';
+    $('dtAktuell').textContent='CHF '+fmt(rentV);
+    $('dtAktuellPct').textContent='';
+  } else {
+    aktuellBox.style.opacity='0.4';
+    $('dtAktuell').textContent='nicht erfasst';
+    $('dtAktuellPct').textContent='';
+  }
+
+  $('dtNeu').textContent='CHF '+fmt(newV);
+
+  // Show diff vs best available base
+  const baseV = rentV>0?rentV:kalkV;
+  const baseLbl = rentV>0?'vs. Aktuell':'vs. Kalk.';
+  const diff = newV-baseV;
+  const pct  = baseV>0?((newV/baseV)-1)*100:0;
+  const col  = diff>0?'var(--red)':'var(--green)';
+  $('dtNeuPct').innerHTML=`<span style="color:${col};font-weight:800;">${diff>0?'+':''}${fmt(Math.round(diff))} CHF (${pct>=0?'+':''}${Math.round(pct)}%)</span> <span style="color:var(--ink-4);">${baseLbl}</span>`;
+
+  $('detailModal').style.display='flex';
+}
+function closeDetail(){$('detailModal').style.display='none';}
+
+function calculate(){
+  const income=pN($('income').value),oblig=pN($('obligations').value);
+  const price=pN($('price').value),cashEq=pN($('cashEquity').value);
+  const pensBez=pN($('pensionWithdraw').value),pensVp=pN($('pensionPledge').value);
+  const calcR=pN($('calcRate').value)/100,sideR=pN($('sideRate').value)/100;
+  const age=pN($('age').value)||40,curRent=pN($('currentRent').value);
+
+  const hardEq=cashEq+pensBez;
+  const totalHypo=Math.max(0,price-hardEq);
+  const ltvExp=Math.max(0,totalHypo-pensVp);
+  const ltv=price>0?(ltvExp/price)*100:0;
+  const hardEqPct=price>0?(hardEq/price)*100:0;
+  const totalEqPct=price>0?((hardEq+pensVp)/price)*100:0;
+  const netIncome=income-oblig;
+  const limit1=price*0.6667;
+  const h2ForAmort=Math.max(0,ltvExp-limit1);
+  const y65=Math.max(1,65-age);
+  const annAmort=h2ForAmort/Math.min(15,y65)+pensVp/y65;
+  const annInterest=totalHypo*calcR;
+  const annSide=price*sideR;
+  const totalAnn=annInterest+annAmort+annSide;
+  const affordPct=netIncome>0?(totalAnn/netIncome)*100:0;
+
+  S.C={totalHypo,annAmort,annSide,curRent,ltv,hardEqPct,totalEqPct,
+       pensVp,totalAnn,price,affordPct,h2ForAmort,limit1,y65,age};
+  updateAnalysis();
+  updateVariants();
+}
+
+function updateAnalysis(){
+  const{totalHypo,annAmort,annSide,ltv,hardEqPct,totalEqPct,
+        pensVp,totalAnn,price,affordPct,h2ForAmort,limit1,y65,age}=S.C;
+
+  const kA=$('kpiAfford');
+  kA.textContent=price>0?Math.round(affordPct)+'%':'–';
+  kA.className='kpi-v'+(affordPct>40||ltv>80?' crit':affordPct>33.5?' warn':'');
+  const kL=$('kpiLTV');
+  kL.textContent=price>0?Math.round(ltv)+'%':'–';
+  kL.className='kpi-v'+(ltv>80?' crit':ltv>66.7?' warn':'');
+  $('kpiEquity').textContent=price>0?Math.round(hardEqPct)+'%':'–';
+  $('kpiMonthly').textContent=price>0?fmt(totalAnn/12):'–';
+  $('kpiHypo').textContent=price>0?fmt(totalHypo):'–';
+
+  const isRed=price>0&&(affordPct>40||ltv>80.01||totalEqPct<19.99);
+  const isOrange=!isRed&&price>0&&(affordPct>33.51||hardEqPct<10);
+  const noAmort=S.C.annAmort<=0;
+  const banner=$('statusBanner');
+  if(price<=0){
+    banner.className='status-banner s-idle';
+    $('statusIcon').textContent='○';
+    $('statusText').textContent='Bitte Kaufpreis und Eigenmittel erfassen';
+  } else if(isRed){
+    banner.className='status-banner s-crit';
+    $('statusIcon').textContent='✕';
+    $('statusText').textContent='Finanzierung kritisch – Prüfung erforderlich';
+  } else if(isOrange){
+    banner.className='status-banner s-warn';
+    $('statusIcon').textContent='⚠';
+    $('statusText').textContent='Grenzbereich – vertiefte Prüfung empfohlen';
+  } else if(noAmort){
+    banner.className='status-banner s-ok';
+    $('statusIcon').textContent='✓';
+    $('statusText').textContent='Ohne Amortisationspflicht finanzierbar – solide Ausgangslage';
+  } else {
+    banner.className='status-banner s-ok';
+    $('statusIcon').textContent='✓';
+    $('statusText').textContent='Tragbarkeit und Belehnung gegeben';
+  }
+
+  $('gaugeVal').textContent=price>0?Math.round(affordPct)+'%':'–';
+  const offset=282-(Math.min(affordPct,60)/60)*282;
+  $('gaugePath').style.strokeDashoffset=price>0?offset:282;
+  $('gaugePath').style.stroke=affordPct>33.5?(affordPct>40?'var(--red)':'#f59e0b'):'var(--blue)';
+
+  $('houseVal').textContent=price>0?Math.round(ltv)+'%':'–';
+  const fillH=price>0?(Math.min(ltv,100)/100)*80:0;
+  $('houseFill').setAttribute('y',90-fillH);
+  $('houseFill').setAttribute('height',fillH);
+  $('houseFill').style.fill=ltv>80.01?'var(--red)':'var(--blue)';
+  $('houseBadge').innerHTML=(h2ForAmort>0||pensVp>0)&&price>0?'<span class="amort-badge">amortisationspflichtig</span>':'';
+
+  // Amort card header
+  $('h1Val').textContent=price>0?'CHF '+fmt(Math.min(totalHypo,limit1)):'–';
+
+  // h2 label and value depend on what's driving amortisation
+  const h2Lbl=$('h2Lbl');
+  const h2Container=$('h2Val').closest('.amort-kv');
+  if(h2ForAmort<=0&&pensVp<=0){
+    h2Container.style.display='none';
+  } else {
+    h2Container.style.display='flex';
+    if(h2ForAmort>0&&pensVp>0){
+    h2Lbl.textContent='2. Hypothek + Verpfändung (amortisationspflichtig)';
+    $('h2Val').textContent=price>0?'CHF '+fmt(h2ForAmort)+' + CHF '+fmt(pensVp):'–';
+  } else if(pensVp>0&&h2ForAmort<=0){
+    h2Lbl.textContent='Verpfändung – zur Rückführung amortisationspflichtig';
+    $('h2Val').textContent=price>0?'CHF '+fmt(pensVp):'–';
+  } else {
+    h2Lbl.textContent='2. Hypothek / amortisationspflichtig';
+    $('h2Val').textContent=price>0?'CHF '+fmt(h2ForAmort):'–';
+  }
+  } // end else (has amort)
+
+  // Badge on house
+  const hasAmort=(h2ForAmort>0||pensVp>0)&&price>0;
+  const badgeTxt = pensVp>0&&h2ForAmort<=0
+    ? 'Verpfändung amortisationspflichtig'
+    : 'amortisationspflichtig';
+  $('houseBadge').innerHTML=hasAmort?`<span class="amort-badge">${badgeTxt}</span>`:'';
+
+  // Amortisation p.a. box
+  const amortBox=$('amortRateBox');
+  const annAmortVal=S.C.annAmort;
+  if(price>0&&annAmortVal>0){
+    amortBox.style.display='flex';
+    $('amortRateVal').textContent='CHF '+fmt(annAmortVal)+' / Jahr';
+  } else {
+    amortBox.style.display='none';
+  }
+
+  renderAmortChart(h2ForAmort,y65,age,pensVp);
+  renderWarnings(affordPct,ltv,hardEqPct,totalEqPct,pensVp,price);
+}
+
+function renderAmortChart(h2,y65,age,pVerp){
+  const el=$('amortChart'),maxVal=h2+pVerp;
+  if(maxVal<=0.01){
+    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;width:100%;font-size:0.55vw;color:var(--ink-4);font-style:italic;">Keine Amortisation erforderlich</div>';
+    return;
+  }
+  const steps=Math.max(y65,15),aH2=h2/Math.min(15,y65),aP=pVerp/y65;
+  // Store data for tooltip
+  const barData=[];
+  let html='';
+  for(let i=0;i<=steps;i+=2){
+    const rH2=Math.max(0,h2-aH2*i),rP=Math.max(0,pVerp-aP*i);
+    const total=rH2+rP;
+    barData.push({year:i,rH2,rP,total});
+    const pH2=(rH2/maxVal)*100,pP=(rP/maxVal)*100;
+    const lbl=i===0?'Heute':(age+i>=65?'65':'+'+i);
+    html+=`<div class="a-col" data-idx="${barData.length-1}" style="cursor:pointer;">
+      <div class="a-seg" style="height:${pP}%;background:#dce8f4;border-radius:3px 3px 0 0;"></div>
+      <div class="a-seg" style="height:${pH2}%;background:var(--blue);opacity:0.55;border-radius:${pP>0?'0':'3px 3px 0 0'};"></div>
+      <div class="a-lbl">${lbl}</div>
+    </div>`;
+  }
+  el.innerHTML=html;
+
+  // Tooltip logic
+  const tip=$('amortTooltip');
+  const amortCard=el.closest('.amort-card');
+  el.querySelectorAll('.a-col').forEach(col=>{
+    col.addEventListener('mouseenter',e=>{
+      const d=barData[parseInt(col.dataset.idx)];
+      if(!d)return;
+      const yr=d.year===0?'Heute':(age+d.year>=65?'Pensionierung (65)':'Jahr +'+ d.year);
+      let lines=`<strong>${yr}</strong><br>Restschuld: CHF ${fmt(Math.round(d.total))}`;
+      if(d.rH2>0&&d.rP>0) lines+=`<br><span style="opacity:0.8;">2. Hypo: CHF ${fmt(Math.round(d.rH2))}</span><br><span style="opacity:0.8;">Verpfändung: CHF ${fmt(Math.round(d.rP))}</span>`;
+      else if(d.rP>0)      lines+=`<br><span style="opacity:0.8;">Verpfändung: CHF ${fmt(Math.round(d.rP))}</span>`;
+      tip.innerHTML=lines;
+      tip.style.display='block';
+      const rect=col.getBoundingClientRect();
+      const cRect=amortCard.getBoundingClientRect();
+      tip.style.left=(rect.left-cRect.left+rect.width/2-tip.offsetWidth/2)+'px';
+      tip.style.top=(rect.top-cRect.top-tip.offsetHeight-6)+'px';
+    });
+    col.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+  });
+}
+
+function renderWarnings(aff,ltv,hardEqPct,totalEqPct,pVerp,price){
+  if(price<=0){$('warningBox').innerHTML='';return;}
+  const w=[];
+  if(totalEqPct<19.99)w.push('Gesamt-Eigenmittelquote (inkl. Verpfändung) unter 20%.');
+  if(hardEqPct<9.99)w.push('Harte Eigenmittelquote unter 10% – Minimum nicht-PK-Mittel nicht erfüllt.');
+  if(aff>33.51)w.push('Tragbarkeitslimit von 33.5% überschritten.');
+  if(ltv>80.01)w.push('Belehnung über 80% – Finanzierung i.d.R. nicht möglich.');
+  if(pVerp>0)w.push(`Verpfändung von CHF ${fmt(pVerp)} entlastet die Belehnung, erhöht jedoch die Amortisationspflicht.`);
+  $('warningBox').innerHTML=w.map(t=>`<div class="warn-pill">⚠ ${t}</div>`).join('');
+}
+
+function updateVariants(){
+  const{totalHypo,annAmort,annSide,totalAnn,curRent}=S.C;
+  $('refAmort').textContent='CHF '+fmt(annAmort/12);
+  $('refSide').textContent='CHF '+fmt(annSide/12);
+  $('refTotal').textContent=fmt(totalAnn/12);
+  document.querySelectorAll('.kalk-rate-disp').forEach(d=>d.textContent=$('calcRate').value+' %');
+
+  document.querySelectorAll('#variantsContainer .v-card').forEach((card,vIdx)=>{
+    const v=S.variants[vIdx];if(!v)return;
+    const sum=v.tranches.reduce((s,t)=>s+t.a,0);
+    if(Math.abs(sum-totalHypo)>100){
+      if(v.id===1||v.id===2){v.tranches[0].a=totalHypo;v.tranches[1].a=0;v.tranches[2].a=0;}
+      else{v.tranches[0].a=totalHypo*0.5;v.tranches[1].a=totalHypo*0.5;v.tranches[2].a=0;}
+    }
+    let vAnnInt=0;
+    v.tranches.forEach((t,tIdx)=>{
+      vAnnInt+=t.a*(S.rates[t.p]/100);
+      const box=card.querySelectorAll('.t-box')[tIdx];
+      const prevSum=v.tranches.slice(0,tIdx).reduce((s,tr)=>s+tr.a,0);
+      box.classList.toggle('inactive',!(tIdx===0||prevSum<totalHypo-1));
+      box.querySelector('.v-amt').value=fmt(t.a);
+      box.querySelector('.t-pct').textContent=totalHypo>0?Math.round(t.a/totalHypo*100)+'%':'0%';
+      const sl=box.querySelector('.v-sli');sl.max=totalHypo;sl.value=t.a;
+    });
+    v.mtlTotal=(vAnnInt+annAmort+annSide)/12;
+    card.querySelector('.v-total').textContent=fmt(v.mtlTotal);
+
+    // Diff in footer: vs Aktuell if set, else vs Kalkulatorisch
+    const diffEl=card.querySelector('.v-diff');
+    if(diffEl){
+      const baseV = curRent > 0 ? curRent : (S.C.totalAnn/12||0);
+      const lbl   = curRent > 0 ? '' : 'vs. Kalk. ';
+      if(baseV > 0){
+        const diffCHF=v.mtlTotal-baseV;
+        const diffPct=((v.mtlTotal/baseV)-1)*100;
+        const isPos=diffCHF>0;
+        diffEl.className='v-diff '+(isPos?'extra':'saving');
+        diffEl.textContent=lbl+(isPos?'+':'')+fmt(Math.round(diffCHF))+' CHF  '+(diffPct>=0?'+':'')+Math.round(diffPct)+'%';
+      } else { diffEl.textContent=''; }
+    }
+    if(S.tab==='comparison')renderVChart(vIdx);
+  });
+}
+
+function renderVChart(vIdx){
+  const v=S.variants[vIdx];
+  const canvases=document.querySelectorAll('.v-ch');
+  if(!canvases[vIdx])return;
+  if(S.charts[vIdx])S.charts[vIdx].destroy();
+
+  const kalkV = S.C.totalAnn/12||0;
+  const rentV  = S.C.curRent||0;
+  const newV   = v.mtlTotal||0;
+
+  // shared y-max: same across all charts → bars bottom-aligned visually
+  const allTotals = S.variants.map(vv=>vv.mtlTotal||0);
+  const globalMax = Math.max(kalkV, rentV, ...allTotals) * 1.4;
+
+  const has3 = rentV > 0;
+  const labels   = has3 ? ['Kalk.','Aktuell','Neu'] : ['Kalk.','Neu'];
+  const dataVals  = has3 ? [kalkV, rentV, newV]      : [kalkV, newV];
+  const bgColors  = has3 ? ['#dce8f4','#cbd5e1','#004078'] : ['#dce8f4','#004078'];
+  const newIdx    = dataVals.length - 1;
+
+  // diff: Neu vs Aktuell if available, else vs Kalk
+  const baseV   = rentV > 0 ? rentV : kalkV;
+  const diffCHF = newV - baseV;
+  const diffPct = baseV > 0 ? ((newV/baseV)-1)*100 : 0;
+  const isPos   = diffCHF > 0;
+  const col     = isPos ? '#991b1b' : '#166534';
+  const chfTxt  = (isPos?'+':'')+fmt(Math.round(diffCHF));
+  const pctTxt  = (diffPct>=0?'+':'')+Math.round(diffPct)+'%';
+
+  S.charts[vIdx]=new Chart(canvases[vIdx].getContext('2d'),{
+    type:'bar',
+    data:{
+      labels, datasets:[{data:dataVals, backgroundColor:bgColors, borderRadius:4, barThickness:20}]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:34, left:8, right:8, bottom:0}},
+      plugins:{legend:{display:false}, tooltip:{enabled:false}},
+      scales:{
+        y:{display:false, beginAtZero:true, max:globalMax},
+        x:{grid:{display:false}, ticks:{font:{size:7,weight:'bold'}, color:'#94a3b8'}, border:{display:false}}
+      },
+      animation:{onComplete(anim){
+        const chart=anim.chart, ctx=chart.ctx;
+        ctx.save();
+
+        // Draw diff annotation above Neu bar with reference line to base bar
+        const meta = chart.getDatasetMeta(0);
+        const newBar = meta.data[newIdx];
+        const baseBar = meta.data[newIdx > 1 ? newIdx-1 : 0]; // Aktuell or Kalk bar
+
+        // Diff labels above Neu bar
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillStyle=col; ctx.font='bold 9px DM Sans';
+        ctx.fillText(chfTxt, newBar.x, newBar.y-12);
+        ctx.fillStyle='#64748b'; ctx.font='bold 8px DM Sans';
+        ctx.fillText(pctTxt, newBar.x, newBar.y-2);
+
+        // Reference line: dashed horizontal from base bar top to Neu bar position
+        if(newIdx > 0 && baseV > 0){
+          const baseTop = baseBar.y;
+          ctx.setLineDash([3,3]);
+          ctx.strokeStyle = col === '#166534' ? '#15803d' : '#991b1b';
+          ctx.globalAlpha = 0.5;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(baseBar.x + baseBar.width/2, baseTop);
+          ctx.lineTo(newBar.x - newBar.width/2, baseTop);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }}
+    }
+  });
+}
+
+function handleAmountChange(vIdx,tIdx,val){
+  const th=S.C.totalHypo||0,nv=Math.min(val,th);
+  if(tIdx===0){S.variants[vIdx].tranches[0].a=nv;S.variants[vIdx].tranches[1].a=th-nv;S.variants[vIdx].tranches[2].a=0;}
+  else if(tIdx===1){const m2=th-S.variants[vIdx].tranches[0].a;S.variants[vIdx].tranches[1].a=Math.min(nv,m2);S.variants[vIdx].tranches[2].a=m2-S.variants[vIdx].tranches[1].a;}
+  else{const m3=th-S.variants[vIdx].tranches[0].a-S.variants[vIdx].tranches[1].a;S.variants[vIdx].tranches[2].a=Math.min(nv,m3);}
+  calculate();
+}
+
+function renderVariants(){
+  const container=$('variantsContainer'),tpl=$('vTpl');
+  container.innerHTML='';
+  S.variants.forEach((v,vIdx)=>{
+    const clone=tpl.content.cloneNode(true);
+    const card=clone.querySelector('.v-card');
+    clone.querySelector('.vn').textContent=v.id;
+    card.addEventListener('mousedown',e=>{if(e.target.closest('.v-tranches'))return;openDetail(vIdx);},true);
+    clone.querySelectorAll('.t-box').forEach((box,tIdx)=>{
+      const sel=box.querySelector('.v-prod');
+      sel.innerHTML=Object.keys(S.rates).map(r=>`<option value="${r}" ${v.tranches[tIdx].p===r?'selected':''}>${r}</option>`).join('');
+      sel.onchange=e=>{v.tranches[tIdx].p=e.target.value;calculate();};
+      box.querySelector('.v-amt').onchange=e=>handleAmountChange(vIdx,tIdx,pN(e.target.value));
+      box.querySelector('.v-sli').oninput=e=>handleAmountChange(vIdx,tIdx,parseFloat(e.target.value));
+    });
+    container.appendChild(clone);
+  });
+}
+
+window.onload=()=>{
+  renderVariants();
+  document.querySelectorAll('.ni').forEach(inp=>{
+    inp.oninput=e=>{
+      const pos=e.target.selectionStart,oldL=e.target.value.length;
+      const n=pN(e.target.value);
+      if(e.target.value!==''&&!isNaN(n)){e.target.value=fmt(n);const diff=e.target.value.length-oldL;e.target.setSelectionRange(pos+diff,pos+diff);}
+      calculate();
+    };
+  });
+  [$('calcRate'),$('sideRate'),$('age')].forEach(i=>i&&(i.oninput=calculate));
+
+  // ResizeObserver: redraw all variant charts when card dimensions change
+  // (fixes bottom-alignment after tranche add/remove or window resize)
+  if(window.ResizeObserver){
+    const ro = new ResizeObserver(()=>{
+      if(S.tab==='comparison'){
+        // Small debounce to avoid thrashing
+        clearTimeout(S._roTimer);
+        S._roTimer = setTimeout(()=>{
+          S.variants.forEach((_,i)=>renderVChart(i));
+        }, 60);
+      }
+    });
+    // Observe the variant grid container
+    const grid=document.querySelector('.variant-grid');
+    if(grid) ro.observe(grid);
+  }
+
+  calculate();
+};
+</script>
+</body>
+</html>

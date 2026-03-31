@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bbz bank – Beratercockpit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:    #004078;
+  --blue-dk: #002d57;
+  --blue-lt: #dce8f4;
+  --red:     #950e13;
+  --green:   #15803d;
+  --amber:   #b45309;
+  --ink:     #0f172a;
+  --ink-2:   #334155;
+  --ink-3:   #64748b;
+  --ink-4:   #94a3b8;
+  --surface: #ffffff;
+  --bg:      #f1f5f9;
+  --line:    #e2e8f0;
+  --font:    'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--blue-dk);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; overflow: hidden;
+}
+
+.canvas {
+  width: 95vw; aspect-ratio: 16/9; max-height: 95vh;
+  background: var(--bg);
+  display: grid; grid-template-rows: 6vh 1fr 4vh;
+  overflow: hidden;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.55);
+}
+
+/* TOPBAR */
+.topbar {
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2vw 0 2.2vw; gap: 1vw;
+}
+.logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
+.logo-mark {
+  width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
+  font-size: 0.68vw; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; border-radius: 3px;
+}
+.logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
+.topbar-right { display: flex; align-items: center; gap: 0.7vw; flex-shrink: 0; }
+.topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; }
+.topbar-date { color: rgba(255,255,255,0.45); font-size: 0.6vw; font-weight: 500; }
+
+/* MAIN LAYOUT */
+.main {
+  display: grid;
+  grid-template-columns: 22vw 1fr;
+  overflow: hidden; min-height: 0;
+}
+
+/* LEFT PANEL – Berater + Beratung */
+.left-panel {
+  background: var(--blue);
+  display: flex; flex-direction: column;
+  padding: 2.2vh 1.6vw 2vh;
+  gap: 2vh; overflow-y: auto;
+}
+.left-panel::-webkit-scrollbar { width: 3px; }
+.left-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+
+.panel-section-title {
+  font-size: 0.6vw; font-weight: 800; letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.4); text-transform: uppercase;
+  margin-bottom: 0.4vh;
+}
+
+/* Berater-Avatar-Block */
+.berater-block {
+  display: flex; align-items: center; gap: 1vw;
+}
+.avatar-ring {
+  width: 5.5vh; height: 5.5vh; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8vh; font-weight: 800; color: rgba(255,255,255,0.7);
+  flex-shrink: 0; cursor: default; user-select: none;
+}
+.berater-info { flex: 1; min-width: 0; }
+.berater-name { font-size: 1.5vh; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.berater-titel { font-size: 1.1vh; font-weight: 400; color: rgba(255,255,255,0.5); margin-top: 0.15vh; }
+
+/* Form fields (left panel) */
+.lp-field { display: flex; flex-direction: column; gap: 0.35vh; }
+.lp-field label {
+  font-size: 0.62vw; font-weight: 700; color: rgba(255,255,255,0.5);
+}
+.lp-input {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 5px; color: white;
+  font-family: var(--font); font-size: 0.72vw; font-weight: 600;
+  padding: 0.55vh 0.6vw; outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.lp-input::placeholder { color: rgba(255,255,255,0.25); font-weight: 400; }
+.lp-input:focus { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.16); }
+.lp-input.valid { border-color: rgba(100,220,130,0.5); }
+
+.lp-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6vw; }
+
+.lp-divider {
+  height: 1px; background: rgba(255,255,255,0.1); margin: 0.4vh 0;
+}
+
+/* Neue Beratung Button */
+.btn-neue-beratung {
+  display: flex; align-items: center; justify-content: center; gap: 0.4vw;
+  padding: 0.6vh 0.8vw;
+  background: rgba(255,255,255,0.07);
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 6px; cursor: pointer;
+  font-family: var(--font); font-size: 0.65vw; font-weight: 700;
+  color: rgba(255,255,255,0.45);
+  transition: all 0.15s;
+}
+.btn-neue-beratung:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.35); }
+
+/* RIGHT PANEL */
+.right-panel {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* Kunde section */
+.kunde-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 1.6vh 2vw;
+  display: grid; grid-template-columns: 1fr 1fr auto;
+  gap: 1.5vw; align-items: end;
+}
+
+.kf-group { display: flex; flex-direction: column; gap: 0.4vh; }
+.kf-label { font-size: 0.6vw; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.03em; }
+.kf-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vw; }
+.kf-input {
+  border: 1px solid var(--line); border-radius: 5px;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font); font-size: 0.72vw; font-weight: 600;
+  padding: 0.5vh 0.6vw; outline: none;
+  transition: border-color 0.15s;
+}
+.kf-input:focus { border-color: var(--blue); background: white; }
+.kf-input.valid { border-color: #16a34a; }
+.kf-input::placeholder { color: var(--ink-4); font-weight: 400; }
+
+/* Status-Pill */
+.status-row {
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 0.4vh; align-items: flex-end;
+}
+.readiness-pill {
+  display: flex; align-items: center; gap: 0.4vw;
+  padding: 0.4vh 0.7vw; border-radius: 20px;
+  font-size: 0.6vw; font-weight: 800;
+  background: var(--bg); color: var(--ink-3);
+  border: 1.5px solid var(--line);
+  transition: all 0.3s;
+}
+.readiness-pill.ready { background: #f0fdf4; color: #166534; border-color: #86efac; }
+.readiness-pill .pill-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); flex-shrink: 0;
+  transition: background 0.3s;
+}
+.readiness-pill.ready .pill-dot { background: #22c55e; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
+
+/* START BUTTON */
+.btn-start {
+  display: flex; align-items: center; justify-content: center; gap: 0.45vw;
+  padding: 0.75vh 1.2vw;
+  background: var(--blue); color: white;
+  border: none; border-radius: 7px; cursor: pointer;
+  font-family: var(--font); font-size: 0.72vw; font-weight: 800;
+  transition: background 0.15s, opacity 0.15s;
+  opacity: 0.35; pointer-events: none;
+  white-space: nowrap;
+}
+.btn-start.enabled { opacity: 1; pointer-events: auto; }
+.btn-start.enabled:hover { background: var(--blue-dk); }
+.btn-start svg { flex-shrink: 0; }
+
+/* MODULE GRID */
+.module-area {
+  flex: 1; overflow-y: auto; padding: 1.6vh 2vw;
+}
+.module-area::-webkit-scrollbar { width: 3px; }
+.module-area::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+
+.section-header {
+  font-size: 0.62vw; font-weight: 800; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin-bottom: 0.8vh;
+  display: flex; align-items: center; gap: 0.5vw;
+}
+.section-header::after { content:''; flex:1; height:1px; background: var(--line); }
+
+.module-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0.7vw; margin-bottom: 1.6vh;
+}
+
+.mod-card {
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 8px;
+  padding: 1.1vh 0.9vw;
+  display: flex; flex-direction: column; gap: 0.3vh;
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+  position: relative;
+  user-select: none;
+}
+.mod-card:hover { border-color: var(--blue); box-shadow: 0 2px 12px rgba(0,64,120,0.1); }
+.mod-card.disabled {
+  opacity: 0.38;
+}
+.mod-card.disabled:hover { border-color: var(--line); box-shadow: none; }
+.mod-card.branch-card { border-style: dashed; }
+
+.mod-num {
+  font-size: 0.5vw; font-weight: 900; color: var(--ink-4); opacity: 0.6;
+}
+.mod-name {
+  font-size: 0.68vw; font-weight: 800; color: var(--ink);
+  line-height: 1.25;
+}
+.mod-desc {
+  font-size: 0.55vw; font-weight: 400; color: var(--ink-3);
+  line-height: 1.35; margin-top: 0.2vh;
+}
+.mod-toggle {
+  position: absolute; top: 0.7vh; right: 0.6vw;
+  width: 1.5vh; height: 1.5vh;
+  background: var(--blue); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.mod-card.disabled .mod-toggle { background: var(--line); }
+.mod-toggle svg { width: 0.6vh; height: 0.6vh; }
+
+/* Branch toggle pills */
+.branch-group {
+  display: flex; flex-direction: column; gap: 0.5vw;
+}
+.branch-label {
+  font-size: 0.5vw; font-weight: 700; color: var(--ink-4);
+  margin-bottom: 0.2vh;
+}
+.branch-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.4vw;
+}
+.branch-opt {
+  border: 1.5px solid var(--line); border-radius: 6px;
+  padding: 0.8vh 0.6vw;
+  display: flex; flex-direction: column; gap: 0.2vh;
+  cursor: pointer; transition: all 0.15s;
+  background: var(--surface);
+}
+.branch-opt:hover { border-color: var(--blue); }
+.branch-opt.active { border-color: var(--blue); background: #f0f6ff; }
+.branch-opt.inactive { opacity: 0.35; }
+.branch-opt.inactive:hover { opacity: 0.6; }
+.bo-num { font-size: 0.48vw; font-weight: 900; color: var(--ink-4); }
+.bo-name { font-size: 0.65vw; font-weight: 800; color: var(--ink); }
+.bo-desc { font-size: 0.52vw; color: var(--ink-3); }
+.bo-check {
+  width: 1.4vh; height: 1.4vh; border-radius: 50%;
+  background: var(--blue); align-self: flex-end;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.3vh;
+}
+.branch-opt.inactive .bo-check { background: var(--line); }
+
+/* FOOTER */
+.footer {
+  background: var(--surface); border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2vw;
+}
+.footer-copy { font-size: 0.58vw; font-weight: 500; color: var(--ink-4); }
+.footer-data-info { font-size: 0.52vw; font-weight: 500; color: var(--ink-4); }
+
+/* CONFIRM MODAL – Neue Beratung */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.confirm-modal {
+  background: var(--surface); border-radius: 12px;
+  padding: 2.5vh 2.2vw; width: 26vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  display: flex; flex-direction: column; gap: 1.5vh;
+}
+.cm-title { font-size: 1.1vw; font-weight: 800; color: var(--ink); }
+.cm-body { font-size: 0.68vw; color: var(--ink-2); line-height: 1.55; }
+.cm-warn {
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;
+  padding: 0.8vh 0.8vw; font-size: 0.6vw; font-weight: 600; color: var(--red);
+}
+.cm-actions { display: flex; gap: 0.6vw; justify-content: flex-end; margin-top: 0.5vh; }
+.btn-cancel {
+  padding: 0.55vh 1vw; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--ink-2);
+  font-family: var(--font); font-size: 0.65vw; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-cancel:hover { border-color: var(--ink-3); }
+.btn-confirm-reset {
+  padding: 0.55vh 1vw; border: none; border-radius: 6px;
+  background: var(--red); color: white;
+  font-family: var(--font); font-size: 0.65vw; font-weight: 800;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-confirm-reset:hover { background: #7f0d11; }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">bbz</div>
+    <span class="logo-name">Beratercockpit</span>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-date" id="topbarDate"></span>
+    <span class="topbar-brand">bbz bank st.gallen</span>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: Berater + Beratungseinstellungen -->
+  <div class="left-panel">
+
+    <div>
+      <div class="panel-section-title">Berater:in</div>
+      <div class="berater-block">
+        <div class="avatar-ring" id="avatarRing">–</div>
+        <div class="berater-info">
+          <div class="berater-name" id="beraterNameDisplay">Noch nicht erfasst</div>
+          <div class="berater-titel" id="beraterTitelDisplay">Titel / Rolle</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-field">
+      <label>Name Berater:in</label>
+      <input type="text" class="lp-input" id="beraterName" placeholder="Vorname Nachname" oninput="onBeraterChange()">
+    </div>
+    <div class="lp-field">
+      <label>Titel / Rolle</label>
+      <input type="text" class="lp-input" id="beraterTitel" placeholder="z.B. Kundenberater:in" oninput="onBeraterChange()">
+    </div>
+
+    <div class="lp-divider"></div>
+
+    <div>
+      <div class="panel-section-title">Beratungsdatum</div>
+      <div class="lp-field">
+        <input type="date" class="lp-input" id="beratungsdatum">
+      </div>
+    </div>
+
+    <div class="lp-divider"></div>
+
+    <div>
+      <div class="panel-section-title">Neue Beratung</div>
+      <button class="btn-neue-beratung" onclick="openNeueBeratung()">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Alle Daten zurücksetzen
+      </button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Kundendaten + Module -->
+  <div class="right-panel">
+
+    <!-- Kunden-Eingabeleiste -->
+    <div class="kunde-bar">
+      <div class="kf-group">
+        <div class="kf-label">Person 1</div>
+        <div class="kf-2col">
+          <input type="text" class="kf-input" id="p1name" placeholder="Vorname Nachname" oninput="onKundeChange()">
+          <input type="date" class="kf-input" id="p1geb" oninput="onKundeChange()">
+        </div>
+      </div>
+
+      <div class="kf-group">
+        <div class="kf-label">Person 2 <span style="font-weight:400;color:var(--ink-4);font-size:0.55vw;">(optional)</span></div>
+        <div class="kf-2col">
+          <input type="text" class="kf-input" id="p2name" placeholder="Vorname Nachname" oninput="onKundeChange()">
+          <input type="date" class="kf-input" id="p2geb" oninput="onKundeChange()">
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div class="readiness-pill" id="readinessPill">
+          <div class="pill-dot"></div>
+          <span id="readinessText">Daten unvollständig</span>
+        </div>
+        <button class="btn-start" id="btnStart" onclick="startBeratung()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/>
+          </svg>
+          Beratung starten
+        </button>
+      </div>
+    </div>
+
+    <!-- Module auswählen -->
+    <div class="module-area">
+
+      <div class="section-header">Gesprächseinstieg</div>
+      <div class="module-grid" id="gridEinstieg">
+        <!-- Cards werden via JS gerendert -->
+      </div>
+
+      <div class="section-header">Kundenbild</div>
+      <div class="module-grid" id="gridKundenbild"></div>
+
+      <div class="section-header">Vertiefung <span style="font-size:0.52vw;font-weight:400;opacity:0.7;text-transform:none;letter-spacing:0;">(mindestens eine)</span></div>
+      <div style="margin-bottom:1.6vh;" id="gridVertiefung"></div>
+
+      <div class="section-header">Gesprächsabschluss</div>
+      <div class="module-grid" id="gridAbschluss"></div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-copy">bbz bank st.gallen – Beratercockpit</span>
+  <span class="footer-data-info" id="footerDataInfo">Keine aktiven Beratungsdaten</span>
+</footer>
+
+</div><!-- /canvas -->
+
+<!-- MODAL: Neue Beratung -->
+<div class="modal-overlay" id="modalNeueBeratung">
+  <div class="confirm-modal">
+    <div class="cm-title">Neue Beratung starten?</div>
+    <div class="cm-body">Alle erfassten Kundendaten, Ziele, Cockpit-Eingaben und Gesprächsnotizen werden unwiderruflich gelöscht. Beraterprofil und Modulauswahl bleiben erhalten.</div>
+    <div class="cm-warn">⚠ Diese Aktion kann nicht rückgängig gemacht werden.</div>
+    <div class="cm-actions">
+      <button class="btn-cancel" onclick="closeNeueBeratung()">Abbrechen</button>
+      <button class="btn-confirm-reset" onclick="confirmNeueBeratung()">Ja, zurücksetzen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const COCKPIT_KEY = 'bbzCockpit'; // persists berater + module prefs
+const DATA_KEY    = 'bbzData';    // shared module data
+
+const MODULES = {
+  einstieg: [
+    { id: 'm01', num: '01', name: 'Agenda',         desc: 'Traktanden & Gesprächsziel', file: 'gespraechsagenda.html',   toggleable: false },
+    { id: 'm02', num: '02', name: 'bbz bank',         desc: 'Tradition, Innovation, Verantwortung & Nähe', file: 'vorstellung-bank.html', toggleable: true  },
+    { id: 'm03', num: '03', name: 'Berater:in',      desc: 'Person & Werdegang',          file: 'vorstellung-berater.html', toggleable: true },
+    { id: 'm04', num: '04', name: 'Philosophie',     desc: 'Werte & Beratungsansatz',     file: 'beratungsphilosophie.html', toggleable: true },
+  ],
+  kundenbild: [
+    { id: 'm05', num: '05', name: 'Finanzcockpit',   desc: 'Vermögen, Einkommen, Verpflichtungen', file: 'finanz-cockpit.html', toggleable: false },
+    { id: 'm06', num: '06', name: 'Ziele & Wünsche', desc: 'Zeitachse & Lebensplanung',  file: 'ziele-wuensche.html',  toggleable: false },
+  ],
+  abschluss: [
+    { id: 'm08', num: '08', name: 'Vereinbarungen',  desc: 'Nächste Schritte',            file: 'vereinbarungen.html',  toggleable: false },
+    { id: 'm09', num: '09', name: 'Feedback',        desc: 'Zufriedenheitsdialog',        file: 'zufriedenheitsdialog.html', toggleable: true },
+    { id: 'm10', num: '10', name: 'Abschluss',       desc: 'Ausstieg & Gesprächsbericht', file: 'verabschiedung.html',  toggleable: false },
+  ]
+};
+
+// Branch options
+const BRANCHES = [
+  { id: 'b07a', num: '07a', name: 'Finanzieren', desc: 'Eigenheim & Tragbarkeit', file: 'tragbarkeit.html' },
+  { id: 'b07b', num: '07b', name: 'Anlegen',     desc: 'Anlegerprofil & Risiko',  file: 'anlegeranalyse.html' },
+];
+
+let state = {
+  beraterName: '',
+  beraterTitel: '',
+  beratungsdatum: todayISO(),
+  disabled: {},           // id → true if disabled
+  branches: ['b07a']      // active branches (array, min 1)
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function todayISO() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(COCKPIT_KEY) || '{}');
+    if (saved.beraterName)    state.beraterName    = saved.beraterName;
+    if (saved.beraterTitel)   state.beraterTitel   = saved.beraterTitel;
+    if (saved.beratungsdatum) state.beratungsdatum = saved.beratungsdatum;
+    if (saved.disabled)       state.disabled       = saved.disabled;
+    if (saved.branches)       state.branches       = saved.branches;
+  } catch(e) {}
+}
+
+function saveState() {
+  localStorage.setItem(COCKPIT_KEY, JSON.stringify(state));
+}
+
+function loadKundeFromData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DATA_KEY) || '{}');
+    if (d.p1name) document.getElementById('p1name').value = d.p1name;
+    if (d.p1geb)  document.getElementById('p1geb').value  = d.p1geb;
+    if (d.p2name) document.getElementById('p2name').value = d.p2name;
+    if (d.p2geb)  document.getElementById('p2geb').value  = d.p2geb;
+  } catch(e) {}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderModuleGrid(containerId, modules) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  modules.forEach(m => {
+    const disabled = state.disabled[m.id] === true;
+    const card = document.createElement('div');
+    card.className = 'mod-card' + (disabled ? ' disabled' : '') + (m.toggleable ? '' : '');
+    card.dataset.id = m.id;
+
+    const checkSvg = disabled
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
+
+    card.innerHTML = `
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-name">${m.name}</div>
+      <div class="mod-desc">${m.desc}</div>
+      ${m.toggleable ? `<div class="mod-toggle">${checkSvg}</div>` : ''}
+    `;
+
+    if (m.toggleable) {
+      card.addEventListener('click', () => toggleModule(m.id));
+    }
+    grid.appendChild(card);
+  });
+}
+
+function renderBranchSection() {
+  const container = document.getElementById('gridVertiefung');
+  const bothActive = state.branches.length === 2;
+  container.innerHTML = `
+    <div class="branch-options">
+      ${BRANCHES.map(b => {
+        const active = state.branches.includes(b.id);
+        return `
+          <div class="branch-opt ${active ? 'active' : 'inactive'}" data-bid="${b.id}" onclick="toggleBranch('${b.id}')">
+            <div class="bo-num">${b.num}</div>
+            <div class="bo-name">${b.name}</div>
+            <div class="bo-desc">${b.desc}</div>
+            <div class="bo-check">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                ${active
+                  ? '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'
+                  : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>'}
+              </svg>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div style="font-size:0.52vw;color:var(--ink-4);margin-top:0.6vh;">
+      ${bothActive
+        ? '&#9889; Beide Vertiefungen aktiv – im Abschluss wählbar welche gedruckt wird.'
+        : 'Mindestens eine Vertiefung muss aktiv sein. Beide gleichzeitig m&ouml;glich.'}
+    </div>
+  `;
+}
+
+function renderAll() {
+  renderModuleGrid('gridEinstieg',  MODULES.einstieg);
+  renderModuleGrid('gridKundenbild', MODULES.kundenbild);
+  renderBranchSection();
+  renderModuleGrid('gridAbschluss', MODULES.abschluss);
+  updateBeraterDisplay();
+  updateReadiness();
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────
+function toggleModule(id) {
+  state.disabled[id] = !state.disabled[id];
+  saveState();
+  renderAll();
+}
+
+function toggleBranch(bid) {
+  const idx = state.branches.indexOf(bid);
+  if (idx > -1) {
+    // Only deactivate if the other branch is still active (min 1 required)
+    if (state.branches.length > 1) {
+      state.branches.splice(idx, 1);
+    }
+  } else {
+    state.branches.push(bid);
+  }
+  saveState();
+  renderBranchSection();
+  updateReadiness();
+  persistData();
+}
+
+function onBeraterChange() {
+  state.beraterName  = document.getElementById('beraterName').value.trim();
+  state.beraterTitel = document.getElementById('beraterTitel').value.trim();
+  saveState();
+  updateBeraterDisplay();
+  updateReadiness();
+  persistData();
+}
+
+function onKundeChange() {
+  updateReadiness();
+  persistData();
+}
+
+function updateBeraterDisplay() {
+  const name  = state.beraterName  || 'Noch nicht erfasst';
+  const titel = state.beraterTitel || 'Titel / Rolle';
+  document.getElementById('beraterNameDisplay').textContent = name;
+  document.getElementById('beraterTitelDisplay').textContent = titel;
+
+  // Avatar Initialen
+  const parts = state.beraterName.split(' ').filter(Boolean);
+  const initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+    : (state.beraterName.slice(0, 2).toUpperCase() || '–');
+  document.getElementById('avatarRing').textContent = initials;
+}
+
+function updateReadiness() {
+  const p1name = document.getElementById('p1name').value.trim();
+  const p1geb  = document.getElementById('p1geb').value.trim();
+  const ready  = p1name.length > 0 && p1geb.length > 0 && state.beraterName.length > 0;
+
+  const pill = document.getElementById('readinessPill');
+  const text = document.getElementById('readinessText');
+  const btn  = document.getElementById('btnStart');
+
+  if (ready) {
+    pill.classList.add('ready');
+    text.textContent = 'Bereit zum Start';
+    btn.classList.add('enabled');
+  } else {
+    pill.classList.remove('ready');
+    const missing = [];
+    if (!state.beraterName) missing.push('Berater:in');
+    if (!p1name) missing.push('Kundenname');
+    if (!p1geb)  missing.push('Geburtsdatum');
+    text.textContent = 'Fehlt: ' + missing.join(', ');
+    btn.classList.remove('enabled');
+  }
+
+  // Footer-Info
+  const d = getDataSummary();
+  document.getElementById('footerDataInfo').textContent = d;
+}
+
+function getDataSummary() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DATA_KEY) || '{}');
+    const name = d.p1name;
+    if (!name) return 'Keine aktiven Beratungsdaten';
+    const datum = state.beratungsdatum
+      ? new Date(state.beratungsdatum).toLocaleDateString('de-CH', {day:'2-digit',month:'2-digit',year:'numeric'})
+      : '–';
+    return `Aktive Beratung: ${name}  ·  ${datum}`;
+  } catch(e) { return 'Keine aktiven Beratungsdaten'; }
+}
+
+function persistData() {
+  // Merge Berater + Kundendaten in bbzData
+  try {
+    const d = JSON.parse(localStorage.getItem(DATA_KEY) || '{}');
+    d.beraterName  = state.beraterName;
+    d.beraterTitel = state.beraterTitel;
+    d.beratungsdatum = document.getElementById('beratungsdatum').value || state.beratungsdatum;
+    d.p1name = document.getElementById('p1name').value.trim();
+    d.p1geb  = document.getElementById('p1geb').value.trim();
+    d.p2name = document.getElementById('p2name').value.trim();
+    d.p2geb  = document.getElementById('p2geb').value.trim();
+    d.activeBranches = state.branches;
+    localStorage.setItem(DATA_KEY, JSON.stringify(d));
+    updateReadiness();
+  } catch(e) {}
+}
+
+// ── START ─────────────────────────────────────────────────────────────────
+function startBeratung() {
+  // First persist everything
+  persistData();
+  // Navigate to first active module
+  const firstMod = MODULES.einstieg.find(m => !state.disabled[m.id]);
+  if (firstMod) {
+    window.location.href = firstMod.file;
+  }
+}
+
+// ── NEUE BERATUNG ─────────────────────────────────────────────────────────
+function openNeueBeratung()  { document.getElementById('modalNeueBeratung').classList.add('open'); }
+function closeNeueBeratung() { document.getElementById('modalNeueBeratung').classList.remove('open'); }
+
+function confirmNeueBeratung() {
+  // Preserve berater prefs + module config; wipe customer data
+  const beraterName  = state.beraterName;
+  const beraterTitel = state.beraterTitel;
+  const disabled     = state.disabled;
+  const branches     = state.branches;
+
+  localStorage.removeItem(DATA_KEY);
+  // Also clear module-specific keys
+  ['bbz_v3','bbzCockpitData','bbzAnleger','bbzVereinbarungen'].forEach(k => {
+    try { localStorage.removeItem(k); } catch(e) {}
+  });
+
+  // Restore berater
+  state.beraterName  = beraterName;
+  state.beraterTitel = beraterTitel;
+  state.disabled     = disabled;
+  state.branches     = branches;
+  saveState();
+
+  // Clear UI fields
+  ['p1name','p1geb','p2name','p2geb'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+
+  closeNeueBeratung();
+  renderAll();
+  updateReadiness();
+}
+
+// ── TOPBAR DATE ───────────────────────────────────────────────────────────
+function setTopbarDate() {
+  const now = new Date();
+  const opts = { weekday:'long', day:'2-digit', month:'long', year:'numeric' };
+  document.getElementById('topbarDate').textContent =
+    now.toLocaleDateString('de-CH', opts);
+}
+
+// ── BERATUNGSDATUM ────────────────────────────────────────────────────────
+function initDatum() {
+  const el = document.getElementById('beratungsdatum');
+  el.value = state.beratungsdatum || todayISO();
+  el.addEventListener('change', () => {
+    state.beratungsdatum = el.value;
+    saveState();
+    persistData();
+  });
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+window.onload = () => {
+  loadState();
+  loadKundeFromData();
+
+  // Fill berater fields
+  document.getElementById('beraterName').value  = state.beraterName;
+  document.getElementById('beraterTitel').value = state.beraterTitel;
+
+  initDatum();
+  setTopbarDate();
+  renderAll();
+  updateReadiness();
+};
+</script>
+</body>
+</html>
