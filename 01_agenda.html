@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de-CH">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bbz bank – Agenda</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="bbz-data.js"></script>
+    <script src="bbz-nav.js" data-active="01"></script>
     <style>
         :root {
             --blue:    #004078;
             --blue-dk: #002d57;
             --blue-lt: #dce8f4;
             --red:     #950e13;
-            --green:   #15803d;
-            --amber:   #b45309;
             --ink:     #0f172a;
             --ink-2:   #334155;
             --ink-3:   #64748b;
@@ -26,31 +26,26 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: var(--font);
             background: var(--blue-dk);
             display: flex; align-items: center; justify-content: center;
             min-height: 100vh; overflow: hidden;
         }
 
-        /* ── CANVAS 16:9 ── */
         .canvas {
-            width: 95vw;
-            aspect-ratio: 16 / 9;
-            max-height: 95vh;
+            width: 95vw; aspect-ratio: 16/9; max-height: 95vh;
             background: var(--surface);
             display: grid;
             grid-template-rows: 6vh 18vh 1fr 4vh;
-            position: relative;
-            overflow: hidden;
+            position: relative; overflow: hidden;
             box-shadow: 0 50px 120px rgba(0,0,0,0.55);
         }
 
-        /* ── ROW 1: TOPBAR ── */
+        /* ── TOPBAR ── */
         .topbar {
             background: var(--blue);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2vw 0 2.2vw; gap: 1vw;
-            flex-shrink: 0;
+            padding: 0 2vw 0 2.2vw; gap: 1vw; flex-shrink: 0;
         }
         .logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
         .logo-mark {
@@ -59,24 +54,6 @@
             display: flex; align-items: center; justify-content: center; border-radius: 3px;
         }
         .logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
-
-        /* Module nav */
-        .mod-nav {
-            display: flex; align-items: center; gap: 0.15vw;
-            flex: 1; justify-content: center; overflow: hidden;
-        }
-        .mod-chip {
-            display: flex; align-items: center; gap: 0.2vw;
-            padding: 0.3vh 0.48vw; border-radius: 4px;
-            font-size: 0.52vw; font-weight: 700;
-            color: rgba(255,255,255,0.35); text-decoration: none;
-            white-space: nowrap; transition: color 0.15s, background 0.15s; flex-shrink: 0;
-        }
-        .mod-chip:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.07); }
-        .mod-chip.active { background: white; color: var(--blue); }
-        .chip-num { font-size: 0.44vw; font-weight: 900; opacity: 0.55; }
-        .mod-chip.active .chip-num { opacity: 0.45; }
-        .nav-sep { width: 1px; height: 1.8vh; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 0.18vw; }
         .topbar-right { display: flex; align-items: center; gap: 0.7vw; flex-shrink: 0; }
         .topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; }
         .home-btn {
@@ -88,160 +65,86 @@
         .home-btn:hover { background: rgba(255,255,255,0.2); }
         .home-btn svg { width: 13px; height: 13px; display: block; }
 
-        /* ── ROW 2: BEGRÜSSUNG + META ── */
+        /* ── WELCOME ROW ── */
         .welcome-row {
-            background: var(--surface);
-            border-bottom: 1px solid var(--line);
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            padding: 0 3.5vw 0 3.5vw;
-            gap: 3vw;
+            background: var(--surface); border-bottom: 1px solid var(--line);
+            display: grid; grid-template-columns: 1fr auto;
+            align-items: center; padding: 0 3.5vw; gap: 3vw;
         }
         .welcome-left { display: flex; flex-direction: column; justify-content: center; gap: 0.5vh; }
         .welcome-name {
-            font-size: 5.8vh; font-weight: 800;
-            color: var(--ink); outline: none;
-            letter-spacing: -0.04em; line-height: 1.05;
-            /* Hauptachse: kein zusätzlicher Einzug – Titel steht vorne */
+            font-size: 5.8vh; font-weight: 800; color: var(--ink);
+            outline: none; letter-spacing: -0.04em; line-height: 1.05;
         }
         .welcome-name:focus { background: rgba(0,64,120,0.04); border-radius: 4px; padding: 0 4px; }
         .welcome-sub {
-            font-size: 2.4vh; font-weight: 400;
-            color: var(--ink-3); outline: none;
-            /* Untertitel weicht 0.8vw zurück – zweite Hierarchieebene */
-            padding-left: 0.2vw;
+            font-size: 2.4vh; font-weight: 400; color: var(--ink-3);
+            outline: none; padding-left: 0.2vw;
         }
         .welcome-sub:focus { background: rgba(0,64,120,0.04); border-radius: 4px; padding: 0 4px; }
 
-        /* Meta stats */
         .meta-grid { display: flex; gap: 0; align-items: center; }
-        .meta-stat {
-            text-align: right;
-            padding: 0 2vw;
-            border-left: 1px solid var(--line);
-        }
+        .meta-stat { text-align: right; padding: 0 2vw; border-left: 1px solid var(--line); }
         .meta-stat:last-child { padding-right: 0; }
         .meta-key { font-size: 1.1vh; font-weight: 600; color: var(--ink-4); margin-bottom: 0.3vh; }
-        .meta-val {
-            font-size: 2.8vh; font-weight: 700; color: var(--blue);
-            outline: none; cursor: text; display: block;
-        }
+        .meta-val { font-size: 2.8vh; font-weight: 700; color: var(--blue); outline: none; cursor: text; display: block; }
         .meta-val:focus { background: rgba(0,64,120,0.05); border-radius: 3px; padding: 0 3px; }
 
-        /* ── ROW 3: GOAL + TRAKTANDEN + ERWARTUNGEN ── */
+        /* ── MAIN ROW ── */
         .main-row {
-            display: grid;
-            grid-template-columns: 5fr 1px 7fr 1px 4fr;
-            overflow: hidden;
-            min-height: 0;
+            display: grid; grid-template-columns: 5fr 1px 7fr 1px 4fr;
+            overflow: hidden; min-height: 0;
         }
         .col-divider { background: var(--line); }
 
-        /* GOAL COLUMN */
+        /* GOAL */
         .goal-col {
             background: var(--blue);
             padding: 3.5vh 2.8vw 3.5vh 3.5vw;
             display: flex; flex-direction: column;
-            overflow: hidden; min-height: 0;
-            position: relative;
+            overflow: hidden; min-height: 0; position: relative;
         }
         .goal-col::before {
-            content: '';
-            position: absolute; top: 0; right: 0;
+            content: ''; position: absolute; top: 0; right: 0;
             width: 60%; height: 100%;
             background: radial-gradient(ellipse at 100% 0%, rgba(255,255,255,0.05) 0%, transparent 65%);
             pointer-events: none;
         }
-        .goal-eyebrow {
-            font-size: 0.85vw; font-weight: 700;
-            color: rgba(255,255,255,0.35);
-            margin-bottom: 2.5vh;
-            flex-shrink: 0;
-            /* Label auf Hauptachse */
-        }
-        .goal-text-wrap {
-            flex: 1; display: flex; flex-direction: column;
-            justify-content: center; min-height: 0;
-            /* Text bricht 0.6vw nach innen – Inhalt tritt zurück vom Label */
-            padding-left: 0.6vw;
-        }
+        .goal-eyebrow { font-size: 0.85vw; font-weight: 700; color: rgba(255,255,255,0.35); margin-bottom: 2.5vh; flex-shrink: 0; }
+        .goal-text-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; padding-left: 0.6vw; }
         .goal-text {
-            font-size: 1.5vw;
-            font-weight: 700;
-            color: white;
-            line-height: 1.55;
-            outline: none;
-            cursor: text;
-            letter-spacing: -0.02em;
+            font-size: 1.5vw; font-weight: 700; color: white;
+            line-height: 1.55; outline: none; cursor: text; letter-spacing: -0.02em;
         }
-        .goal-text:focus {
-            background: rgba(255,255,255,0.08);
-            border-radius: 5px; padding: 4px 8px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
-        }
+        .goal-text:focus { background: rgba(255,255,255,0.08); border-radius: 5px; padding: 4px 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
 
-        /* TRAKTANDEN COLUMN */
+        /* TRAKTANDEN */
         .trak-col {
             background: var(--surface);
             padding: 3.5vh 2.8vw 2.5vh 3.5vw;
             display: flex; flex-direction: column;
             overflow: hidden; min-height: 0;
-            cursor: pointer;
-            transition: background 0.18s;
-            position: relative;
+            cursor: pointer; transition: background 0.18s; position: relative;
         }
         .trak-col:hover { background: #fafcfe; }
-        .col-label {
-            font-size: 1vw; font-weight: 700; color: var(--ink-4);
-            margin-bottom: 2vh; flex-shrink: 0;
-            /* Label auf Hauptachse – kein zusätzlicher Einzug */
-        }
-
-        /* Decorative large number */
+        .col-label { font-size: 1vw; font-weight: 700; color: var(--ink-4); margin-bottom: 2vh; flex-shrink: 0; }
         .deco {
             position: absolute; right: 1.8vw; bottom: 1.5vh;
-            font-size: 22vh; font-weight: 900;
-            color: var(--blue); opacity: 0.035;
-            line-height: 1; user-select: none; pointer-events: none;
-            letter-spacing: -0.06em;
+            font-size: 22vh; font-weight: 900; color: var(--blue); opacity: 0.035;
+            line-height: 1; user-select: none; pointer-events: none; letter-spacing: -0.06em;
         }
-
-        .trak-list {
-            flex: 1; display: flex; flex-direction: column;
-            min-height: 0; overflow: hidden; justify-content: center;
-        }
-        .trak-row {
-            display: flex; align-items: center;
-            border-bottom: 1px solid var(--line);
-            transition: background 0.12s;
-            padding: 0;
-        }
+        .trak-list { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; justify-content: center; }
+        .trak-row { display: flex; align-items: center; border-bottom: 1px solid var(--line); transition: background 0.12s; }
         .trak-row:first-child { border-top: 1px solid var(--line); }
         .trak-row:hover { background: var(--blue-lt); }
-        .trak-num {
-            /* Schwache Achse: Nummer tritt zurück, aber lesbar */
-            font-size: 1vw; font-weight: 900; color: var(--blue);
-            opacity: 0.5; width: 3vw; text-align: right;
-            padding-right: 0.8vw; flex-shrink: 0;
-            font-variant-numeric: tabular-nums;
-        }
+        .trak-num { font-size: 1vw; font-weight: 900; color: var(--blue); opacity: 0.5; width: 3vw; text-align: right; padding-right: 0.8vw; flex-shrink: 0; font-variant-numeric: tabular-nums; }
         .trak-divider { width: 1px; background: var(--line); align-self: stretch; flex-shrink: 0; }
-        .trak-text {
-            /* Starke Achse: Text hat klaren Einstieg nach dem Divider */
-            font-weight: 600; color: var(--ink-2);
-            padding: 1.2vh 0 1.2vh 1.2vw;
-            line-height: 1.2; flex: 1;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+        .trak-text { font-weight: 600; color: var(--ink-2); padding: 1.2vh 0 1.2vh 1.2vw; line-height: 1.2; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .trak-footer { margin-top: auto; padding-top: 1.5vh; }
-        .edit-hint {
-            font-size: 0.6vw; font-weight: 600;
-            color: transparent; transition: color 0.2s;
-        }
+        .edit-hint { font-size: 0.6vw; font-weight: 600; color: transparent; transition: color 0.2s; }
         .trak-col:hover .edit-hint { color: var(--ink-4); }
 
-        /* ERWARTUNGEN COLUMN */
+        /* ERWARTUNGEN */
         .exp-col {
             background: var(--bg);
             padding: 3.5vh 2.2vw 2.5vh 2.5vw;
@@ -250,99 +153,52 @@
             cursor: pointer; transition: background 0.18s;
         }
         .exp-col:hover { background: #e8eef6; }
-        .exp-list {
-            flex: 1; display: flex; flex-direction: column;
-            gap: 2vh; min-height: 0; overflow: hidden;
-            justify-content: center;
-        }
-        .exp-quote {
-            font-size: 2vh; font-weight: 500; color: var(--red);
-            line-height: 1.45;
-            padding-left: 0.8vw;
-            border-left: 2px solid var(--red);
-            opacity: 0.9;
-        }
-        .exp-placeholder {
-            font-size: 2.2vh;
-            font-weight: 600;
-            color: var(--ink-3);
-            line-height: 1.55;
-            padding-left: 0.8vw;
-            border-left: 2px solid var(--ink-4);
-        }
+        .exp-list { flex: 1; display: flex; flex-direction: column; gap: 2vh; min-height: 0; overflow: hidden; justify-content: center; }
+        .exp-quote { font-size: 2vh; font-weight: 500; color: var(--red); line-height: 1.45; padding-left: 0.8vw; border-left: 2px solid var(--red); opacity: 0.9; }
+        .exp-placeholder { font-size: 2.2vh; font-weight: 600; color: var(--ink-3); line-height: 1.55; padding-left: 0.8vw; border-left: 2px solid var(--ink-4); }
         .exp-footer { margin-top: auto; padding-top: 1.5vh; }
         .exp-hint { font-size: 0.6vw; font-weight: 600; color: transparent; transition: color 0.2s; }
         .exp-col:hover .exp-hint { color: var(--ink-3); }
 
-        /* ── ROW 4: FOOTER ── */
+        /* ── FOOTER ── */
         .footer {
-            background: var(--surface);
-            border-top: 1px solid var(--line);
+            background: var(--surface); border-top: 1px solid var(--line);
             padding: 0 3.5vw;
             display: flex; align-items: center; justify-content: space-between;
         }
         .footer-copy { font-size: 0.6vw; font-weight: 500; color: var(--ink-4); }
         .footer-right { display: flex; align-items: center; gap: 1.5vw; }
-        .status {
-            display: flex; align-items: center; gap: 0.4vw;
-            font-size: 0.55vw; font-weight: 700; color: #16a34a;
-        }
-        .status-dot {
-            width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
-            animation: pulse 2.5s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
-            50% { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
-        }
+        .status { display: flex; align-items: center; gap: 0.4vw; font-size: 0.55vw; font-weight: 700; color: #16a34a; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
         .print-btn { opacity: 0.2; cursor: pointer; transition: opacity 0.2s; line-height: 0; }
         .print-btn:hover { opacity: 0.65; }
         .print-btn svg { width: 1.1vw; height: 1.1vw; }
 
         /* ── MODAL ── */
         .modal-overlay {
-            position: absolute; inset: 0;
-            background: rgba(0,20,55,0.82);
-            backdrop-filter: blur(16px);
+            position: fixed; inset: 0;
+            background: rgba(0,20,55,0.82); backdrop-filter: blur(16px);
             z-index: 200; display: none;
             align-items: center; justify-content: center; padding: 6%;
         }
         .modal-box {
             background: white; width: 65%; max-height: 84%;
             border-radius: 12px; display: flex; flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.35);
+            overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.35);
         }
-        .modal-head {
-            padding: 2.5vh 2.5vw 2vh; border-bottom: 1px solid var(--line);
-            display: flex; align-items: center; justify-content: space-between;
-            flex-shrink: 0;
-        }
+        .modal-head { padding: 2.5vh 2.5vw 2vh; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .modal-title { font-size: 2.5vh; font-weight: 800; color: var(--blue); letter-spacing: -0.02em; }
         .modal-actions { display: flex; align-items: center; gap: 1vw; }
-        .btn-add {
-            padding: 0.8vh 1.2vw; background: var(--blue); color: white;
-            font-size: 0.7vw; font-weight: 700; border-radius: 6px;
-            border: none; cursor: pointer; font-family: inherit;
-            transition: background 0.15s;
-        }
+        .btn-add { padding: 0.8vh 1.2vw; background: var(--blue); color: white; font-size: 0.7vw; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; transition: background 0.15s; }
         .btn-add:hover { background: var(--blue-dk); }
-        .btn-close {
-            background: none; border: none; cursor: pointer;
-            color: var(--ink-4); display: flex; align-items: center;
-            transition: color 0.15s;
-        }
+        .btn-close { background: none; border: none; cursor: pointer; color: var(--ink-4); display: flex; align-items: center; transition: color 0.15s; }
         .btn-close:hover { color: var(--red); }
         .btn-close svg { width: 1.4vw; height: 1.4vw; }
         .modal-body { flex: 1; overflow-y: auto; padding: 2vh 2.5vw; }
         .modal-body::-webkit-scrollbar { width: 3px; }
         .modal-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
-        .modal-row {
-            display: flex; align-items: center; gap: 0.8vw;
-            padding: 1.2vh 1vw; background: white;
-            border: 1px solid var(--line); border-radius: 8px;
-            margin-bottom: 0.8vh; transition: border-color 0.15s;
-        }
+        .modal-row { display: flex; align-items: center; gap: 0.8vw; padding: 1.2vh 1vw; background: white; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 0.8vh; transition: border-color 0.15s; }
         .modal-row:hover { border-color: #a8c4de; }
         .drag-grip { font-size: 1.2vh; color: var(--ink-4); cursor: grab; padding: 0 0.2vw; user-select: none; }
         .drag-grip:hover { color: var(--ink-3); }
@@ -357,7 +213,7 @@
 </head>
 <body>
 
-<!-- MODAL -->
+<!-- MODAL: ausserhalb canvas -->
 <div class="modal-overlay" id="modal-overlay" onclick="overlayClick(event)">
     <div class="modal-box" onclick="event.stopPropagation()">
         <div class="modal-head">
@@ -377,41 +233,15 @@
 
 <div class="canvas">
 
-    <!-- ROW 1: TOPBAR -->
+    <!-- TOPBAR -->
     <header class="topbar">
         <div class="logo">
             <div class="logo-mark">bbz</div>
             <span class="logo-name">Agenda</span>
         </div>
-        <nav class="mod-nav">
-            <a href="gespraechsagenda.html"     class="mod-chip active"><span class="chip-num">01</span>Agenda</a>
-            <a href="vorstellung-bank.html"     class="mod-chip"><span class="chip-num">02</span>Bank</a>
-            <a href="vorstellung-berater.html"  class="mod-chip"><span class="chip-num">03</span>Berater:in</a>
-            <a href="beratungsphilosophie.html" class="mod-chip"><span class="chip-num">04</span>Philosophie</a>
-            <a href="finanz-cockpit.html"       class="mod-chip"><span class="chip-num">05</span>Cockpit</a>
-            <a href="ziele-wuensche.html"       class="mod-chip"><span class="chip-num">06</span>Ziele</a>
-            <div class="nav-sep"></div>
-            <div style="display:flex;align-items:center;gap:0.18vw;flex-shrink:0;">
-                <div style="display:flex;flex-direction:column;align-items:center;">
-                    <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.22);"></div>
-                    <div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);"></div>
-                    <div style="display:flex;gap:5px;">
-                        <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
-                        <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:2px;">
-                    <a href="tragbarkeit.html"    class="mod-chip" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07a</span>Finanzieren</a>
-                    <a href="anlegeranalyse.html" class="mod-chip" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07b</span>Anlegen</a>
-                </div>
-            </div>
-            <div class="nav-sep"></div>
-            <a href="vereinbarungen.html"       class="mod-chip"><span class="chip-num">09</span>Vereinbarungen</a>
-            <a href="zufriedenheitsdialog.html" class="mod-chip"><span class="chip-num">10</span>Feedback</a>
-            <a href="verabschiedung.html"       class="mod-chip"><span class="chip-num">11</span>Abschluss</a>
-        </nav>
+        <!-- bbz-nav.js injiziert hier die Navigation -->
         <div class="topbar-right">
-            <a href="index.html" class="home-btn" title="Zurück zur Übersicht">
+            <a href="index.html" class="home-btn" title="Zurück zum Cockpit">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/>
                 </svg>
@@ -420,10 +250,10 @@
         </div>
     </header>
 
-    <!-- ROW 2: BEGRÜSSUNG -->
+    <!-- WELCOME ROW -->
     <div class="welcome-row">
         <div class="welcome-left">
-            <div class="welcome-name" contenteditable="true">Herzlich willkommen</div>
+            <div class="welcome-name" id="welcomeName" contenteditable="true">Herzlich willkommen</div>
             <div class="welcome-sub" contenteditable="true">Schön, dass Sie heute bei uns sind.</div>
         </div>
         <div class="meta-grid">
@@ -442,7 +272,7 @@
         </div>
     </div>
 
-    <!-- ROW 3: GOAL | TRAKTANDEN | ERWARTUNGEN -->
+    <!-- MAIN ROW -->
     <div class="main-row">
 
         <!-- GOAL -->
@@ -480,14 +310,11 @@
 
     </div>
 
-    <!-- ROW 4: FOOTER -->
+    <!-- FOOTER -->
     <div class="footer">
-        <span class="footer-copy">bbz st.gallen ag &copy; 2026</span>
+        <span class="footer-copy">bbz bank st.gallen ag &copy; 2026</span>
         <div class="footer-right">
-            <span class="status">
-                <span class="status-dot"></span>
-                Bereit
-            </span>
+            <span class="status"><span class="status-dot"></span>Bereit</span>
             <div class="print-btn" onclick="window.print()">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -496,10 +323,11 @@
         </div>
     </div>
 
-</div>
+</div><!-- /canvas -->
 
 <script>
-    let agendaData = [
+    // ── DEFAULT-DATEN ────────────────────────────────────────────────────────
+    const DEFAULT_AGENDA = [
         "Ihre aktuelle Gesamtsituation",
         "Veränderungen mit finanziellen Auswirkungen",
         "Ihre Ziele & Wünsche",
@@ -507,53 +335,94 @@
         "Entscheidungen",
         "Nächste Schritte"
     ];
-    let expectationsData = [];
-    let activeModal = null;
 
-    function initDateTime() {
+    let agendaData       = DEFAULT_AGENDA.slice();
+    let expectationsData = [];
+    let activeModal      = null;
+
+    // ── INIT ─────────────────────────────────────────────────────────────────
+    function init() {
+        // Datum & Uhrzeit
         const now = new Date();
         document.getElementById('meta-date').innerText =
             now.toLocaleDateString('de-CH', {day:'2-digit', month:'2-digit', year:'numeric'});
         document.getElementById('meta-time').innerText =
             String(now.getHours()).padStart(2,'0') + ':' +
             String(now.getMinutes()).padStart(2,'0') + ' Uhr';
+
+        // Kundennamen aus bbzData laden
+        const p1name = BBZ.get('p1name');
+        const p2name = BBZ.get('p2name');
+        if (p1name) {
+            const greeting = p2name
+                ? 'Herzlich willkommen, ' + p1name + ' & ' + p2name
+                : 'Herzlich willkommen, ' + p1name;
+            document.getElementById('welcomeName').innerText = greeting;
+        }
+
+        // Gespeicherte Daten laden (Default nur wenn noch nichts existiert)
+        const saved = BBZ.all();
+        if (Array.isArray(saved.agenda_traktanden) && saved.agenda_traktanden.length) {
+            agendaData = saved.agenda_traktanden;
+        } else {
+            // Default persistieren
+            BBZ.set('agenda_traktanden', agendaData);
+        }
+        if (Array.isArray(saved.agenda_erwartungen)) {
+            expectationsData = saved.agenda_erwartungen;
+        }
+
+        refresh();
     }
 
+    // ── RENDER ────────────────────────────────────────────────────────────────
     function esc(s) {
-        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
     function renderTraktanden() {
         const list = document.getElementById('trak-list');
         document.getElementById('deco').innerText = agendaData.length || '';
         if (!agendaData.length) {
-            list.innerHTML = `<div style="color:var(--ink-4);font-size:1.4vh;padding:2vh 0;">Keine Traktanden vorhanden.</div>`;
+            list.innerHTML = '<div style="color:var(--ink-4);font-size:1.4vh;padding:2vh 0;">Keine Traktanden vorhanden.</div>';
             return;
         }
-        const fs = agendaData.length <= 5 ? 2.4 :
-                   agendaData.length <= 7 ? 2.1 :
-                   agendaData.length <= 9 ? 1.9 : 1.7;
-        list.innerHTML = agendaData.map((t,i) => `
-            <div class="trak-row">
-                <span class="trak-num">${String(i+1).padStart(2,'0')}</span>
-                <span class="trak-divider"></span>
-                <span class="trak-text" style="font-size:${fs}vh;">${esc(t)}</span>
-            </div>`).join('');
+        const fs = agendaData.length <= 5 ? 2.4 : agendaData.length <= 7 ? 2.1 : agendaData.length <= 9 ? 1.9 : 1.7;
+        list.innerHTML = agendaData.map((t,i) =>
+            '<div class="trak-row">' +
+                '<span class="trak-num">' + String(i+1).padStart(2,'0') + '</span>' +
+                '<span class="trak-divider"></span>' +
+                '<span class="trak-text" style="font-size:' + fs + 'vh;">' + esc(t) + '</span>' +
+            '</div>'
+        ).join('');
     }
 
     function renderErwartungen() {
         const list = document.getElementById('exp-list');
         if (!expectationsData.length) {
-            list.innerHTML = `<p class="exp-placeholder">«Was wünschen Sie sich vom heutigen Gespräch?»</p>`;
+            list.innerHTML = '<p class="exp-placeholder">«Was wünschen Sie sich vom heutigen Gespräch?»</p>';
             return;
         }
-        const fs = expectationsData.length <= 3 ? 2.1 :
-                   expectationsData.length <= 5 ? 1.9 : 1.7;
-        list.innerHTML = expectationsData.map(t => `
-            <div class="exp-quote" style="font-size:${fs}vh;">«${esc(t)}»</div>`
+        const fs = expectationsData.length <= 3 ? 2.1 : expectationsData.length <= 5 ? 1.9 : 1.7;
+        list.innerHTML = expectationsData.map(t =>
+            '<div class="exp-quote" style="font-size:' + fs + 'vh;">«' + esc(t) + '»</div>'
         ).join('');
     }
 
+    function refresh() {
+        renderTraktanden();
+        renderErwartungen();
+    }
+
+    // ── PERSISTENZ ────────────────────────────────────────────────────────────
+    function persist() {
+        BBZ.merge({
+            agenda_traktanden:  agendaData,
+            agenda_erwartungen: expectationsData
+        });
+    }
+
+    // ── MODAL ─────────────────────────────────────────────────────────────────
     function openModal(type) {
         activeModal = type;
         document.getElementById('modal-title').innerText =
@@ -566,28 +435,26 @@
         const data = activeModal === 'agenda' ? agendaData : expectationsData;
         const list = document.getElementById('modal-list');
         if (!data.length) {
-            list.innerHTML = `<p class="empty-hint">Noch keine Einträge. Klicken Sie "+ Hinzufügen".</p>`;
+            list.innerHTML = '<p class="empty-hint">Noch keine Einträge. Klicken Sie "+ Hinzufügen".</p>';
             return;
         }
-        list.innerHTML = data.map((t,i) => `
-            <div class="modal-row">
-                <span class="drag-grip">⋮⋮</span>
-                <span class="modal-num">${String(i+1).padStart(2,'0')}</span>
-                <span class="modal-input" contenteditable="true"
-                      onblur="dataUpdate(${i}, this.innerText)">${esc(t)}</span>
-                <button class="btn-del" onclick="dataDelete(${i})">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>`).join('');
+        list.innerHTML = data.map((t,i) =>
+            '<div class="modal-row">' +
+                '<span class="drag-grip">⋮⋮</span>' +
+                '<span class="modal-num">' + String(i+1).padStart(2,'0') + '</span>' +
+                '<span class="modal-input" contenteditable="true" onblur="dataUpdate(' + i + ', this.innerText)">' + esc(t) + '</span>' +
+                '<button class="btn-del" onclick="dataDelete(' + i + ')">' +
+                    '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>' +
+                '</button>' +
+            '</div>'
+        ).join('');
 
         Sortable.create(list, {
             handle: '.drag-grip', animation: 120, ghostClass: 'sortable-ghost',
             onEnd: () => {
                 const items = Array.from(list.querySelectorAll('.modal-input')).map(el => el.innerText.trim());
                 if (activeModal === 'agenda') agendaData = items; else expectationsData = items;
-                refresh(); renumber(list);
+                persist(); refresh(); renumber(list);
             }
         });
     }
@@ -601,18 +468,18 @@
     function dataUpdate(i, text) {
         const t = text.trim();
         if (activeModal === 'agenda') agendaData[i] = t; else expectationsData[i] = t;
-        refresh();
+        persist(); refresh();
     }
 
     function dataDelete(i) {
         if (activeModal === 'agenda') agendaData.splice(i,1); else expectationsData.splice(i,1);
-        renderModalList(); refresh();
+        renderModalList(); persist(); refresh();
     }
 
     function dataAdd() {
         if (activeModal === 'agenda') agendaData.push('Neues Thema …');
         else expectationsData.push('Neue Erwartung …');
-        renderModalList(); refresh();
+        renderModalList(); persist(); refresh();
         setTimeout(() => {
             const inputs = document.querySelectorAll('.modal-input');
             if (inputs.length) {
@@ -628,16 +495,14 @@
 
     function closeModal() {
         document.getElementById('modal-overlay').style.display = 'none';
-        refresh(); activeModal = null;
+        persist(); refresh(); activeModal = null;
     }
 
     function overlayClick(e) {
         if (e.target === document.getElementById('modal-overlay')) closeModal();
     }
 
-    function refresh() { renderTraktanden(); renderErwartungen(); }
-
-    window.onload = () => { initDateTime(); refresh(); };
+    window.onload = () => { init(); };
     window.addEventListener('resize', refresh);
 </script>
 </body>
