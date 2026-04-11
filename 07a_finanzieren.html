@@ -6,6 +6,8 @@
 <title>bbz bank – Eigenheimfinanzierung</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="bbz-data.js"></script>
+  <script src="bbz-nav.js" data-active="07a"></script>
 <style>
 :root {
   --blue:    #004078;
@@ -326,33 +328,7 @@ input[type=range]::-webkit-slider-thumb {
     <div class="logo-mark">bbz</div>
     <span class="logo-name">Eigenheimfinanzierung</span>
   </div>
-  <nav class="mod-nav">
-    <a href="gespraechsagenda.html"    class="mod-chip"><span class="chip-num">01</span>Agenda</a>
-    <a href="vorstellung-bank.html"    class="mod-chip"><span class="chip-num">02</span>Bank</a>
-    <a href="vorstellung-berater.html" class="mod-chip"><span class="chip-num">03</span>Berater:in</a>
-    <a href="beratungsphilosophie.html"class="mod-chip"><span class="chip-num">04</span>Philosophie</a>
-    <a href="finanz-cockpit.html"      class="mod-chip"><span class="chip-num">05</span>Cockpit</a>
-    <a href="ziele-wuensche.html"      class="mod-chip"><span class="chip-num">06</span>Ziele</a>
-    <div class="nav-sep"></div>
-    <div style="display:flex;align-items:center;gap:0.18vw;flex-shrink:0;">
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.22);"></div>
-        <div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);"></div>
-        <div style="display:flex;gap:5px;">
-          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
-          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:2px;">
-        <a href="tragbarkeit.html"    class="mod-chip active" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07a</span>Finanzieren</a>
-        <a href="anlegeranalyse.html" class="mod-chip"        style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07b</span>Anlegen</a>
-      </div>
-    </div>
-    <div class="nav-sep"></div>
-    <a href="vereinbarungen.html"      class="mod-chip"><span class="chip-num">09</span>Vereinbarungen</a>
-    <a href="zufriedenheitsdialog.html"class="mod-chip"><span class="chip-num">10</span>Feedback</a>
-    <a href="verabschiedung.html"      class="mod-chip"><span class="chip-num">11</span>Abschluss</a>
-  </nav>
+  <!-- bbz-nav.js injiziert Navigation -->
   <div style="display:flex;align-items:center;gap:0.7vw;flex-shrink:0;">
     <button class="gear-btn" onclick="openAdmin()" title="Marktzinsen anpassen">
       <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -503,7 +479,7 @@ input[type=range]::-webkit-slider-thumb {
 </div>
 
 <footer class="footer">
-  <span class="footer-copy">bbz st.gallen ag © 2026</span>
+  <span class="footer-copy">bbz bank st.gallen ag &copy; 2026</span>
   <div class="footer-live"><span class="dot-live"></span>Live Berechnung</div>
 </footer>
 </div>
@@ -608,7 +584,7 @@ const fmt=(n,d=0)=>{
 
 (function preload(){
   try{
-    const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
+    const d=BBZ.all();
 
     // Helper: set field only if currently empty
     const setIfEmpty=(id,val)=>{
@@ -621,8 +597,8 @@ const fmt=(n,d=0)=>{
     };
 
     // Einkommen & Verpflichtungen aus Finanzcockpit (falls bereits persistiert)
-    if(d.cockpit_income)  setIfEmpty('income',      d.cockpit_income);
-    if(d.cockpit_oblig)   setIfEmpty('obligations',  d.cockpit_oblig);
+    if(d.cockpit_einkommen)  setIfEmpty('income',      d.cockpit_einkommen);
+    if(d.cockpit_ausgaben)   setIfEmpty('obligations',  d.cockpit_ausgaben);
     if(d.cockpit_pk_saldo)setIfEmpty('pensionWithdraw', d.cockpit_pk_saldo);
 
     // Kaufpreis aus erstem Wohnen-Ziel in Ziele & Wünsche
