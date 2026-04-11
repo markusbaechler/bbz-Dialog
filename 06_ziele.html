@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bbz bank - Ziele & Wünsche</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="bbz-data.js"></script>
+    <script src="bbz-nav.js" data-active="06"></script>
     <style>
         :root {
             --blue:#004078;--blue-dk:#002d57;--blue-lt:#dce8f4;
@@ -316,7 +318,7 @@
         </div>
         <div class="topbar-right">
             <a href="finanz-cockpit.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>Zurück</a>
-            <a href="gespraechsagenda.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>Übersicht</a>
+            <a href="index.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>Übersicht</a>
             <button class="nav-recap" onclick="openRecap()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Zusammenfassung</button>
             <a href="tragbarkeit.html" class="nav-link">Weiter<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
             <span class="topbar-brand">bbz bank</span>
@@ -533,26 +535,18 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function fmt(n){const v=parseInt(String(n||'').replace(/[^0-9]/g,''),10);return isNaN(v)?'':v.toLocaleString('de-CH');}
 function parseAmt(v){return parseInt(String(v||'').replace(/[^0-9]/g,''),10)||0;}
 function autoTh(el){const r=el.value.replace(/[^0-9]/g,'');if(r)el.value=parseInt(r,10).toLocaleString('de-CH');}
-function getSD(){try{const d=JSON.parse(localStorage.getItem('bbzData')||'{}');return{p1name:d.p1name||'P1',p1geb:d.p1geb||null,p2name:d.p2name||null,p2geb:d.p2geb||null};}catch(e){return{p1name:'P1',p1geb:null,p2name:null,p2geb:null};}}
+function getSD(){try{const d=BBZ.all();return{p1name:d.p1name||'P1',p1geb:d.p1geb||null,p2name:d.p2name||null,p2geb:d.p2geb||null};}catch(e){return{p1name:'P1',p1geb:null,p2name:null,p2geb:null};}}
 const DATA_VERSION = 'bbz_v3';
 function load(){
     try{
-        // If version key doesn't match, start fresh (clears old test data)
-        if(localStorage.getItem('bbz_version')!==DATA_VERSION){
-            ziele=[]; wuensche=[];
-            return;
-        }
-        const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
+        const d=BBZ.all();
         ziele   = Array.isArray(d.ziele)    ? d.ziele    : [];
         wuensche= Array.isArray(d.wuensche) ? d.wuensche : [];
     }catch(e){ziele=[];wuensche=[];}
 }
 function persist(){
     try{
-        const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
-        d.ziele=ziele; d.wuensche=wuensche;
-        localStorage.setItem('bbzData',JSON.stringify(d));
-        localStorage.setItem('bbz_version',DATA_VERSION);
+        BBZ.merge({ ziele, wuensche });
     }catch(e){}
 }
 function age(geb,yr){return geb?yr-new Date(geb).getFullYear():null;}
@@ -1100,12 +1094,7 @@ function openRecap(){
 function resetData(){
     if(!confirm('Alle erfassten Ziele und Wünsche löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
     ziele=[]; wuensche=[];
-    try{
-        const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
-        delete d.ziele; delete d.wuensche;
-        localStorage.setItem('bbzData',JSON.stringify(d));
-        localStorage.removeItem('bbz_version');
-    }catch(e){}
+    try{ BBZ.merge({ ziele: [], wuensche: [] }); }catch(e){}
     renderAll();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
