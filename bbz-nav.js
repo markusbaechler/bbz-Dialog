@@ -1,12 +1,10 @@
 /**
  * bbz-nav.js — Globale Navigation
  * Einbinden: <script src="bbz-nav.js" data-active="01"></script>
- * Aktive Modul-ID als data-active Attribut (z.B. "01", "07a", "07b")
  */
 
 (function () {
 
-  // ── MODUL-DEFINITIONEN ─────────────────────────────────────────────────
   const MODULES = [
     { id: '01',  label: 'Agenda',         file: '01_agenda.html' },
     { id: '02',  label: 'Bank',           file: '02_bank.html' },
@@ -121,14 +119,28 @@
   }
 
   function inject() {
+    // 1. Ersetze existierende .mod-nav falls vorhanden
     const existing = document.querySelector('.mod-nav');
     if (existing) { existing.replaceWith(buildNav()); return; }
+
     const topbar = document.querySelector('.topbar, .bbz-topbar');
-    if (topbar) {
-      const right = topbar.querySelector('.topbar-right, .bbz-topbar-right');
-      const nav = buildNav();
-      if (right) topbar.insertBefore(nav, right);
-      else topbar.appendChild(nav);
+    if (!topbar) return;
+
+    const nav = buildNav();
+
+    // 2. Vor .topbar-right einfügen falls vorhanden
+    const right = topbar.querySelector('.topbar-right, .bbz-topbar-right');
+    if (right) { topbar.insertBefore(nav, right); return; }
+
+    // 3. Fallback: nach dem .logo Element einfügen (NICHT ans Ende)
+    const logo = topbar.querySelector('.logo, .bbz-logo');
+    if (logo && logo.nextSibling) {
+      topbar.insertBefore(nav, logo.nextSibling);
+    } else if (logo) {
+      logo.insertAdjacentElement('afterend', nav);
+    } else {
+      // Letzter Fallback: ans Ende
+      topbar.appendChild(nav);
     }
   }
 
