@@ -6,7 +6,6 @@
     <title>bbz bank - Ziele & Wünsche</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="bbz-data.js"></script>
-    <script src="bbz-nav.js" data-active="06"></script>
     <style>
         :root {
             --blue:#004078;--blue-dk:#002d57;--blue-lt:#dce8f4;
@@ -307,6 +306,53 @@
         .nav-recap{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:5px;color:rgba(255,255,255,.85);font-size:.65vw;font-weight:700;padding:.4vh .9vw;cursor:pointer;font-family:"DM Sans",sans-serif;display:flex;align-items:center;gap:.3vw;transition:all .2s;}
         .nav-recap:hover{background:rgba(255,255,255,.22);color:white;}
         .nav-recap svg{width:.8vw;height:.8vw;}
+    
+        /* ── TOPBAR ADMIN ── */
+        .topbar-right { display: flex !important; align-items: center; gap: 0.6vw; flex-shrink: 0; }
+        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: 0.5vw; font-weight: 600; }
+        .edit-btn {
+            background: none !important; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.28); font-size: 0.5vw;
+            font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 0;
+            transition: color 0.15s; white-space: nowrap;
+        }
+        .edit-btn:hover { color: rgba(255,255,255,0.7); }
+        .home-btn {
+            background: rgba(255,255,255,0.12) !important; border: none; border-radius: 5px;
+            padding: 0.42vh 0.42vw; cursor: pointer; color: white;
+            display: flex; align-items: center; transition: background 0.15s;
+            text-decoration: none; flex-shrink: 0;
+        }
+        .home-btn:hover { background: rgba(255,255,255,0.22) !important; }
+        .home-btn svg { width: 13px; height: 13px; display: block; }
+
+        /* ── BOTTOM NAV ── */
+        .footer, footer {
+            background: var(--surface, #fff) !important; border-top: 1px solid var(--line, #e2e8f0) !important;
+            display: flex !important; align-items: center; padding: 0 1vw; gap: 0.1vw;
+            justify-content: flex-start !important;
+        }
+        .nav-tab {
+            display: flex; align-items: center; justify-content: center;
+            height: 100%; padding: 0 0.75vw;
+            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            white-space: nowrap; flex-shrink: 0; text-decoration: none;
+            border-radius: 3px; transition: color 0.15s, background 0.15s;
+        }
+        .nav-tab:hover { color: #64748b; background: #f1f5f9; }
+        .nav-tab.active { background: #dce8f4; color: #004078; font-weight: 700; }
+        .nav-tab-split { display: flex; align-items: center; height: 100%; flex-shrink: 0; border-radius: 3px; overflow: hidden; }
+        .nav-tab-half {
+            display: flex; align-items: center; justify-content: center;
+            height: 100%; padding: 0 0.65vw;
+            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            white-space: nowrap; text-decoration: none;
+            transition: color 0.15s, background 0.15s;
+        }
+        .nav-tab-half:hover { color: #64748b; background: #f1f5f9; }
+        .nav-tab-half.active { background: #dce8f4; color: #004078; font-weight: 700; }
+        .nav-spacer { flex: 1; }
+        .nav-brand { font-size: 0.48vw; color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -316,10 +362,13 @@
             <div class="logo-mark">bbz</div>
             <span class="logo-name">Ziele &amp; Wünsche</span>
         </div>
-        <!-- bbz-nav.js injiziert Navigation -->
         <div class="topbar-right" style="display:flex;align-items:center;gap:0.7vw;flex-shrink:0;">
-            <span class="topbar-brand">bbz bank</span>
-        </div>
+
+    <a href="index.html" class="home-btn" title="Home">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>
+    </a>
+    <span class="topbar-brand">bbz bank</span>
+  </div>
     </div>
     <div class="main">
         <div class="main-left">
@@ -395,11 +444,22 @@
         </div>
     </div>
     <div class="footer">
-        <span class="footer-copy">bbz st.gallen ag &copy; 2026</span>
-        <div style="display:flex;align-items:center;gap:1.2vw;">
-            <button onclick="resetData()" style="font-family:'DM Sans',sans-serif;font-size:.52vw;font-weight:600;color:var(--ink-4);background:none;border:1px solid var(--line);border-radius:4px;padding:.25vh .6vw;cursor:pointer;opacity:.6;" title="Alle Daten löschen">↺ Reset</button>
-            <span class="status"><span class="status-dot"></span>Bereit</span>
-        </div>
+    <a href="01_agenda.html" class="nav-tab">Agenda</a>
+    <a href="02_bank.html" class="nav-tab">Bank</a>
+    <a href="03_berater.html" class="nav-tab">Berater:in</a>
+    <a href="04_philosophie.html" class="nav-tab">Philosophie</a>
+    <a href="05_cockpit.html" class="nav-tab">Cockpit</a>
+    <a href="06_ziele.html" class="nav-tab active">Ziele</a>
+    <div class="nav-tab-split">
+      <a href="07a_finanzieren.html" class="nav-tab-half">Finanzieren</a>
+      <a href="07b_anlegen.html" class="nav-tab-half">Anlegen</a>
+    </div>
+    <a href="08_vereinbarungen.html" class="nav-tab">Vereinbarungen</a>
+    <a href="09_feedback.html" class="nav-tab">Feedback</a>
+    <a href="10_abschluss.html" class="nav-tab">Abschluss</a>
+    <div class="nav-spacer"></div>
+    <span class="nav-brand">bbz bank</span>
+  </div>
     </div>
 
     <!-- MODAL ZIEL -->
