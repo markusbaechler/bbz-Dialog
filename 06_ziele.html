@@ -232,12 +232,13 @@
         .sl-top{display:flex;align-items:center;justify-content:space-between;}
         .sl-val{font-size:1.6vh;font-weight:800;color:var(--blue);min-width:4ch;text-align:right;}
         .sl-val.green{color:var(--green);}
-        .sl-track{position:relative;height:5px;border-radius:3px;background:var(--line);cursor:pointer;padding:10px 0;margin:-10px 0;background-clip:content-box;}
+        .sl-track{position:relative;height:5px;border-radius:3px;background:var(--line);cursor:pointer;}
+        .sl-track::before{content:'';position:absolute;inset:-12px 0;cursor:pointer;}
         .sl-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:var(--blue);pointer-events:none;}
         .sl-fill.green{background:var(--green);}
         .sl-thumb{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:white;border:2.5px solid var(--blue);transform:translate(-50%,-50%);cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.15);}
         .sl-thumb.green{border-color:var(--green);}
-        .sl-ticks{display:flex;justify-content:space-between;}
+        .sl-ticks{display:flex;justify-content:space-between;margin-top:8px;}
         .sl-tick{font-size:.48vw;font-weight:600;color:var(--ink-4);}
         .yr-tiles{display:flex;gap:.5vw;}
         .yr-tile{flex:1;padding:.7vh .3vw;border:1.5px solid var(--line);border-radius:6px;background:white;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:.72vw;font-weight:700;color:var(--ink-2);text-align:center;transition:all .15s;}
@@ -937,7 +938,7 @@ function buildJahrSlider(container, initVal, isGreen){
         } else {
             // Langfristig: slider
             const minY = langMin, maxY = langMax;
-            slJahrVal = Math.max(minY, Math.min(maxY, targetYear || Math.round((minY+maxY)/2)));
+            slJahrVal = Math.max(minY, Math.min(maxY, targetYear || Math.floor((minY+maxY)/2)));
             wrap.innerHTML = `
                 <div class="sl-wrap">
                     <div class="sl-top">
@@ -950,7 +951,7 @@ function buildJahrSlider(container, initVal, isGreen){
                     </div>
                     <div class="sl-ticks">
                         <span class="sl-tick">${minY}</span>
-                        <span class="sl-tick">${Math.round((minY+maxY)/2)}</span>
+                        <span class="sl-tick">${Math.floor((minY+maxY)/2)}</span>
                         <span class="sl-tick">${maxY}</span>
                     </div>
                 </div>`;
