@@ -232,13 +232,19 @@
         .sl-top{display:flex;align-items:center;justify-content:space-between;}
         .sl-val{font-size:1.6vh;font-weight:800;color:var(--blue);min-width:4ch;text-align:right;}
         .sl-val.green{color:var(--green);}
-        .sl-track{position:relative;height:5px;border-radius:3px;background:var(--line);cursor:pointer;}
+        .sl-track{position:relative;height:5px;border-radius:3px;background:var(--line);cursor:pointer;padding:10px 0;margin:-10px 0;background-clip:content-box;}
         .sl-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:var(--blue);pointer-events:none;}
         .sl-fill.green{background:var(--green);}
         .sl-thumb{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:white;border:2.5px solid var(--blue);transform:translate(-50%,-50%);cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.15);}
         .sl-thumb.green{border-color:var(--green);}
         .sl-ticks{display:flex;justify-content:space-between;}
         .sl-tick{font-size:.48vw;font-weight:600;color:var(--ink-4);}
+        .yr-tiles{display:flex;gap:.5vw;}
+        .yr-tile{flex:1;padding:.7vh .3vw;border:1.5px solid var(--line);border-radius:6px;background:white;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:.72vw;font-weight:700;color:var(--ink-2);text-align:center;transition:all .15s;}
+        .yr-tile:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-lt);}
+        .yr-tile.active{border-color:var(--blue);background:var(--blue);color:white;}
+        .yr-tile.green:hover{border-color:var(--green);color:var(--green);background:var(--green-lt);}
+        .yr-tile.green.active{border-color:var(--green);background:var(--green);color:white;}
         /* PROB */
         .prob-toggle{display:flex;gap:.5vw;}
         .prob-btn{flex:1;padding:.65vh .4vw;border:1.5px solid var(--line);border-radius:6px;background:white;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:.6vw;font-weight:700;color:var(--ink-3);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:.35vh;}
@@ -394,11 +400,7 @@
                             <div class="empty-eyebrow">Ihre Ziele &amp; Wünsche</div>
                             <div class="empty-hint-text">«Welche Themen bewegen Sie –<br>heute und in Zukunft?»</div>
                             <div class="empty-hint-sub">Welche Lebensthemen, Ziele, Wünsche und Geldeingänge sind für Sie von Bedeutung?</div>
-                            <div class="empty-hint-arrows">
-                                <div class="empty-arrow-item"><span class="empty-arrow-dot blue"></span>Ziele mit Datum &amp; Betrag</div>
-                                <div class="empty-arrow-item"><span class="empty-arrow-dot red"></span>Wünsche – emotional, noch offen</div>
-                                <div class="empty-arrow-item"><span class="empty-arrow-dot green"></span>Erwartete Geldeingänge</div>
-                            </div>
+
                         </div>
                     </div>
                     <div class="axis-row" id="axis-row">
@@ -878,18 +880,17 @@ function buildJahrSlider(container, initVal, isGreen){
     const now = new Date().getFullYear();
     const gc = isGreen ? ' green' : '';
 
-    // Determine initial horizon from initVal
-    let initHorizon = 'offen';
-    if(initVal && initVal <= now+2) initHorizon = 'kurz';
-    else if(initVal && initVal <= now+5) initHorizon = 'mittel';
-    else if(initVal && initVal > now+5) initHorizon = 'lang';
+    // Kurzfristig: now, now+1, now+2
+    // Mittelfristig: now+3, now+4, now+5
+    // Langfristig: now+6 … now+35
+    const kurzYears  = [now, now+1, now+2];
+    const mittelYears = [now+3, now+4, now+5];
+    const langMin = now+6, langMax = now+35;
 
-    const horizons = {
-        kurz:   { lbl:'Kurzfristig',    min:now,   max:now+2,  hint:'bis '+(now+2) },
-        mittel: { lbl:'Mittelfristig',   min:now+3, max:now+5,  hint:(now+3)+' – '+(now+5) },
-        lang:   { lbl:'Langfristig',     min:now+6, max:now+35, hint:'ab '+(now+6) },
-        offen:  { lbl:'Zeitpunkt offen', min:null,  max:null,   hint:'kein Datum' },
-    };
+    let initHorizon = 'offen';
+    if(initVal && initVal <= now+2)  initHorizon = 'kurz';
+    else if(initVal && initVal <= now+5) initHorizon = 'mittel';
+    else if(initVal && initVal > now+5)  initHorizon = 'lang';
 
     let curHorizon = initHorizon;
     slJahrVal = initVal || null;
@@ -904,73 +905,87 @@ function buildJahrSlider(container, initVal, isGreen){
                 <button class="horizon-btn${curHorizon==='offen'?' active':''}" data-h="offen" style="border-style:dashed;">Zeitpunkt offen<span>kein Datum</span></button>
             </div>
         </div>
-        <div id="sl-detail-wrap" style="display:${curHorizon==='offen'?'none':'flex'};flex-direction:column;gap:.4vh;">
-            <div class="sl-wrap">
-                <div class="sl-top">
-                    <span class="flbl">Zieljahr</span>
-                    <span class="sl-val${gc}" id="sl-yr-v">${slJahrVal||'–'}</span>
-                </div>
-                <div class="sl-track" id="sl-yr-t">
-                    <div class="sl-fill${gc}" id="sl-yr-f"></div>
-                    <div class="sl-thumb${gc}" id="sl-yr-th"></div>
-                </div>
-                <div class="sl-ticks" id="sl-yr-ticks"></div>
-            </div>
-        </div>
+        <div id="sl-detail-wrap" style="display:${curHorizon==='offen'?'none':'flex'};flex-direction:column;gap:.6vh;"></div>
     `;
 
-    function rebuildSlider(horizon, targetYear){
-        const h = horizons[horizon];
+    function renderDetail(horizon, targetYear){
         const wrap = document.getElementById('sl-detail-wrap');
-        if(horizon === 'offen'){
-            slJahrVal = null;
-            if(wrap) wrap.style.display = 'none';
-            return;
+        if(!wrap) return;
+        if(horizon === 'offen'){ slJahrVal = null; wrap.style.display = 'none'; return; }
+        wrap.style.display = 'flex';
+        wrap.innerHTML = '';
+
+        if(horizon === 'kurz' || horizon === 'mittel'){
+            const years = horizon === 'kurz' ? kurzYears : mittelYears;
+            // default: middle year if no targetYear in range
+            if(!targetYear || !years.includes(targetYear)) slJahrVal = years[1];
+            else slJahrVal = targetYear;
+            const tilesDiv = document.createElement('div');
+            tilesDiv.className = 'yr-tiles';
+            years.forEach(y => {
+                const t = document.createElement('button');
+                t.className = 'yr-tile' + gc + (slJahrVal === y ? ' active' : '');
+                t.textContent = y;
+                t.addEventListener('click', () => {
+                    slJahrVal = y;
+                    tilesDiv.querySelectorAll('.yr-tile').forEach(b => b.classList.remove('active'));
+                    t.classList.add('active');
+                });
+                tilesDiv.appendChild(t);
+            });
+            wrap.appendChild(tilesDiv);
+        } else {
+            // Langfristig: slider
+            const minY = langMin, maxY = langMax;
+            slJahrVal = Math.max(minY, Math.min(maxY, targetYear || Math.round((minY+maxY)/2)));
+            wrap.innerHTML = `
+                <div class="sl-wrap">
+                    <div class="sl-top">
+                        <span class="flbl">Zieljahr</span>
+                        <span class="sl-val${gc}" id="sl-yr-v">${slJahrVal}</span>
+                    </div>
+                    <div class="sl-track" id="sl-yr-t">
+                        <div class="sl-fill${gc}" id="sl-yr-f"></div>
+                        <div class="sl-thumb${gc}" id="sl-yr-th"></div>
+                    </div>
+                    <div class="sl-ticks">
+                        <span class="sl-tick">${minY}</span>
+                        <span class="sl-tick">${Math.round((minY+maxY)/2)}</span>
+                        <span class="sl-tick">${maxY}</span>
+                    </div>
+                </div>`;
+            setTimeout(()=>{
+                const valEl = document.getElementById('sl-yr-v');
+                const track = document.getElementById('sl-yr-t');
+                const nFill  = track.querySelector('.sl-fill');
+                const nThumb = track.querySelector('.sl-thumb');
+                function setOnTrack(e){
+                    const r = track.getBoundingClientRect();
+                    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                    const f = Math.max(0, Math.min(1, (cx-r.left)/r.width));
+                    slJahrVal = Math.round(minY + f*(maxY-minY));
+                    nFill.style.width = (f*100)+'%';
+                    nThumb.style.left = (f*100)+'%';
+                    valEl.textContent = slJahrVal;
+                }
+                const initF = (slJahrVal-minY)/(maxY-minY);
+                nFill.style.width  = (initF*100)+'%';
+                nThumb.style.left  = (initF*100)+'%';
+                track.addEventListener('mousedown', e=>{
+                    setOnTrack(e);
+                    const m=e2=>setOnTrack(e2);
+                    const u=()=>{document.removeEventListener('mousemove',m);document.removeEventListener('mouseup',u);};
+                    document.addEventListener('mousemove',m);document.addEventListener('mouseup',u);
+                });
+                track.addEventListener('touchstart', e=>{
+                    setOnTrack(e);
+                    const m=e2=>{e2.preventDefault();setOnTrack(e2);};
+                    const u=()=>{document.removeEventListener('touchmove',m);document.removeEventListener('touchend',u);};
+                    document.addEventListener('touchmove',m,{passive:false});
+                    document.addEventListener('touchend',u);
+                },{passive:false});
+            },30);
         }
-        if(wrap) wrap.style.display = 'flex';
-        const minY = h.min, maxY = h.max;
-        slJahrVal = Math.max(minY, Math.min(maxY, targetYear || Math.round((minY+maxY)/2)));
-
-        const valEl = document.getElementById('sl-yr-v');
-        const ticks = document.getElementById('sl-yr-ticks');
-        if(!valEl) return;
-
-        ticks.innerHTML = `<span class="sl-tick">${minY}</span><span class="sl-tick">${Math.round((minY+maxY)/2)}</span><span class="sl-tick">${maxY}</span>`;
-
-        const track = document.getElementById('sl-yr-t');
-        const newTrack = track.cloneNode(true);
-        track.parentNode.replaceChild(newTrack, track);
-        const nFill  = newTrack.querySelector('.sl-fill');
-        const nThumb = newTrack.querySelector('.sl-thumb');
-
-        function setOnTrack(e){
-            const r = newTrack.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const f = Math.max(0, Math.min(1, (cx-r.left)/r.width));
-            slJahrVal = Math.round(minY + f*(maxY-minY));
-            nFill.style.width = (f*100)+'%';
-            nThumb.style.left = (f*100)+'%';
-            valEl.textContent = slJahrVal;
-        }
-        // Init position
-        const initF = (slJahrVal-minY)/(maxY-minY);
-        nFill.style.width  = (initF*100)+'%';
-        nThumb.style.left  = (initF*100)+'%';
-        valEl.textContent  = slJahrVal;
-
-        newTrack.addEventListener('mousedown', e=>{
-            setOnTrack(e);
-            const m=e2=>setOnTrack(e2);
-            const u=()=>{document.removeEventListener('mousemove',m);document.removeEventListener('mouseup',u);};
-            document.addEventListener('mousemove',m);document.addEventListener('mouseup',u);
-        });
-        newTrack.addEventListener('touchstart', e=>{
-            setOnTrack(e);
-            const m=e2=>{e2.preventDefault();setOnTrack(e2);};
-            const u=()=>{document.removeEventListener('touchmove',m);document.removeEventListener('touchend',u);};
-            document.addEventListener('touchmove',m,{passive:false});
-            document.addEventListener('touchend',u);
-        },{passive:false});
     }
 
     setTimeout(()=>{
@@ -979,10 +994,10 @@ function buildJahrSlider(container, initVal, isGreen){
                 curHorizon = btn.dataset.h;
                 container.querySelectorAll('.horizon-btn').forEach(b=>b.classList.remove('active'));
                 btn.classList.add('active');
-                rebuildSlider(curHorizon, null);
+                renderDetail(curHorizon, null);
             });
         });
-        rebuildSlider(curHorizon, slJahrVal);
+        renderDetail(curHorizon, slJahrVal);
     },30);
 }
 
