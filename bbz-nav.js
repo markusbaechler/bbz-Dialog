@@ -1,10 +1,22 @@
 /**
  * bbz-nav.js — Globale Navigation
  * Einbinden: <script src="bbz-nav.js" data-active="01"></script>
+ * Aktive Modul-ID als data-active Attribut (z.B. "01", "07a", "07b")
+ *
+ * Injection-Reihenfolge:
+ *  1. .mod-nav vorhanden → ersetzen (sauberer Platzhalter-Austausch)
+ *  2. .topbar-right vorhanden → davor einfügen (insertBefore)
+ *  3. .logo vorhanden → danach einfügen (insertAdjacentElement)
+ *  4. Fallback: ans Ende der Topbar hängen
+ *
+ * Wichtig: Alle vier Strategien suchen zuerst innerhalb des
+ * .topbar/.bbz-topbar Elements, damit keine falsch platzierten
+ * DOM-Knoten ausserhalb der Topbar getroffen werden.
  */
 
 (function () {
 
+  // ── MODUL-DEFINITIONEN ─────────────────────────────────────────────────
   const MODULES = [
     { id: '01',  label: 'Agenda',         file: '01_agenda.html' },
     { id: '02',  label: 'Bank',           file: '02_bank.html' },
@@ -22,11 +34,15 @@
   const scriptTag = document.currentScript;
   const activeId  = scriptTag ? scriptTag.getAttribute('data-active') : null;
 
+  // ── STYLES ────────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
     .bbz-mod-nav {
       display: flex; align-items: center; gap: 0.15vw;
       flex: 1; justify-content: center; overflow: hidden;
+      /* flex:1 stellt sicher, dass die Nav den Mittelbereich
+         ausfüllt, unabhängig ob .topbar justify-content:space-between
+         oder kein justify-content verwendet. */
     }
     .bbz-mod-chip {
       display: flex; align-items: center; gap: 0.2vw;
@@ -64,6 +80,7 @@
   `;
   document.head.appendChild(style);
 
+  // ── NAV AUFBAUEN ──────────────────────────────────────────────────────
   function buildNav() {
     const nav = document.createElement('nav');
     nav.className = 'bbz-mod-nav';
@@ -118,30 +135,44 @@
     return wrapper;
   }
 
+  // ── INJECTION ─────────────────────────────────────────────────────────
   function inject() {
-    // 1. Ersetze existierende .mod-nav falls vorhanden
-    const existing = document.querySelector('.mod-nav');
-    if (existing) { existing.replaceWith(buildNav()); return; }
-
     const topbar = document.querySelector('.topbar, .bbz-topbar');
-    if (!topbar) return;
+    const nav    = buildNav();
 
-    const nav = buildNav();
+    // Strategie 1: .mod-nav Platzhalter ersetzen
+    // WICHTIG: Nur innerhalb der Topbar suchen, damit fehlerhafte
+    // ausserhalb liegende .mod-nav Elemente (z.B. 04_philosophie)
+    // nicht fälschlicherweise getroffen werden.
+    const placeholder = topbar
+      ? topbar.querySelector('.mod-nav')
+      : document.querySelector('.mod-nav');
 
-    // 2. Vor .topbar-right einfügen falls vorhanden
-    const right = topbar.querySelector('.topbar-right, .bbz-topbar-right');
-    if (right) { topbar.insertBefore(nav, right); return; }
-
-    // 3. Fallback: nach dem .logo Element einfügen (NICHT ans Ende)
-    const logo = topbar.querySelector('.logo, .bbz-logo');
-    if (logo && logo.nextSibling) {
-      topbar.insertBefore(nav, logo.nextSibling);
-    } else if (logo) {
-      logo.insertAdjacentElement('afterend', nav);
-    } else {
-      // Letzter Fallback: ans Ende
-      topbar.appendChild(nav);
+    if (placeholder) {
+      placeholder.replaceWith(nav);
+      return;
     }
+
+    if (!topbar) return; // Kein Topbar-Element gefunden → Abbruch
+
+    // Strategie 2: Vor .topbar-right einfügen
+    const right = topbar.querySelector('.topbar-right, .bbz-topbar-right');
+    if (right) {
+      topbar.insertBefore(nav, right);
+      return;
+    }
+
+    // Strategie 3: Nach .logo einfügen
+    // Deckt Module ab, die weder .mod-nav noch .topbar-right haben
+    // (z.B. 10_abschluss.html).
+    const logo = topbar.querySelector('.logo, .bbz-logo');
+    if (logo) {
+      logo.insertAdjacentElement('afterend', nav);
+      return;
+    }
+
+    // Strategie 4: Letzter Fallback — ans Ende der Topbar hängen
+    topbar.appendChild(nav);
   }
 
   if (document.readyState === 'loading') {
