@@ -248,6 +248,15 @@
     .modal-overlay.view-mode .modal-toolbar { display: none; }
     .modal-overlay.view-mode .modal-foot    { display: none; }
   
+
+        .edit-icon-btn {
+            background: rgba(255,255,255,0.12); border: none; border-radius: 5px;
+            padding: 0.42vh 0.42vw; cursor: pointer; color: rgba(255,255,255,0.28);
+            display: flex; align-items: center; transition: all 0.15s; flex-shrink: 0;
+        }
+        .edit-icon-btn:hover { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+        .edit-icon-btn.active { color: white; background: rgba(255,255,255,0.18); }
+        .edit-icon-btn svg { width: 13px; height: 13px; display: block; }
         /* ── TOPBAR ADMIN ── */
         .topbar-right { display: flex !important; align-items: center; gap: 0.6vw; flex-shrink: 0; }
         .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: 0.5vw; font-weight: 600; }
@@ -307,7 +316,11 @@
       <span class="logo-name" id="logo-name">Vorstellung</span>
     </div>
     <div class="topbar-right">
-    <div class="mode-toggle" onclick="toggleMode()" style="display:flex;align-items:center;gap:0.3vw;cursor:pointer;"><span class="mode-label" id="mode-label" style="font-size:0.5vw;font-weight:600;color:rgba(255,255,255,0.28);">Bearbeiten</span><div class="toggle-sw on" id="toggle-sw"></div></div>
+    <button class="edit-icon-btn" id="edit-icon-btn" onclick="toggleMode()" title="Bearbeitungsmodus">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+      </svg>
+    </button>
     <a href="index.html" class="home-btn" title="Home">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>
     </a>
@@ -487,6 +500,9 @@
 
   let active     = null;
   let editMode   = true;
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('edit-icon-btn').classList.toggle('active', editMode);
+  });
   let aktiverId  = 1; // aktives Berater-Profil
 
   // ── INIT ─────────────────────────────────────────────────────
@@ -626,8 +642,7 @@
   function toggleMode() {
     editMode = !editMode;
     document.getElementById('canvas').classList.toggle('present-mode', !editMode);
-    document.getElementById('toggle-sw').classList.toggle('on', editMode);
-    document.getElementById('mode-label').textContent = editMode ? 'Bearbeiten' : 'Präsentation';
+    document.getElementById('edit-icon-btn').classList.toggle('active', editMode);
   }
 
   function fmt(cmd, val) {
