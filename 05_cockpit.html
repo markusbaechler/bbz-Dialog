@@ -5,6 +5,8 @@
 <title>bbz bank – Finanz-Cockpit</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="bbz-data.js"></script>
+  <script src="bbz-nav.js" data-active="05"></script>
 <style>
 :root {
   --blue:    #004078;
@@ -255,25 +257,7 @@ body{font-family:var(--font);background:var(--blue-dk);display:flex;align-items:
     </div>
 
     <!-- Modul-Navigation -->
-    <nav class="mod-nav">
-      <a href="gespraechsagenda.html"      class="mod-chip"><span class="chip-num">01</span>Agenda</a>
-      <div class="nav-sep"></div>
-      <a href="vorstellung-bank.html"      class="mod-chip"><span class="chip-num">02</span>Bank</a>
-      <div class="nav-sep"></div>
-      <a href="vorstellung-berater.html"   class="mod-chip"><span class="chip-num">03</span>Vorstellung</a>
-      <div class="nav-sep"></div>
-      <a href="beratungsphilosophie.html"  class="mod-chip"><span class="chip-num">04</span>Philosophie</a>
-      <div class="nav-sep"></div>
-      <a href="finanz-cockpit.html"        class="mod-chip active"><span class="chip-num">05</span>Finanz-Cockpit</a>
-      <div class="nav-sep"></div>
-      <a href="ziele-wuensche.html"        class="mod-chip"><span class="chip-num">06</span>Ziele &amp; Wünsche</a>
-      <div class="nav-sep"></div>
-      <a href="tragbarkeit.html"           class="mod-chip"><span class="chip-num">07</span>Tragbarkeit</a>
-      <div class="nav-sep"></div>
-      <a href="anlegeranalyse.html"        class="mod-chip"><span class="chip-num">08</span>Anlegeranalyse</a>
-      <div class="nav-sep"></div>
-      <a href="zufriedenheitsdialog.html"  class="mod-chip"><span class="chip-num">09</span>Zufriedenheit</a>
-    </nav>
+    <!-- bbz-nav.js injiziert Navigation -->
 
     <span class="topbar-brand">bbz bank</span>
   </div>
@@ -669,6 +653,12 @@ function calc() {
     const ctx = $('gChart');
     if(ctx){ const c=ctx.getContext('2d'); c.clearRect(0,0,ctx.width,ctx.height); }
     const badge=$('rendite-badge'); if(badge) badge.style.display='none';
+  }
+
+  // Werte in bbzData persistieren (Downstream-Module)
+  if (typeof BBZ !== 'undefined') {
+    BBZ.set('cockpit_anlage_f', S.anlegen.volumen || 0);
+    BBZ.set('cockpit_einkommen', (S.ausgaben.eMann||0) + (S.ausgaben.eFrau||0));
   }
 }
 
