@@ -8,54 +8,22 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="bbz-data.js"></script>
     <script src="bbz-nav.js" data-active="01"></script>
+        <link rel="stylesheet" href="bbz-theme.css">
     <style>
-        :root {
-            --blue:    #004078;
-            --blue-dk: #002d57;
-            --blue-lt: #dce8f4;
-            --red:     #950e13;
-            --ink:     #0f172a;
-            --ink-2:   #334155;
-            --ink-3:   #64748b;
-            --ink-4:   #94a3b8;
-            --surface: #ffffff;
-            --bg:      #f1f5f9;
-            --line:    #e2e8f0;
-            --font:    'DM Sans', sans-serif;
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        
 
-        body {
-            font-family: var(--font);
-            background: var(--blue-dk);
-            display: flex; align-items: center; justify-content: center;
-            min-height: 100vh; overflow: hidden;
-        }
+        
 
-        .canvas {
-            width: 95vw; aspect-ratio: 16/9; max-height: 95vh;
-            background: var(--surface);
-            display: grid;
-            grid-template-rows: 6vh 18vh 1fr 4vh;
-            position: relative; overflow: hidden;
-            box-shadow: 0 50px 120px rgba(0,0,0,0.55);
-        }
+        
 
         /* ── TOPBAR ── */
-        .topbar {
-            background: var(--blue);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2vw 0 2.2vw; gap: 1vw; flex-shrink: 0;
-        }
-        .logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
-        .logo-mark {
-            width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
-            font-size: 0.68vw; font-weight: 900;
-            display: flex; align-items: center; justify-content: center; border-radius: 3px;
-        }
-        .logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
-        .topbar-right { display: flex; align-items: center; gap: 0.7vw; flex-shrink: 0; }
-        .topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; }
+        
+        
+        
+        
+        
+        
         .home-btn {
             background: rgba(255,255,255,0.1); border: none; border-radius: 5px;
             padding: 0.42vh 0.42vw; cursor: pointer; color: white;
@@ -161,33 +129,20 @@
         .exp-col:hover .exp-hint { color: var(--ink-3); }
 
         /* ── FOOTER ── */
-        .footer {
-            background: var(--surface); border-top: 1px solid var(--line);
-            padding: 0 3.5vw;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .footer-copy { font-size: 0.6vw; font-weight: 500; color: var(--ink-4); }
+        
+        
         .footer-right { display: flex; align-items: center; gap: 1.5vw; }
-        .status { display: flex; align-items: center; gap: 0.4vw; font-size: 0.55vw; font-weight: 700; color: #16a34a; }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2.5s ease-in-out infinite; }
-        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
+        
+        
+        50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
         .print-btn { opacity: 0.2; cursor: pointer; transition: opacity 0.2s; line-height: 0; }
         .print-btn:hover { opacity: 0.65; }
         .print-btn svg { width: 1.1vw; height: 1.1vw; }
 
         /* ── MODAL ── */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,20,55,0.82); backdrop-filter: blur(16px);
-            z-index: 200; display: none;
-            align-items: center; justify-content: center; padding: 6%;
-        }
-        .modal-box {
-            background: white; width: 65%; max-height: 84%;
-            border-radius: 12px; display: flex; flex-direction: column;
-            overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.35);
-        }
-        .modal-head { padding: 2.5vh 2.5vw 2vh; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        
+        
+        
         .modal-title { font-size: 2.5vh; font-weight: 800; color: var(--blue); letter-spacing: -0.02em; }
         .modal-actions { display: flex; align-items: center; gap: 1vw; }
         .btn-add { padding: 0.8vh 1.2vw; background: var(--blue); color: white; font-size: 0.7vw; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; transition: background 0.15s; }
@@ -195,9 +150,9 @@
         .btn-close { background: none; border: none; cursor: pointer; color: var(--ink-4); display: flex; align-items: center; transition: color 0.15s; }
         .btn-close:hover { color: var(--red); }
         .btn-close svg { width: 1.4vw; height: 1.4vw; }
-        .modal-body { flex: 1; overflow-y: auto; padding: 2vh 2.5vw; }
-        .modal-body::-webkit-scrollbar { width: 3px; }
-        .modal-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+        .modal-
+        .modal-body
+        .modal-body
         .modal-row { display: flex; align-items: center; gap: 0.8vw; padding: 1.2vh 1vw; background: white; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 0.8vh; transition: border-color 0.15s; }
         .modal-row:hover { border-color: #a8c4de; }
         .drag-grip { font-size: 1.2vh; color: var(--ink-4); cursor: grab; padding: 0 0.2vw; user-select: none; }
