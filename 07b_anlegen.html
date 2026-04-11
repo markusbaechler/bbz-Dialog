@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>bbz bank – Anlegeranalyse</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="bbz-data.js"></script>
+  <script src="bbz-nav.js" data-active="07b"></script>
 <link rel="stylesheet" href="bbz-theme.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -417,33 +419,7 @@ body{font-family:var(--font);background:var(--blue-dk);display:flex;align-items:
     <div class="logo-mark">bbz</div>
     <span class="logo-name">Anlegeranalyse</span>
   </div>
-  <nav class="mod-nav">
-    <a href="gespraechsagenda.html"     class="mod-chip"><span class="chip-num">01</span>Agenda</a>
-    <a href="vorstellung-bank.html"     class="mod-chip"><span class="chip-num">02</span>Bank</a>
-    <a href="vorstellung-berater.html"  class="mod-chip"><span class="chip-num">03</span>Berater:in</a>
-    <a href="beratungsphilosophie.html" class="mod-chip"><span class="chip-num">04</span>Philosophie</a>
-    <a href="finanz-cockpit.html"       class="mod-chip"><span class="chip-num">05</span>Cockpit</a>
-    <a href="ziele-wuensche.html"       class="mod-chip"><span class="chip-num">06</span>Ziele</a>
-    <div class="nav-sep"></div>
-    <div style="display:flex;align-items:center;gap:0.18vw;flex-shrink:0;">
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.22);"></div>
-        <div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);"></div>
-        <div style="display:flex;gap:5px;">
-          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
-          <div style="width:1px;height:0.85vh;background:rgba(255,255,255,0.18);"></div>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:2px;">
-        <a href="tragbarkeit.html"    class="mod-chip"        style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07a</span>Finanzieren</a>
-        <a href="anlegeranalyse.html" class="mod-chip active" style="padding:0.25vh 0.46vw;font-size:0.5vw;"><span class="chip-num">07b</span>Anlegen</a>
-      </div>
-    </div>
-    <div class="nav-sep"></div>
-    <a href="vereinbarungen.html"       class="mod-chip"><span class="chip-num">09</span>Vereinbarungen</a>
-    <a href="zufriedenheitsdialog.html" class="mod-chip"><span class="chip-num">10</span>Feedback</a>
-    <a href="verabschiedung.html"       class="mod-chip"><span class="chip-num">11</span>Abschluss</a>
-  </nav>
+  <!-- bbz-nav.js injiziert Navigation -->
   <div style="display:flex;align-items:center;gap:0.7vw;flex-shrink:0;">
     <span class="topbar-brand">bbz bank</span>
   </div>
@@ -708,7 +684,7 @@ body{font-family:var(--font);background:var(--blue-dk);display:flex;align-items:
 </div><!-- /main -->
 
 <footer class="footer">
-  <span class="footer-copy">bbz st.gallen ag © 2026</span>
+  <span class="footer-copy">bbz bank st.gallen ag &copy; 2026</span>
   <div class="footer-r">
     <span class="foot-hint" id="footHint"></span>
     <button class="btn-back" id="btnBack" onclick="go(-1)" disabled>← Zurück</button>
@@ -1187,19 +1163,22 @@ document.getElementById('betragInp').addEventListener('input',e=>{
 // ─── PERSIST ──────────────────────────────────────────────────────────────────
 function save(){
   try{
-    const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
     const p=score();
-    d.anlage_horizont=S.horizon;d.anlage_betrag=S.betrag;
-    d.anlage_strategie=S.strategy;d.anlage_reaktion=S.reaction;
-    d.anlage_profil=p.key;d.anlage_kenntnisse=S.knowledge;
-    d.anlage_esg={active:S.esg.active,exclusions:[...S.esg.exclusions]};
-    d.anlage_impl=S.impl;
-    localStorage.setItem('bbzData',JSON.stringify(d));
+    BBZ.merge({
+      anlage_horizont:  S.horizon,
+      anlage_betrag:    S.betrag,
+      anlage_strategie: S.strategy,
+      anlage_reaktion:  S.reaction,
+      anlage_profil:    p.key,
+      anlage_kenntnisse:S.knowledge,
+      anlage_esg:       {active:S.esg.active,exclusions:[...S.esg.exclusions]},
+      anlage_impl:      S.impl
+    });
   }catch(e){}
 }
 function load(){
   try{
-    const d=JSON.parse(localStorage.getItem('bbzData')||'{}');
+    const d=BBZ.all();
     if(d.anlage_horizont!=null){S.horizon=d.anlage_horizont;document.getElementById('hzRange').value=S.horizon;document.getElementById('hzVal').textContent=S.horizon>=30?'30+':S.horizon;}
     if(d.anlage_betrag!=null&&d.anlage_betrag!==''){S.betrag=d.anlage_betrag;document.getElementById('betragInp').value=String(d.anlage_betrag).replace(/\B(?=(\d{3})+(?!\d))/g,"'");}
     else if(d.cockpit_anlage_f>0){
