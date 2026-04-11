@@ -1,1 +1,486 @@
+/* ============================================================
+   BBZ BANK – DESIGN SYSTEM THEME
+   Version 2.0 | April 2026
+   Zentrale CSS-Quelle für alle 11 Beratungsmodule.
 
+   Einbinden in jedem Modul:
+   <link rel="stylesheet" href="bbz-theme.css">
+
+   Variablen-Strategie:
+   Alle Variablen existieren in zwei Namensräumen:
+   • --blue, --red, --ink etc.   → Legacy (bestehende Module)
+   • --bbz-blue, --bbz-red etc. → Canonical (neue Module, bbz-nav.js)
+   Beide zeigen auf denselben Wert. Kein HTML muss geändert werden.
+   ============================================================ */
+
+/* ── GOOGLE FONTS ────────────────────────────────────────────
+   In jedem <head> einbinden:
+   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+   ──────────────────────────────────────────────────────────── */
+
+/* ── CSS VARIABLEN ──────────────────────────────────────────── */
+:root {
+
+  /* ── Leitfarben (Canonical) ── */
+  --bbz-blue:        #004078;   /* Primärfarbe – Struktur, Header, Akzente */
+  --bbz-blue-dk:     #002d57;   /* Dunkel – Body-Hintergrund, Hover */
+  --bbz-blue-md:     #00528a;   /* Mittel – optionale Zwischentöne */
+  --bbz-blue-lt:     #dce8f4;   /* Hell – Hover-Hintergründe, Amort-Balken */
+  --bbz-red:         #950e13;   /* Sekundär – Kundenzitate, menschliche Momente */
+  --bbz-red-dk:      #7a0b0f;   /* Dunkel-Rot – Hover auf Rot */
+  --bbz-red-lt:      #fde8e9;   /* Hell-Rot – Hintergründe */
+  --bbz-green:       #15803d;   /* Geldeingänge, Zuflüsse */
+  --bbz-green-lt:    #dcfce7;   /* Hell-Grün – Hintergründe */
+  --bbz-amber:       #b45309;   /* AUSSCHLIESSLICH Zeithorizont Mittelfristig */
+  --bbz-amber-lt:    #fef3c7;   /* Hell-Amber – Hintergründe */
+
+  /* ── Typografie – Graustufen (Canonical) ── */
+  --bbz-ink:         #0f172a;   /* Überschriften, primärer Text */
+  --bbz-ink-2:       #334155;   /* Fliesstext */
+  --bbz-ink-3:       #64748b;   /* Untertitel, sekundärer Text */
+  --bbz-ink-4:       #94a3b8;   /* Labels, Hints, deaktiviert */
+
+  /* ── Flächen (Canonical) ── */
+  --bbz-surface:     #ffffff;
+  --bbz-bg:          #f1f5f9;
+  --bbz-line:        #e2e8f0;
+
+  /* ── Typografie ── */
+  --bbz-font:        'DM Sans', sans-serif;
+
+  /* ── Canvas-Raster (16:9) ── */
+  --bbz-topbar-h:    6vh;
+  --bbz-footer-h:    4vh;
+
+  /* ── Abstände ── */
+  --bbz-pad-h:       2.2vw;
+  --bbz-pad-h-r:     2vw;
+  --bbz-pad-v:       3.5vh;
+
+  /* ── Zeithorizont-Farbsystem (verbindlich, nicht überschreiben) ──
+     Kurzfristig  → --bbz-blue
+     Mittelfristig → --bbz-amber   (NUR hier verwenden)
+     Langfristig  → #475569
+     Zeitp. offen → --bbz-ink-3
+     Geldeingänge → --bbz-green
+     Wünsche      → --bbz-red
+  ────────────────────────────────────────────────────────────── */
+
+  /* ── Legacy-Aliases (bestehende Module, nicht entfernen) ── */
+  --blue:       var(--bbz-blue);
+  --blue-dk:    var(--bbz-blue-dk);
+  --blue-md:    var(--bbz-blue-md);
+  --blue-lt:    var(--bbz-blue-lt);
+  --red:        var(--bbz-red);
+  --red-dk:     var(--bbz-red-dk);
+  --red-lt:     var(--bbz-red-lt);
+  --green:      var(--bbz-green);
+  --green-lt:   var(--bbz-green-lt);
+  --amber:      var(--bbz-amber);
+  --amber-lt:   var(--bbz-amber-lt);
+  --ink:        var(--bbz-ink);
+  --ink-2:      var(--bbz-ink-2);
+  --ink-3:      var(--bbz-ink-3);
+  --ink-4:      var(--bbz-ink-4);
+  --surface:    var(--bbz-surface);
+  --bg:         var(--bbz-bg);
+  --line:       var(--bbz-line);
+  --font:       var(--bbz-font);
+
+  /* Phasenfarben (Modul 04 Beratungsphilosophie) */
+  --phase-1:    var(--bbz-blue);
+  --phase-2:    var(--bbz-blue-md);
+  --phase-3:    #475569;
+  --phase-4:    var(--bbz-red);
+}
+
+/* ── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── BASE ───────────────────────────────────────────────────── */
+body {
+  font-family: var(--bbz-font);
+  background: var(--bbz-blue-dk);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── CANVAS (16:9 Präsentationsformat) ─────────────────────── */
+.canvas,
+.bbz-canvas {
+  width: 95vw;
+  aspect-ratio: 16 / 9;
+  max-height: 95vh;
+  background: var(--bbz-surface);
+  display: grid;
+  grid-template-rows: var(--bbz-topbar-h) 1fr var(--bbz-footer-h);
+  overflow: hidden;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.55);
+}
+
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+.topbar,
+.bbz-topbar {
+  background: var(--bbz-blue);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--bbz-pad-h-r) 0 var(--bbz-pad-h);
+  gap: 1vw;
+  flex-shrink: 0;
+}
+
+/* ── LOGO ───────────────────────────────────────────────────── */
+.logo,
+.bbz-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.55vw;
+  flex-shrink: 0;
+}
+
+.logo-mark,
+.bbz-logo-mark {
+  width: 2.1vw;
+  height: 2.1vw;
+  background: white;
+  color: var(--bbz-blue);
+  font-size: 0.68vw;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  flex-shrink: 0;
+  font-family: var(--bbz-font);
+}
+
+.logo-name,
+.bbz-logo-name {
+  color: white;
+  font-size: 0.82vw;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ── TOPBAR RIGHT ───────────────────────────────────────────── */
+.topbar-right,
+.bbz-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.7vw;
+  flex-shrink: 0;
+}
+
+.topbar-brand,
+.bbz-topbar-brand {
+  color: rgba(255,255,255,0.2);
+  font-size: 0.58vw;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Gear/Home Button */
+.gear-btn,
+.bbz-gear-btn,
+.bbz-home-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 5px;
+  padding: 0.42vh 0.42vw;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.gear-btn:hover,
+.bbz-gear-btn:hover,
+.bbz-home-btn:hover { background: rgba(255,255,255,0.2); }
+.gear-btn svg,
+.bbz-gear-btn svg,
+.bbz-home-btn svg { width: 13px; height: 13px; display: block; }
+
+/* ── CHIP-NAVIGATION ────────────────────────────────────────── */
+.mod-nav,
+.bbz-mod-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.15vw;
+  flex: 1;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mod-chip,
+.bbz-mod-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.2vw;
+  padding: 0.3vh 0.48vw;
+  border-radius: 4px;
+  font-size: 0.52vw;
+  font-weight: 700;
+  font-family: var(--bbz-font);
+  color: rgba(255,255,255,0.35);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.mod-chip:hover,
+.bbz-mod-chip:hover {
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.07);
+}
+.mod-chip.active,
+.bbz-mod-chip.active {
+  background: white;
+  color: var(--bbz-blue);
+  pointer-events: none;
+}
+.mod-chip.sub,
+.bbz-mod-chip.sub {
+  padding: 0.25vh 0.46vw;
+  font-size: 0.5vw;
+}
+
+.chip-num,
+.bbz-chip-num {
+  font-size: 0.44vw;
+  font-weight: 900;
+  opacity: 0.55;
+}
+.mod-chip.active .chip-num,
+.bbz-mod-chip.active .bbz-chip-num { opacity: 0.45; }
+
+.nav-sep,
+.bbz-nav-sep {
+  width: 1px;
+  height: 1.8vh;
+  background: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+  margin: 0 0.18vw;
+}
+
+/* Branch-Visualisierung (07a / 07b) */
+.bbz-sub-group       { display: flex; align-items: center; gap: 0.18vw; flex-shrink: 0; }
+.bbz-sub-group-inner { display: flex; flex-direction: column; gap: 2px; }
+.bbz-sub-branch      { display: flex; flex-direction: column; align-items: center; }
+.bbz-sub-branch-line { width: 1px; background: rgba(255,255,255,0.22); }
+.bbz-sub-branch-dot  { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.32); }
+.bbz-sub-branch-fork { display: flex; gap: 5px; }
+.bbz-sub-branch-fork-line { width: 1px; background: rgba(255,255,255,0.18); }
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.footer,
+.bbz-footer {
+  background: var(--bbz-surface);
+  border-top: 1px solid var(--bbz-line);
+  padding: 0 var(--bbz-pad-h-r) 0 var(--bbz-pad-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.footer-copy,
+.bbz-footer-copy {
+  font-size: 0.58vw;
+  font-weight: 500;
+  color: var(--bbz-ink-4);
+}
+
+/* Live-Status-Dot */
+.status,
+.bbz-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4vw;
+  font-size: 0.55vw;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.status-dot,
+.bbz-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: bbz-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes bbz-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+}
+
+/* Alias für alten Animationsname */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+}
+
+/* ── MODAL ──────────────────────────────────────────────────── */
+.modal-ov,
+.bbz-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,20,55,0.75);
+  backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+.modal-ov.open,
+.bbz-modal-overlay.open { display: flex; }
+
+.modal-box,
+.bbz-modal-box {
+  background: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.38);
+  max-height: 84vh;
+}
+
+.modal-head,
+.bbz-modal-head {
+  padding: 2vh 2vw 1.8vh;
+  border-bottom: 1px solid var(--bbz-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modal-body,
+.bbz-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2vh 2vw;
+}
+
+.modal-foot,
+.bbz-modal-foot {
+  padding: 1.5vh 2vw;
+  border-top: 1px solid var(--bbz-line);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8vw;
+  flex-shrink: 0;
+}
+
+.modal-close,
+.bbz-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--bbz-ink-4);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+  font-family: var(--bbz-font);
+}
+.modal-close:hover,
+.bbz-modal-close:hover { color: var(--bbz-red); }
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.bbz-btn-primary {
+  padding: 0.8vh 1.2vw;
+  background: var(--bbz-blue);
+  color: white;
+  font-size: 0.7vw;
+  font-weight: 700;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--bbz-font);
+  transition: background 0.15s;
+}
+.bbz-btn-primary:hover { background: var(--bbz-blue-dk); }
+
+.bbz-btn-secondary {
+  padding: 0.8vh 1.2vw;
+  background: var(--bbz-bg);
+  color: var(--bbz-ink-2);
+  font-size: 0.7vw;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--bbz-line);
+  cursor: pointer;
+  font-family: var(--bbz-font);
+  transition: background 0.15s;
+}
+.bbz-btn-secondary:hover { background: var(--bbz-line); }
+
+.bbz-btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--bbz-ink-4);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+  font-family: var(--bbz-font);
+}
+.bbz-btn-icon:hover { color: var(--bbz-red); }
+
+/* ── INTERAKTIVITÄT ─────────────────────────────────────────── */
+
+/* Editierbare Felder */
+[contenteditable="true"]:focus {
+  background: rgba(0,64,120,0.04);
+  outline: none;
+  border-radius: 4px;
+}
+
+/* Auf blauem Hintergrund */
+.bbz-col-blue [contenteditable="true"]:focus {
+  background: rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+
+/* ── SCROLLBAR ──────────────────────────────────────────────── */
+.bbz-scroll::-webkit-scrollbar       { width: 3px; }
+.bbz-scroll::-webkit-scrollbar-thumb { background: var(--bbz-line); border-radius: 10px; }
+
+/* Globaler Scrollbar-Reset (innerhalb Canvas) */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--bbz-line); border-radius: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ── UTILITY ────────────────────────────────────────────────── */
+.bbz-vdiv {
+  width: 1px;
+  background: var(--bbz-line);
+  flex-shrink: 0;
+}
+
+.bbz-eyebrow {
+  font-size: 1.1vh;
+  font-weight: 700;
+  color: var(--bbz-ink-4);
+  letter-spacing: 0.06em;
+}
+
+/* ── ZAHLENFORMATIERUNG (Referenz, nicht CSS) ────────────────
+   de-CH: Apostroph als Tausendertrennzeichen
+   (150000).toLocaleString('de-CH') → «150'000»
+   ──────────────────────────────────────────────────────────── */
