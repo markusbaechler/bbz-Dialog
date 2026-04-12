@@ -1,1270 +1,1330 @@
 <!DOCTYPE html>
 <html lang="de-CH">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>bbz bank – Anlegeranalyse</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="bbz-data.js"></script>
-<link rel="stylesheet" href="bbz-theme.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root {
-  --blue:    #004078;
-  --blue-dk: #002d57;
-  --blue-lt: #dce8f4;
-  --red:     #950e13;
-  --green:   #15803d;
-  --amber:   #b45309;
-  --ink:     #0f172a;
-  --ink-2:   #334155;
-  --ink-3:   #64748b;
-  --ink-4:   #94a3b8;
-  --surface: #ffffff;
-  --bg:      #f1f5f9;
-  --line:    #e2e8f0;
-  --font:    'DM Sans', sans-serif;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:var(--font);background:var(--blue-dk);display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
-
-/* ─── CANVAS ─────────────────────────────────────────── */
-.canvas{
-  width:95vw;aspect-ratio:16/9;max-height:95vh;background:var(--bg);
-  display:grid;grid-template-rows:6vh 1fr 4vh;
-  overflow:hidden;box-shadow:0 50px 120px rgba(0,0,0,.55);
-}
-
-/* ─── TOPBAR ─────────────────────────────────────────── */
-.topbar {
-  background: var(--blue);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 2vw 0 2.2vw; gap: 1vw; flex-shrink: 0;
-}
-.logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
-.logo-mark {
-  width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
-  font-size: 0.68vw; font-weight: 900;
-  display: flex; align-items: center; justify-content: center; border-radius: 3px;
-}
-.logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
-.mod-nav {
-  display: flex; align-items: center; gap: 0.15vw;
-  flex: 1; justify-content: center; overflow: hidden;
-}
-.mod-chip {
-  display: flex; align-items: center; gap: 0.2vw;
-  padding: 0.3vh 0.48vw; border-radius: 4px;
-  font-size: 0.52vw; font-weight: 700;
-  color: rgba(255,255,255,0.35); text-decoration: none;
-  white-space: nowrap; transition: color 0.15s, background 0.15s; flex-shrink: 0;
-}
-.mod-chip:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.07); }
-.mod-chip.active { background: white; color: var(--blue); }
-.chip-num { font-size: 0.44vw; font-weight: 900; opacity: 0.55; }
-.mod-chip.active .chip-num { opacity: 0.45; }
-.nav-sep { width: 1px; height: 1.8vh; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 0.18vw; }
-.topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; flex-shrink: 0; }
-
-/* ─── MAIN ───────────────────────────────────────────── */
-.main{overflow:hidden;min-height:0;position:relative;display:flex;flex-direction:column;}
-
-/* Step progress strip */
-.step-progress{
-  display:flex;align-items:stretch;flex-shrink:0;
-  background:var(--surface);border-bottom:1px solid var(--line);
-  height:3.2vh;padding:0 3vw;gap:0;
-}
-.sp-item{
-  display:flex;align-items:center;gap:0.3vw;
-  padding:0 0.8vw;cursor:pointer;position:relative;
-  font-size:0.52vw;font-weight:600;color:var(--ink-4);
-  border-bottom:2px solid transparent;
-  transition:all .15s;white-space:nowrap;
-}
-.sp-item:hover{color:var(--blue);}
-.sp-item.done{color:var(--ink-3);}
-.sp-item.done .sp-num{background:var(--blue-lt);color:var(--blue);}
-.sp-item.act{color:var(--blue);font-weight:800;border-bottom-color:var(--blue);}
-.sp-item.act .sp-num{background:var(--blue);color:white;}
-.sp-num{
-  width:1.6vh;height:1.6vh;border-radius:50%;
-  background:var(--line);color:var(--ink-4);
-  font-size:0.42vw;font-weight:900;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all .15s;
-}
-.sp-conn{width:1.5vw;height:1px;background:var(--line);align-self:center;flex-shrink:0;}
-
-.screen{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
-.screen.hidden{display:none;}
-
-/* ─── FOOTER ─────────────────────────────────────────── */
-.footer{background:var(--surface);border-top:1px solid var(--line);padding:0 2.5vw;display:flex;align-items:center;justify-content:space-between;}
-.footer-copy{font-size:.56vw;font-weight:500;color:var(--ink-4);}
-.footer-r{display:flex;align-items:center;gap:.7vw;}
-.foot-hint{font-size:.48vw;color:var(--ink-4);}
-.btn-back{padding:.52vh 1vw;border-radius:5px;font-size:.58vw;font-weight:700;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-3);cursor:pointer;font-family:var(--font);transition:all .15s;}
-.btn-back:hover{border-color:var(--blue);color:var(--blue);}
-.btn-back:disabled{opacity:.3;cursor:default;pointer-events:none;}
-.btn-next{padding:.52vh 1.5vw;border-radius:5px;font-size:.58vw;font-weight:800;border:none;background:var(--blue);color:white;cursor:pointer;font-family:var(--font);transition:background .15s;}
-.btn-next:hover{background:var(--blue-dk);}
-
-/* ═══════════════════════════════════════════════════════
-   S1 — PARAMETER
-═══════════════════════════════════════════════════════ */
-#s1 .sc-body{padding:0 3vw 0;display:flex;align-items:stretch;gap:3vw;flex:1;overflow:hidden;}
-
-.s1-half{flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.5vh;}
-
-.s1-context{font-size:.56vw;font-weight:600;color:var(--blue);min-height:1.2vh;transition:opacity .2s;}
-
-.s1-big-num{font-size:11vh;font-weight:800;color:var(--blue);letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;}
-.s1-big-unit{font-size:3vh;font-weight:600;color:var(--ink-3);letter-spacing:-.01em;}
-.s1-num-row{display:flex;align-items:baseline;gap:.5vw;}
-
-.hz-slider{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:99px;background:var(--blue-lt);outline:none;cursor:pointer;}
-.hz-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid white;box-shadow:0 2px 10px rgba(0,64,120,.3);cursor:pointer;}
-.hz-labels{display:flex;justify-content:space-between;margin-top:.4vh;}
-.hz-labels span{font-size:.44vw;font-weight:600;color:var(--ink-4);}
-
-.s1-divider{width:1px;background:var(--line);align-self:stretch;margin:2vh 0;}
-
-.betrag-lbl{font-size:.56vw;font-weight:800;color:var(--ink-4);}
-.betrag-wrap{position:relative;}
-.betrag-pfx{position:absolute;left:1.2vw;top:50%;transform:translateY(-50%);font-size:.9vw;font-weight:800;color:var(--ink-3);pointer-events:none;}
-.betrag-inp{width:100%;padding:2vh 1vw 2vh 3.8vw;background:var(--surface);border:2px solid var(--line);border-radius:9px;font-size:2.8vh;font-weight:800;color:var(--blue);outline:none;font-family:var(--font);transition:border-color .15s;}
-.betrag-inp:focus{border-color:var(--blue);}
-.betrag-inp::placeholder{color:var(--ink-4);font-size:1.6vh;font-weight:500;font-style:italic;}
-
-/* ═══════════════════════════════════════════════════════
-   S2 — STRATEGIE
-═══════════════════════════════════════════════════════ */
-#s2 .sc-body{padding:0;display:flex;flex-direction:column;gap:0;flex:1;overflow:hidden;}
-
-/* The big RR curve section */
-.rr-section{
-  flex:1;position:relative;overflow:hidden;
-  background:var(--surface);border-bottom:1px solid var(--line);
-}
-.rr-svg{position:absolute;inset:0;width:100%;height:100%;}
-
-/* Strategy labels on curve */
-.rr-strat-label{
-  position:absolute;transform:translateX(-50%);
-  display:flex;flex-direction:column;align-items:center;gap:.3vh;
-  cursor:pointer;transition:all .15s;
-  user-select:none;
-}
-.rr-dot{
-  width:14px;height:14px;border-radius:50%;
-  background:white;border:2.5px solid var(--blue);
-  transition:all .2s;box-shadow:0 2px 8px rgba(0,64,120,.15);
-}
-.rr-strat-label.sel .rr-dot{background:var(--blue);width:18px;height:18px;box-shadow:0 4px 16px rgba(0,64,120,.35);}
-.rr-strat-label:hover .rr-dot{border-color:var(--blue);transform:scale(1.2);}
-.rr-dot-lbl{font-size:.5vw;font-weight:700;color:var(--ink-3);white-space:nowrap;transition:color .15s;}
-.rr-strat-label.sel .rr-dot-lbl{color:var(--blue);font-weight:900;}
-.rr-strat-label:hover .rr-dot-lbl{color:var(--blue);}
-
-/* Axis labels in RR */
-.rr-axis-x{position:absolute;bottom:.8vh;right:1.5vw;font-size:.46vw;font-weight:700;color:var(--ink-4);}
-.rr-axis-y{position:absolute;top:.8vh;left:1.5vw;font-size:.46vw;font-weight:700;color:var(--ink-4);}
-.rr-axis-lo{position:absolute;bottom:.8vh;left:1.5vw;font-size:.46vw;font-weight:600;color:var(--ink-4);}
-.rr-hint{position:absolute;top:.8vh;right:1.5vw;font-size:.46vw;font-weight:600;color:var(--ink-4);font-style:italic;}
-
-/* Bottom strip: 5 compact cards */
-.strat-strip{display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;border-top:1px solid var(--line);}
-.ss-card{
-  padding:.7vh 1vw;border-right:1px solid var(--line);
-  cursor:pointer;transition:background .15s;
-  display:flex;flex-direction:column;gap:.2vh;
-  position:relative;
-}
-.ss-card:last-child{border-right:none;}
-.ss-card:hover{background:#f8fbff;}
-.ss-card.sel{background:var(--blue-lt);}
-.ss-card.sel::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--blue);}
-.ss-name{font-size:.72vw;font-weight:800;color:var(--ink);}
-.ss-card.sel .ss-name{color:var(--blue);}
-.ss-eq{font-size:.44vw;font-weight:600;color:var(--ink-4);}
-.ss-kpis{display:flex;gap:.8vw;margin-top:.15vh;}
-.ss-kpi-lbl{font-size:.4vw;font-weight:700;color:var(--ink-4);}
-.ss-kpi-val{font-size:.6vw;font-weight:800;}
-.ss-kpi-val.g{color:var(--green);}
-.ss-kpi-val.r{color:var(--red);}
-.ss-detail{font-size:.4vw;font-weight:700;color:var(--blue);opacity:0;transition:opacity .15s;margin-top:auto;}
-.ss-card:hover .ss-detail{opacity:1;}
-
-/* ═══════════════════════════════════════════════════════
-   S3 — STRESSTEST
-═══════════════════════════════════════════════════════ */
-#s3 .sc-body{padding:.8vh 3vw 0;display:grid;grid-template-columns:1fr 1fr;gap:1.8vw;flex:1;overflow:hidden;}
-
-.stress-left{display:flex;flex-direction:column;gap:.6vh;overflow:hidden;}
-.crash-wrap{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:.7vh 1vw;flex-shrink:0;}
-.crash-title{font-size:1vh;font-weight:800;color:var(--ink-4);margin-bottom:.25vh;display:flex;justify-content:space-between;align-items:center;}
-.crash-loss-badge{font-size:1.1vh;font-weight:800;color:var(--red);}
-.crash-canvas{height:6.5vh;position:relative;}
-
-.react-list{display:flex;flex-direction:column;gap:.55vh;flex:1;}
-.rc{
-  background:var(--surface);border:2px solid var(--line);border-radius:8px;
-  padding:0 1.1vw;cursor:pointer;transition:all .15s;
-  display:flex;align-items:center;gap:.8vw;flex:1;
-}
-.rc:hover{border-color:rgba(0,64,120,.35);}
-.rc.sel{border-color:var(--red);background:#fff5f5;}
-.rc-dot{width:1.8vh;height:1.8vh;border-radius:50%;border:2px solid var(--line);flex-shrink:0;transition:all .15s;}
-.rc.sel .rc-dot{border-color:var(--red);background:var(--red);}
-.rc-main{font-size:1.6vh;font-weight:700;color:var(--ink-2);line-height:1.25;}
-.rc.sel .rc-main{color:var(--red);}
-.rc-sub{font-size:1.1vh;color:var(--ink-4);margin-top:.2vh;font-style:italic;}
-
-.stress-right{
-  background:var(--surface);border:1px solid var(--line);border-radius:9px;
-  padding:1.4vh 1.5vw;display:flex;flex-direction:column;gap:.9vh;
-  overflow:hidden;
-}
-.ctx-ttl{font-size:1.4vh;font-weight:800;color:var(--blue);flex-shrink:0;}
-.ctx-body{font-size:1.3vh;color:var(--ink-2);line-height:1.7;flex:1;overflow:hidden;}
-.ctx-psych{background:var(--bg);border-radius:6px;padding:.8vh 1vw;flex-shrink:0;}
-.ctx-psych-lbl{font-size:1vh;font-weight:800;color:var(--blue);margin-bottom:.2vh;}
-.ctx-psych-txt{font-size:1.1vh;color:var(--ink-2);line-height:1.6;}
-.ctx-badge{border-left:3px solid var(--blue);background:var(--bg);border-radius:0 5px 5px 0;padding:.65vh .9vw;flex-shrink:0;}
-.ctx-badge.warn{border-left-color:var(--red);background:#fff5f5;}
-.ctx-badge-lbl{font-size:.9vh;font-weight:800;color:var(--ink-4);margin-bottom:.15vh;}
-.ctx-badge-val{font-size:1.3vh;font-weight:800;color:var(--ink-2);}
-.ctx-conflict{display:none;background:#fffbeb;border-radius:6px;padding:.65vh .9vw;border-left:3px solid var(--amber);flex-shrink:0;}
-.ctx-conflict-lbl{font-size:.9vh;font-weight:800;color:var(--amber);margin-bottom:.15vh;}
-.ctx-conflict-txt{font-size:1.1vh;color:var(--ink-2);line-height:1.5;}
-
-/* ═══════════════════════════════════════════════════════
-   S4 — KENNTNISSE
-═══════════════════════════════════════════════════════ */
-#s4 .sc-body{padding:.8vh 3vw 0;display:flex;flex-direction:column;gap:.6vh;flex:1;overflow:hidden;}
-.kn-wrap{flex:1;overflow-y:auto;overflow-x:hidden;border:1px solid var(--line);border-radius:9px;background:var(--surface);}
-.kn-wrap::-webkit-scrollbar{width:3px;}
-.kn-wrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
-.kn-table{width:100%;border-collapse:collapse;}
-.kn-table thead th{padding:1vh 1.3vw;font-size:.5vw;font-weight:800;color:var(--ink-4);text-align:center;background:var(--bg);border-bottom:2px solid var(--line);position:sticky;top:0;z-index:2;}
-.kn-table thead th:first-child{text-align:left;}
-.kn-table tbody tr{border-bottom:1px solid var(--line);transition:background .1s;}
-.kn-table tbody tr:last-child{border-bottom:none;}
-.kn-table tbody tr:hover{background:#f8fbff;}
-.kn-table td{padding:1vh 1.3vw;text-align:center;vertical-align:middle;}
-.kn-table td:first-child{text-align:left;font-size:.72vw;font-weight:700;color:var(--ink-2);}
-.kn-cb-wrap{display:flex;align-items:center;justify-content:center;}
-.kn-cb{width:2vh;height:2vh;border:2px solid var(--line);border-radius:4px;background:var(--bg);cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.kn-cb:hover{border-color:var(--blue);background:var(--blue-lt);}
-.kn-cb.chk{background:var(--blue);border-color:var(--blue);}
-.kn-cb.chk::after{content:'';display:block;width:.55vh;height:1vh;border-right:2.5px solid white;border-bottom:2.5px solid white;transform:rotate(45deg) translate(-10%,-10%);}
-.kn-foot{display:flex;align-items:center;gap:1vw;flex-shrink:0;padding:.5vh 0;}
-.kn-foot-lbl{font-size:.5vw;font-weight:800;color:var(--ink-3);white-space:nowrap;}
-.kn-prog-bg{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
-.kn-prog{height:100%;background:var(--blue);border-radius:99px;transition:width .3s;}
-
-/* ═══════════════════════════════════════════════════════
-   S5 — ESG
-═══════════════════════════════════════════════════════ */
-#s5 .sc-body{padding:.8vh 3vw 0;display:grid;grid-template-columns:1fr 1.3fr;gap:2.5vw;flex:1;overflow:hidden;}
-.esg-left{display:flex;flex-direction:column;gap:1.1vh;}
-.esg-toggle-card{background:var(--surface);border:2px solid var(--line);border-radius:9px;padding:1.3vh 1.3vw;display:flex;align-items:flex-start;gap:1vw;flex-shrink:0;transition:border-color .2s,background .2s;}
-.esg-toggle-card.on{border-color:var(--green);background:#f0fdf4;}
-.esg-tc-info{flex:1;}
-.esg-tc-title{font-size:.7vw;font-weight:800;color:var(--ink);}
-.esg-toggle-card.on .esg-tc-title{color:#166534;}
-.esg-tc-sub{font-size:.5vw;color:var(--ink-3);margin-top:.25vh;line-height:1.55;}
-.toggle{width:3.2vw;height:1.8vh;background:var(--line);border-radius:99px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;margin-top:.2vh;}
-.toggle::after{content:'';position:absolute;top:50%;left:2px;transform:translateY(-50%);width:1.4vh;height:1.4vh;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .2s;}
-.toggle.on{background:var(--green);}
-.toggle.on::after{left:calc(3.2vw - 1.4vh - 2px);}
-.esg-explainer{background:var(--bg);border-radius:8px;padding:1.1vh 1.1vw;font-size:.5vw;color:var(--ink-3);line-height:1.72;flex:1;}
-.esg-explainer strong{color:var(--blue);font-weight:800;}
-.esg-right{display:flex;flex-direction:column;gap:.7vh;overflow:hidden;}
-.esg-right-title{font-size:.58vw;font-weight:800;color:var(--blue);flex-shrink:0;}
-.esg-right-sub{font-size:.48vw;color:var(--ink-3);flex-shrink:0;}
-.esg-chips{display:flex;flex-wrap:wrap;gap:.45vh .45vw;flex:1;align-content:flex-start;}
-.esg-chip{padding:.5vh .9vw;border-radius:99px;font-size:.52vw;font-weight:700;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-3);cursor:pointer;transition:all .15s;}
-.esg-chip:hover:not(.off){border-color:var(--green);color:#166534;}
-.esg-chip.on{border-color:var(--green);background:#f0fdf4;color:#166534;}
-.esg-chip.off{opacity:.32;pointer-events:none;}
-.esg-sum-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.9vh 1vw;flex-shrink:0;}
-.esg-sum-lbl{font-size:.44vw;font-weight:800;color:var(--ink-4);margin-bottom:.3vh;}
-.esg-sum-chips{display:flex;flex-wrap:wrap;gap:.3vh .4vw;min-height:1.4vh;}
-.esg-sum-chip{font-size:.44vw;font-weight:700;color:#166534;background:#f0fdf4;padding:.15vh .5vw;border-radius:99px;border:1px solid #bbf7d0;}
-.esg-sum-none{font-size:.48vw;color:var(--ink-4);font-style:italic;}
-
-/* ═══════════════════════════════════════════════════════
-   S6 — KONKLUSION
-═══════════════════════════════════════════════════════ */
-#s6 .sc-body{padding:.8vh 3vw 0;display:grid;grid-template-columns:1.4fr 1fr;gap:2vw;flex:1;overflow:hidden;}
-
-.konk-left{display:flex;flex-direction:column;gap:.8vh;overflow:hidden;}
-.konk-hero{background:var(--blue);border-radius:10px;padding:1.6vh 1.8vw;flex-shrink:0;display:flex;flex-direction:column;gap:.4vh;}
-.konk-hero-lbl{font-size:.44vw;font-weight:800;color:rgba(255,255,255,.48);}
-.konk-hero-name{font-size:4vh;font-weight:800;color:white;letter-spacing:-.03em;line-height:1;}
-.konk-hero-text{font-size:.54vw;color:rgba(255,255,255,.7);line-height:1.58;margin-top:.2vh;}
-
-/* Single RR card — curve as protagonist */
-.konk-curve-card{
-  background:var(--surface);border:1px solid var(--line);border-radius:10px;
-  padding:1vh 1.3vw;flex:1;display:flex;flex-direction:column;gap:.4vh;overflow:hidden;
-}
-.konk-curve-lbl{font-size:.48vw;font-weight:800;color:var(--blue);flex-shrink:0;}
-.konk-curve-area{flex:1;position:relative;min-height:0;}
-
-/* Right side — clean summary in style of reference image */
-.konk-right{display:flex;flex-direction:column;gap:.6vh;overflow:hidden;}
-
-.konk-sum-block{
-  background:var(--surface);border:1px solid var(--line);border-radius:9px;
-  padding:1.1vh 1.3vw;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1.1vh;
-}
-.konk-sum-block::-webkit-scrollbar{width:3px;}
-.konk-sum-block::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
-
-/* Section header like reference image */
-.ksb-header{font-size:.44vw;font-weight:800;color:var(--ink-4);letter-spacing:.08em;text-transform:uppercase;padding-bottom:.5vh;border-bottom:1px solid var(--line);}
-.ksb-row{display:flex;flex-direction:column;gap:.12vh;}
-.ksb-lbl{font-size:.46vw;font-weight:600;color:var(--ink-3);}
-.ksb-val{font-size:.82vw;font-weight:800;color:var(--ink);line-height:1.2;}
-.ksb-val.blue{color:var(--blue);}
-.ksb-divider{height:1px;background:var(--line);}
-
-.konk-impl{flex-shrink:0;display:flex;flex-direction:column;gap:.35vh;}
-.konk-impl-lbl{font-size:1vh;font-weight:800;color:var(--ink-4);}
-.impl-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.3vw;}
-.impl-btn{
-  background:var(--bg);border:1.5px solid var(--line);border-radius:7px;
-  padding:.55vh .3vw;cursor:pointer;transition:all .18s;
-  display:flex;flex-direction:column;gap:.15vh;align-items:center;
-  font-family:var(--font);position:relative;
-}
-.impl-btn:hover{border-color:var(--blue);}
-/* Empfehlung — dezente blaue Markierung */
-.impl-btn.rec{border-color:rgba(0,64,120,.45);background:var(--blue-lt);}
-.impl-btn.rec .impl-name{color:var(--blue);}
-/* Empfehlung gewählt — voll blau */
-.impl-btn.sel.rec{border-color:var(--blue);background:var(--blue);box-shadow:0 3px 12px rgba(0,64,120,.25);}
-.impl-btn.sel.rec .impl-name{color:white;}
-.impl-btn.sel.rec .impl-tag{background:rgba(255,255,255,.2);color:white;}
-/* ÜBERSTEUERT — amber/orange, klar sichtbar */
-.impl-btn.override{
-  border-color:var(--amber);background:#fffbeb;
-  box-shadow:0 3px 12px rgba(180,83,9,.2);
-}
-.impl-btn.override .impl-name{color:var(--amber);}
-.impl-name{font-size:1.1vh;font-weight:800;color:var(--ink-2);}
-.impl-tag{font-size:.8vh;font-weight:700;color:var(--blue);background:var(--blue-lt);padding:.1vh .35vw;border-radius:3px;}
-.impl-tag.override-tag{background:#fef3c7;color:var(--amber);}
-
-/* Override banner */
-.override-banner{
-  display:none;
-  background:#fffbeb;border:1.5px solid var(--amber);border-radius:6px;
-  padding:.55vh .9vw;flex-shrink:0;
-  flex-direction:row;align-items:center;gap:.6vw;
-}
-.override-banner.visible{display:flex;}
-.override-banner-icon{font-size:1.4vh;flex-shrink:0;}
-.override-banner-txt{font-size:1vh;font-weight:700;color:var(--amber);line-height:1.4;}
-
-/* ─── MODAL ──────────────────────────────────────────── */
-.modal-ov{position:fixed;inset:0;background:rgba(0,20,55,.72);backdrop-filter:blur(14px);z-index:500;display:none;align-items:center;justify-content:center;}
-.modal-ov.open{display:flex;}
-.modal-box{background:white;border-radius:12px;width:60vw;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.4);font-family:var(--font);}
-.modal-head{background:var(--blue);padding:1.8vh 2vw;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.modal-title{font-size:1.8vh;font-weight:800;color:white;}
-.modal-sub{font-size:.55vw;color:rgba(255,255,255,.6);margin-top:.15vh;}
-.modal-close{background:rgba(255,255,255,.15);border:none;color:white;font-size:1.1vh;font-weight:800;border-radius:4px;padding:.3vh .5vw;cursor:pointer;font-family:var(--font);transition:background .15s;}
-.modal-close:hover{background:rgba(255,255,255,.3);}
-.modal-body{flex:1;overflow-y:auto;padding:1.8vh 2vw;display:flex;flex-direction:column;gap:1.3vh;}
-.modal-body::-webkit-scrollbar{width:3px;}
-.modal-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
-.modal-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.7vw;flex-shrink:0;}
-.mkpi{background:var(--bg);border-radius:7px;padding:.8vh .9vw;}
-.mkpi-lbl{font-size:.46vw;font-weight:800;color:var(--ink-4);margin-bottom:.15vh;}
-.mkpi-val{font-size:1.6vh;font-weight:800;color:var(--blue);}
-.mkpi-val.r{color:var(--red);}
-.modal-cols{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5vw;flex:1;min-height:0;}
-.modal-sec-title{font-size:.56vw;font-weight:800;color:var(--blue);margin-bottom:.6vh;}
-.alloc-wrap{display:flex;gap:1vw;align-items:flex-start;}
-.alloc-legend{display:flex;flex-direction:column;gap:.4vh;flex:1;}
-.alloc-row{display:flex;align-items:center;gap:.4vw;}
-.alloc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.alloc-name{font-size:.5vw;font-weight:600;color:var(--ink-2);flex:1;}
-.alloc-pct{font-size:.5vw;font-weight:800;color:var(--blue);}
-.perf-wrap{position:relative;flex:1;min-height:12vh;}
-.modal-disc{font-size:.42vw;color:var(--ink-4);font-style:italic;margin-top:.4vh;flex-shrink:0;}
-
-/* dot-live */
-.footer-live{display:flex;align-items:center;gap:.4vw;font-size:.52vw;font-weight:700;color:#16a34a;}
-.dot-live{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2.5s ease-in-out infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);}}
-
-/* sc-head shared */
-.sc-head{flex-shrink:0;padding:1.5vh 3vw 0;}
-.sc-step{font-size:.48vw;font-weight:800;color:var(--blue);opacity:.55;margin-bottom:.15vh;}
-.sc-title{font-size:2.6vh;font-weight:800;color:var(--ink);letter-spacing:-.025em;line-height:1.1;}
-.sc-sub{font-size:1.3vh;color:var(--ink-3);margin-top:.3vh;}
-
-        /* ── TOPBAR ADMIN ── */
-        .topbar-right { display: flex !important; align-items: center; gap: 0.6vw; flex-shrink: 0; }
-        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: 0.5vw; font-weight: 600; }
-        .edit-btn {
-            background: none !important; border: none; cursor: pointer;
-            color: rgba(255,255,255,0.28); font-size: 0.5vw;
-            font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 0;
-            transition: color 0.15s; white-space: nowrap;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bbz bank – Anlegen</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        window.BBZ = window.BBZ || {
+            get: (key) => {
+                try { const data = JSON.parse(localStorage.getItem('bbzData') || '{}'); return data[key]; }
+                catch(e) { return null; }
+            },
+            set: (key, val) => {
+                try { const data = JSON.parse(localStorage.getItem('bbzData') || '{}'); data[key] = val; localStorage.setItem('bbzData', JSON.stringify(data)); }
+                catch(e) {}
+            },
+            fmt: (n, d = 0) => {
+                const num = Number(n);
+                if (!isFinite(num)) return '–';
+                return num.toLocaleString('de-CH', { minimumFractionDigits: d, maximumFractionDigits: d });
+            }
+        };
+    </script>
+    <script src="bbz-data.js" onerror="console.warn('bbz-data.js not found, using fallback')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --blue: #004078; --blue-dk: #002d57; --blue-lt: #dce8f4;
+            --red: #950e13; --green: #15803d; --amber: #b45309;
+            --ink: #0f172a; --ink-2: #334155; --ink-3: #64748b; --ink-4: #94a3b8;
+            --surface: #ffffff; --bg: #f1f5f9; --line: #e2e8f0; --font: 'DM Sans', sans-serif;
+            --slate: #475569;
         }
-        .edit-btn:hover { color: rgba(255,255,255,0.7); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font); background: var(--blue-dk); display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+
+        .canvas {
+            width: 95vw; aspect-ratio: 16/9; max-height: 95vh; background: var(--bg);
+            display: grid; grid-template-rows: 6vh 1fr 4vh; overflow: hidden;
+            box-shadow: 0 50px 120px rgba(0,0,0,0.55);
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            background: var(--blue); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 2vw 0 2.2vw; gap: 1vw; color: white;
+        }
+        .logo { display: flex; align-items: center; gap: 1vw; }
+        .logo-mark {
+            background: white; color: var(--blue);
+            width: 4.2vh; height: 4.2vh;
+            border-radius: 8px; font-weight: 900; font-size: 1.4vh;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .logo-name { font-weight: 800; font-size: 1.1vw; }
+        .topbar-right { display: flex; align-items: center; gap: 0.6vw; flex-shrink: 0; }
+        .topbar-brand { color: rgba(255,255,255,0.18); font-size: 0.5vw; font-weight: 600; }
         .home-btn {
-            background: rgba(255,255,255,0.12) !important; border: none; border-radius: 5px;
+            background: rgba(255,255,255,0.12); border: none; border-radius: 5px;
             padding: 0.42vh 0.42vw; cursor: pointer; color: white;
             display: flex; align-items: center; transition: background 0.15s;
             text-decoration: none; flex-shrink: 0;
         }
-        .home-btn:hover { background: rgba(255,255,255,0.22) !important; }
+        .home-btn:hover { background: rgba(255,255,255,0.22); }
         .home-btn svg { width: 13px; height: 13px; display: block; }
+        .icon-btn {
+            background: rgba(255,255,255,0.12); border: none; border-radius: 5px;
+            padding: 0.42vh 0.42vw; cursor: pointer; color: rgba(255,255,255,0.28);
+            display: flex; align-items: center; transition: all 0.15s; flex-shrink: 0;
+        }
+        .icon-btn:hover { color: rgba(255,255,255,0.7); }
+        .icon-btn svg { width: 13px; height: 13px; display: block; }
+
+        /* ── MAIN LAYOUT (Teil A) ── */
+        .part-a { display: grid; grid-template-columns: 18vw 1fr; flex: 1; overflow: hidden; min-height: 0; }
+        .sidebar { background: var(--surface); border-right: 1px solid var(--line); padding: 2.5vh 1.5vw; display: flex; flex-direction: column; gap: 2vh; }
+        .content-a { overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+        .step-link {
+            display: flex; align-items: center; gap: 0.8vw; padding: 1.5vh 1vw;
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
+            color: var(--ink-4); text-decoration: none; font-weight: 600; font-size: 0.7vw;
+        }
+        .step-link.active { background: var(--blue-lt); color: var(--blue); }
+        .step-link.done { color: var(--ink-2); }
+        .step-link.disabled { opacity: 0.4; cursor: not-allowed; }
+        .step-circle { width: 1.2vw; height: 1.2vw; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 0.5vw; font-weight: 800; }
+
+        /* ── MAIN LAYOUT (Teil B) ── */
+        .part-b { display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+        .part-b.active { display: flex; }
+        .content-b { padding: 3vh 3.2vw; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+        .step-indicator { display: flex; gap: 0.7vw; margin-bottom: 2vh; }
+        .step-chip {
+            padding: 0.9vh 0.95vw; border-radius: 999px; background: white; border: 1px solid var(--line);
+            font-size: 0.62vw; font-weight: 700; color: var(--ink-4);
+        }
+        .step-chip.active { background: var(--blue-lt); color: var(--blue); border-color: transparent; }
+
+        /* ── SCREENS (shared) ── */
+        .screen { display: none; height: 100%; padding: 3vh 3.5vw; flex-direction: column; overflow: hidden; }
+        .screen.active { display: flex; }
+        .screen-b { display: none; flex: 1; min-height: 0; }
+        .screen-b.active { display: flex; flex-direction: column; }
+        h1 { font-size: 3.2vh; font-weight: 800; color: var(--ink); margin-bottom: 0.5vh; }
+        .subtitle { font-size: 1.6vh; color: var(--ink-3); margin-bottom: 3vh; line-height: 1.45; max-width: 72vw; }
+
+        /* ── TEIL A: STEP STYLES ── */
+        .split-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 3vw; flex: 1; min-height: 0; }
+        .vis-box { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.5vh; display: flex; flex-direction: column; gap: 2vh; position: relative; }
+
+        .param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; }
+        .input-group { display: flex; flex-direction: column; gap: 1vh; }
+        label { font-size: 0.7vw; font-weight: 800; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.05em; }
+        .big-input { width: 100%; padding: 2vh 1.5vw; border: 2px solid var(--line); border-radius: 12px; font-size: 2.5vh; font-weight: 800; color: var(--blue); outline: none; font-family: var(--font); }
+        .hz-slider { width: 100%; height: 8px; border-radius: 4px; background: var(--line); -webkit-appearance: none; margin: 2vh 0; }
+        .hz-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--blue); border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .strat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1vw; }
+        .strat-card { background: white; border: 1.5px solid var(--line); border-radius: 12px; padding: 1.2vh; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 0.5vh; }
+        .strat-card.active { border-color: var(--blue); background: var(--blue-lt); box-shadow: 0 10px 30px rgba(0,64,120,0.1); }
+        .strat-name { font-size: 0.75vw; font-weight: 800; color: var(--blue); }
+        .strat-yield { font-size: 1.1vw; font-weight: 900; color: var(--green); }
+
+        .sim-container { margin-top: 2.5vh; background: var(--surface); border-radius: 15px; padding: 2.5vh; border: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr 1.8fr; gap: 2vw; flex: 1; }
+        .sim-val { font-size: 3.2vh; font-weight: 800; color: var(--ink); line-height: 1.2; }
+        .sim-label { font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; margin-bottom: 0.5vh; }
+
+        .vol-chart-wrap { position: relative; height: 100%; display: flex; flex-direction: column; }
+        .legend { display: flex; gap: 1vw; margin-top: 0.5vh; }
+        .legend-item { display: flex; align-items: center; gap: 0.3vw; font-size: 0.55vw; font-weight: 600; color: var(--ink-3); }
+        .legend-dot { width: 0.5vw; height: 0.5vw; border-radius: 2px; }
+
+        .behavioral-note { margin-top: 1.2vh; padding: 1vh 1vw; background: rgba(149, 14, 19, 0.05); border-radius: 8px; font-size: 0.65vw; color: var(--red); font-weight: 700; display: flex; align-items: center; gap: 0.6vw; border-left: 3px solid var(--red); }
+        .behavioral-note svg { width: 0.9vw; height: 0.9vw; fill: currentColor; flex-shrink: 0; }
+
+        .option-btn {
+            background: white; border: 1.5px solid var(--line); padding: 1.8vh 1.5vw;
+            border-radius: 12px; cursor: pointer; text-align: left; transition: 0.2s;
+            display: flex; flex-direction: column; gap: 0.4vh; font-family: var(--font);
+        }
+        .option-btn:hover { border-color: var(--blue); background: var(--bg); }
+        .option-btn.active { border-color: var(--blue); background: var(--blue-lt); }
+        .opt-title { font-size: 0.8vw; font-weight: 800; color: var(--blue); }
+        .opt-desc { font-size: 0.65vw; color: var(--ink-3); font-weight: 500; }
+        .loss-badge { background: var(--red); color: white; padding: 2vh; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+
+        .knowledge-grid { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.1vh 2vw; overflow: hidden; display: flex; flex-direction: column; }
+        .knowledge-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .knowledge-table thead th { font-size: 0.64vw; font-weight: 700; color: var(--ink-4); text-align: center; padding: 1.2vh 0.4vw 1.8vh; }
+        .knowledge-table thead th:first-child { text-align: left; width: 34%; }
+        .knowledge-table tbody tr { border-top: 1px solid var(--line); }
+        .knowledge-table tbody td { padding: 2vh 0.6vw; vertical-align: middle; text-align: center; }
+        .knowledge-table tbody td:first-child { text-align: left; font-size: 0.92vw; font-weight: 800; color: var(--ink); padding-left: 1vw; }
+        .k-check { width: 1.45vw; height: 1.45vw; border-radius: 0.45vw; border: 2px solid var(--line); background: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.18s; }
+        .k-check:hover { border-color: var(--blue); background: var(--bg); }
+        .k-check.active { border-color: var(--blue); background: var(--blue-lt); }
+        .k-check.active::after { content: ''; width: 0.62vw; height: 0.62vw; border-radius: 0.18vw; background: var(--blue); display: block; }
+        .knowledge-note { margin-top: auto; background: var(--bg); padding: 1.5vh 1vw; border-radius: 10px; }
+        .knowledge-note p { font-size: 0.6vw; color: var(--ink-3); line-height: 1.5; }
+
+        .pyramid-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2vh; }
+        .pyramid-step {
+            width: var(--w); height: 5vh; border-radius: 8px; margin-bottom: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 800; font-size: 0.68vw; transition: 0.25s;
+            background: #d9e1ea; transform: scale(0.97);
+        }
+        .pyramid-step.active { transform: scale(1); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
+
+        .esg-info-box { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.5vh; display: flex; flex-direction: column; gap: 1.6vh; }
+        .esg-lead { font-size: 0.76vw; color: var(--ink-2); line-height: 1.6; }
+        .esg-points { display: flex; flex-direction: column; gap: 1vh; margin-top: 0.6vh; }
+        .esg-point { background: var(--bg); border-radius: 10px; padding: 1.3vh 1vw; border-left: 3px solid var(--blue); font-size: 0.65vw; color: var(--ink-2); line-height: 1.45; }
+        .esg-options { display: flex; flex-direction: column; gap: 1.5vh; }
+        .esg-option { background: white; border: 1.5px solid var(--line); border-radius: 14px; padding: 2vh 1.5vw; cursor: pointer; display: flex; align-items: flex-start; gap: 1vw; transition: 0.2s; font-family: var(--font); }
+        .esg-option:hover { border-color: var(--blue); background: var(--bg); }
+        .esg-option.active { border-color: var(--blue); background: var(--blue-lt); }
+        .esg-radio { width: 1.35vw; height: 1.35vw; border-radius: 50%; border: 2px solid var(--line); margin-top: 0.2vh; flex-shrink: 0; position: relative; }
+        .esg-option.active .esg-radio { border-color: var(--blue); }
+        .esg-option.active .esg-radio::after { content: ''; position: absolute; inset: 0.22vw; background: var(--blue); border-radius: 50%; }
+        .esg-title { font-size: 0.95vw; font-weight: 800; color: var(--blue); margin-bottom: 0.5vh; }
+        .esg-desc { font-size: 0.72vw; color: var(--ink-3); line-height: 1.4; }
+
+        .conclusion-layout { display: grid; grid-template-columns: 1.08fr 1fr; gap: 2vw; flex: 1; min-height: 0; }
+        .summary-card { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.2vh 1.6vw; display: flex; flex-direction: column; gap: 1.5vh; }
+        .summary-kicker { font-size: 0.62vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
+        .summary-reco { font-size: 2.15vw; font-weight: 900; color: var(--blue); line-height: 1.05; }
+        .summary-intro { font-size: 0.76vw; color: var(--ink-2); line-height: 1.55; }
+        .summary-body { font-size: 0.72vw; color: var(--ink-2); line-height: 1.6; }
+        .summary-section { background: var(--bg); border-radius: 12px; padding: 1.4vh 1vw; display: flex; flex-direction: column; gap: 0.55vh; }
+        .summary-section-label { font-size: 0.58vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
+        .summary-section-value { font-size: 0.78vw; color: var(--ink); font-weight: 700; }
+        .summary-section-text { font-size: 0.7vw; color: var(--ink-2); line-height: 1.55; }
+        .deviation-note { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 1.1vh 0.9vw; font-size: 0.68vw; color: var(--ink-3); font-weight: 700; }
+        .recommendation-frame { border: 1px solid var(--line); border-radius: 14px; padding: 1.7vh 1.2vw; background: linear-gradient(180deg, rgba(220,232,244,0.55) 0%, rgba(255,255,255,1) 100%); }
+        .strat-card.recommended { box-shadow: inset 0 0 0 2px var(--blue); }
+
+        /* ── TEIL B: STYLES ── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2vw; flex: 1; min-height: 0; }
+        .choice-panel {
+            background: white; border: 1.5px solid var(--line); border-radius: 18px; padding: 2.1vh 1.6vw;
+            display: flex; flex-direction: column; min-height: 0; cursor: pointer; transition: 0.18s ease;
+        }
+        .choice-panel:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(15,23,42,0.07); }
+        .choice-panel.active { border-color: var(--blue); background: var(--blue-lt); box-shadow: 0 18px 40px rgba(0,64,120,0.14); }
+        .choice-panel.active .panel-title { color: var(--blue); }
+        .choice-panel.active .node-bullet { background: var(--blue); color: white; }
+        .choice-panel.active .flow-node { border-color: rgba(0,64,120,0.2); background: white; }
+        .choice-panel.active .panel-note { background: white; border-color: rgba(0,64,120,0.15); }
+        .eyebrow { font-size: 0.56vw; font-weight: 800; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
+        .panel-title { font-size: 1.18vw; font-weight: 800; color: var(--ink); line-height: 1.2; margin-top: 0.55vh; }
+        .panel-intro { font-size: 0.72vw; color: var(--ink-3); line-height: 1.45; margin-top: 0.9vh; margin-bottom: 1.6vh; }
+        .vertical-flow { display: flex; flex-direction: column; gap: 0.9vh; width: 100%; max-width: 24vw; }
+        .flow-node {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); border: 1px solid var(--line);
+            border-radius: 14px; padding: 1.2vh 0.9vw; display: flex; align-items: center; gap: 0.8vw;
+        }
+        .node-bullet {
+            width: 1.7vw; height: 1.7vw; min-width: 24px; min-height: 24px; border-radius: 999px;
+            background: var(--blue-lt); color: var(--blue); display: flex; align-items: center; justify-content: center;
+            font-size: 0.66vw; font-weight: 800;
+        }
+        .node-text { font-size: 0.76vw; font-weight: 700; color: var(--ink-2); line-height: 1.35; }
+        .flow-line { width: 1px; height: 1.2vh; background: var(--line); margin-left: 0.82vw; }
+        .panel-note {
+            margin-top: auto; background: #f8fbfd; border: 1px solid var(--line); border-radius: 14px;
+            padding: 1.2vh 0.95vw; font-size: 0.68vw; color: var(--ink-3); line-height: 1.45;
+        }
+
+        .matrix-wrap { background: white; border: 1px solid var(--line); border-radius: 18px; }
+        .matrix { display: grid; grid-template-columns: 1.05fr 1fr 1fr; border-radius: 18px; overflow: hidden; }
+        .m-cell { padding: 1.4vh 1.2vw; border-bottom: 1px solid var(--line); min-height: 6vh; display: flex; align-items: center; line-height: 1.45; }
+        .m-head { font-size: 0.88vw; font-weight: 800; min-height: 7vh; padding: 0 1.2vw; display: flex; align-items: center; }
+        .m-head.col-empty { background: #f8fafc; }
+        .m-head.col-advisory { background: var(--blue); color: white; }
+        .m-head.col-vv { background: var(--ink-2); color: white; }
+        .m-cell.col-advisory { background: #f0f6fc; }
+        .m-cell.col-vv { background: #f6f7f9; }
+        .m-label { font-size: 0.72vw; font-weight: 800; color: var(--ink); background: #fcfdff; display: flex; align-items: center; gap: 0.65vw; }
+        .m-label-icon { width: 1.5vw; height: 1.5vw; min-width: 22px; min-height: 22px; border-radius: 999px; background: var(--bg); color: var(--ink-3); display: flex; align-items: center; justify-content: center; font-size: 0.75vw; font-weight: 800; }
+        .m-value { font-size: 0.74vw; color: var(--ink-2); font-weight: 500; }
+        .matrix-footer { padding: 1.3vh 0.95vw; display: flex; justify-content: flex-end; background: white; border-top: 1px solid var(--line); border-radius: 0 0 18px 18px; }
+        .cost-link { background: none; border: none; padding: 0; color: var(--ink-3); font-size: 0.72vw; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-family: var(--font); }
+        .cost-link:hover { color: var(--ink-2); }
+
+        .selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2vw; }
+        .selection-card {
+            background: white; border: 2px solid var(--line); border-radius: 18px; padding: 2.1vh 1.6vw;
+            display: flex; flex-direction: column; gap: 1.2vh; cursor: pointer; transition: 0.18s ease; min-height: 33vh;
+        }
+        .selection-card:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(15,23,42,0.07); }
+        .selection-card.active { border-color: var(--blue); background: var(--blue-lt); box-shadow: 0 18px 40px rgba(0,64,120,0.12); }
+        .selection-card.active .selection-title { color: var(--blue); }
+        .selection-card.active .selection-anchor { color: var(--blue); border-top-color: rgba(0,64,120,0.2); }
+        .selection-title { font-size: 1.08vw; font-weight: 800; color: var(--ink); line-height: 1.2; }
+        .selection-sub { font-size: 0.74vw; color: var(--ink-3); line-height: 1.5; }
+        .selection-anchor { margin-top: auto; border-top: 1px solid var(--line); padding-top: 1.1vh; font-size: 0.72vw; color: var(--ink-2); font-weight: 700; }
+        .card-check {
+            display: none; margin-top: auto; font-size: 8vw; font-weight: 900;
+            color: rgba(0,64,120,0.12); text-align: center; line-height: 1;
+            transition: 0.2s;
+        }
+        .selection-card.active .card-check { display: block; color: rgba(0,64,120,0.18); }
+
+        .confirmation {
+            margin-top: 2vh; background: var(--blue); border-radius: 14px;
+            padding: 2vh 1.5vw; display: none; align-items: center; gap: 1vw;
+        }
+        .confirmation.show { display: flex; }
+        .confirm-mark { width: 2vw; height: 2vw; min-width: 28px; min-height: 28px; border-radius: 999px; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 1vw; font-weight: 800; flex-shrink: 0; }
+        .confirmation-title { font-size: 0.95vw; font-weight: 800; color: white; margin-bottom: 0.3vh; }
+        .confirmation-text { font-size: 0.7vw; color: rgba(255,255,255,0.75); line-height: 1.45; }
+
+        /* Teil B footer nav */
+        .footer-b { background: var(--bg); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5vw; height: 6vh; flex-shrink: 0; }
+        .footer-b-center { font-size: 0.6vw; color: var(--ink-4); font-weight: 700; }
+
+        /* ── BUTTONS ── */
+        .btn-primary { background: var(--blue); color: white; border: none; padding: 0.9vh 1.6vw; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.72vw; transition: 0.2s; font-family: var(--font); }
+        .btn-primary:hover { background: var(--blue-dk); transform: translateY(-1px); }
+        .btn-outline { background: none; border: 1px solid var(--line); color: var(--ink-3); padding: 0.8vh 1.3vw; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.68vw; font-family: var(--font); }
+        /* Screens 1–6 button row spacing */
+        .screen-btn-row { margin-top: 3vh; display: flex; justify-content: space-between; }
 
         /* ── BOTTOM NAV ── */
-        .footer, footer {
-            background: var(--surface, #fff) !important; border-top: 1px solid var(--line, #e2e8f0) !important;
-            display: flex !important; align-items: center; padding: 0 1vw; gap: 0.1vw;
-            justify-content: flex-start !important;
+        .footer {
+            background: var(--surface); border-top: 1px solid var(--line);
+            display: flex; align-items: center; padding: 0 1vw; gap: 0.1vw;
         }
         .nav-tab {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.75vw;
-            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            font-size: 0.52vw; font-weight: 600; color: var(--ink-4);
             white-space: nowrap; flex-shrink: 0; text-decoration: none;
             border-radius: 3px; transition: color 0.15s, background 0.15s;
         }
-        .nav-tab:hover { color: #64748b; background: #f1f5f9; }
-        .nav-tab.active { background: #dce8f4; color: #004078; font-weight: 700; }
+        .nav-tab:hover { color: var(--ink-3); background: var(--bg); }
+        .nav-tab.active { background: var(--blue-lt); color: var(--blue); font-weight: 700; }
         .nav-tab-split { display: flex; align-items: center; height: 100%; flex-shrink: 0; border-radius: 3px; overflow: hidden; }
         .nav-tab-half {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.65vw;
-            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            font-size: 0.52vw; font-weight: 600; color: var(--ink-4);
             white-space: nowrap; text-decoration: none;
             transition: color 0.15s, background 0.15s;
         }
-        .nav-tab-half:hover { color: #64748b; background: #f1f5f9; }
-        .nav-tab-half.active { background: #dce8f4; color: #004078; font-weight: 700; }
+        .nav-tab-half:hover { color: var(--ink-3); background: var(--bg); }
+        .nav-tab-half.active { background: var(--blue-lt); color: var(--blue); font-weight: 700; }
         .nav-spacer { flex: 1; }
-        .nav-brand { font-size: 0.48vw; color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
+        .nav-brand { font-size: 0.48vw; color: var(--line); font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
+
+        /* ── MODALS ── */
+        .modal-ov {
+            position: fixed; inset: 0; background: rgba(15,23,42,0.48); display: none;
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal {
+            width: min(76vw, 1240px); max-height: 88vh; overflow: auto;
+            background: white; border-radius: 18px; border: 1px solid var(--line);
+            box-shadow: 0 40px 120px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            padding: 1.5vh 1.3vw; background: var(--blue); color: white;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-title { font-size: 0.92vw; font-weight: 800; }
+        .close-btn { background: rgba(255,255,255,0.14); color: white; border: none; border-radius: 8px; width: 2vw; height: 2vw; min-width: 28px; min-height: 28px; cursor: pointer; font-size: 1.1vw; }
+        .modal-body { padding: 2vh 1.3vw 2.2vh; }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vw; }
+        .panel { background: #fbfdff; border: 1px solid var(--line); border-radius: 16px; padding: 1.5vh 1vw; }
+        .panel h3 { margin: 0 0 1.05vh; font-size: 0.9vw; color: var(--ink); }
+        .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1vh 0.8vw; }
+        .field { display: flex; flex-direction: column; gap: 0.45vh; }
+        .field label { font-size: 0.58vw; }
+        input[type="number"], input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 1vh 0.8vw; font-family: var(--font); font-size: 0.72vw; font-weight: 700; color: var(--ink); }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1vw; margin-top: 1.1vh; }
+        .result-card { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 1.15vh 0.9vw; }
+        .result-label { font-size: 0.58vw; font-weight: 800; color: var(--ink-4); text-transform: uppercase; margin-bottom: 0.45vh; }
+        .result-value { font-size: 1.45vw; font-weight: 900; color: var(--ink); line-height: 1.1; }
+        .result-sub { font-size: 0.64vw; color: var(--ink-3); margin-top: 0.45vh; line-height: 1.4; }
+        .bar-compare { margin-top: 1.15vh; background: white; border: 1px solid var(--line); border-radius: 14px; padding: 1vh 0.9vw; }
+        .bar-row { margin-top: 0.75vh; }
+        .bar-row:first-child { margin-top: 0; }
+        .bar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35vh; }
+        .bar-name { font-size: 0.66vw; font-weight: 800; color: var(--ink-2); }
+        .bar-value { font-size: 0.64vw; font-weight: 700; color: var(--ink-3); }
+        .bar-bg { height: 1.2vh; background: var(--bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+        .bar-fill { height: 100%; border-radius: 999px; background: var(--blue); }
+        .bar-fill.alt { background: #8aa8c0; }
+        .admin-actions { display: flex; justify-content: flex-end; gap: 0.8vw; margin-top: 1.2vh; }
     </style>
 </head>
 <body>
+
 <div class="canvas">
-
-<header class="topbar">
-  <div class="logo">
-    <div class="logo-mark">bbz</div>
-    <span class="logo-name">Anlegeranalyse</span>
-  </div>
-
-  <div class="topbar-right" style="display:flex;align-items:center;gap:0.7vw;flex-shrink:0;">
-    <button class="edit-btn" onclick="openAdmin()">Bearbeiten</button>
-    <a href="index.html" class="home-btn" title="Home">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>
-    </a>
-    <span class="topbar-brand">bbz bank</span>
-  </div>
-</header>
-
-<div class="main">
-<!-- Step progress: thin bar + labels, sits above screen content -->
-<div class="step-progress" id="stepProgress"></div>
-
-<!-- ═══ S1: PARAMETER ═══ -->
-<div class="screen" id="s1">
-  <div class="sc-head">
-    <div class="sc-step">Schritt 1 von 6</div>
-    <div class="sc-title">Ausgangslage</div>
-    <div class="sc-sub" id="s1Sub">Wie lange soll das Kapital arbeiten — und wie viel steht zur Verfügung?</div>
-  </div>
-  <div class="sc-body">
-    <div class="s1-half">
-      <div style="font-size:.56vw;font-weight:800;color:var(--ink-4);">Anlagehorizont</div>
-      <div class="s1-num-row">
-        <div class="s1-big-num" id="hzVal">10</div>
-        <div class="s1-big-unit">Jahre</div>
-      </div>
-      <input type="range" class="hz-slider" id="hzRange" min="1" max="30" value="10">
-      <div class="hz-labels"><span>1 Jahr</span><span>15 Jahre</span><span>30+ Jahre</span></div>
-      <div class="s1-context" id="s1Context"></div>
-    </div>
-    <div class="s1-divider"></div>
-    <div class="s1-half">
-      <div class="betrag-lbl">Investitionsbetrag</div>
-      <div class="betrag-wrap">
-        <span class="betrag-pfx">CHF</span>
-        <input type="text" class="betrag-inp" id="betragInp" inputmode="numeric" placeholder="z.B. 250'000">
-      </div>
-      <div id="betragPrefill" style="display:none;align-items:center;gap:.4vw;background:var(--blue-lt);border-radius:5px;padding:.5vh .8vw;margin-top:.3vh;">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2C5 2 2 5 2 8s3 6 6 6 6-3 6-6-3-6-6-6zm0 9v-4m0-2v-.5" stroke="#004078" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span style="font-size:.9vh;font-weight:700;color:var(--blue);">Aus Finanzcockpit übernommen — anlagefähiges Kapital. Kann angepasst werden.</span>
-      </div>
-      <div style="font-size:.52vw;color:var(--ink-3);line-height:1.65;margin-top:.5vh;">
-        Der Betrag fliesst in die Stresstest-Simulation ein und gibt dem Beratungsgespräch einen konkreten Ankerpunkt.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ S2: STRATEGIE ═══ -->
-<div class="screen hidden" id="s2">
-  <div class="sc-head">
-    <div class="sc-step">Schritt 2 von 6</div>
-    <div class="sc-title">Welche Strategie entspricht Ihren Vorstellungen?</div>
-    <div class="sc-sub">Jeder Punkt auf der Kurve steht für eine Strategie — höheres Risiko, höhere Renditeerwartung. Klick auf Punkt oder Karte für Details.</div>
-  </div>
-  <!-- Full-width RR curve — everything inside one SVG, no DOM overlay -->
-  <div class="rr-section" id="rrSection">
-    <svg class="rr-svg" id="rrSvg" viewBox="0 0 900 180" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="rrFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#004078" stop-opacity=".08"/>
-          <stop offset="100%" stop-color="#dce8f4" stop-opacity=".3"/>
-        </linearGradient>
-      </defs>
-      <!--
-        Curve equation: cubic bezier
-        M60,162  C180,158  320,136  460,104  C580,76  690,52  840,28
-        Points ON curve at t values (pre-calculated):
-          Einkommen:   t≈0.10 → x≈132, y≈157
-          Konservativ: t≈0.28 → x≈246, y≈144
-          Ausgewogen:  t≈0.50 → x≈395, y≈118
-          Wachstum:    t≈0.70 → x≈560, y≈85
-          Dynamisch:   t≈0.90 → x≈740, y≈46
-      -->
-      <!-- fill under curve -->
-      <path d="M60,162 C180,158 320,136 460,104 C580,76 690,52 840,28 L840,168 L60,168 Z" fill="url(#rrFill)"/>
-      <!-- curve line -->
-      <path d="M60,162 C180,158 320,136 460,104 C580,76 690,52 840,28" fill="none" stroke="#004078" stroke-width="2.5" stroke-linecap="round"/>
-      <!-- axis labels -->
-      <text x="62" y="176" font-size="10" fill="#94a3b8" font-family="DM Sans" font-weight="700">Geringes Risiko / Rendite</text>
-      <text x="720" y="176" font-size="10" fill="#94a3b8" font-family="DM Sans" font-weight="700">Hohes Risiko / Rendite</text>
-      <!-- Strategy points directly on the curve -->
-      <g id="rrPoints"></g>
-    </svg>
-  </div>
-  <!-- 5 compact cards bottom -->
-  <div class="strat-strip" id="stratStrip"></div>
-</div>
-
-<!-- ═══ S3: STRESSTEST ═══ -->
-<div class="screen hidden" id="s3">
-  <div class="sc-head">
-    <div class="sc-step">Schritt 3 von 6</div>
-    <div class="sc-title">Sie öffnen Ihr E-Banking.</div>
-    <div class="sc-sub">Ihr Portfolio zeigt heute <strong id="s3Loss" style="color:var(--red);font-weight:900;font-size:1.6vh;">CHF –40'000</strong>. Was tun Sie?</div>
-  </div>
-  <div class="sc-body">
-    <div class="stress-left">
-      <div class="crash-wrap">
-        <div class="crash-title">
-          <span>Kursentwicklung letzte 6 Wochen</span>
-          <span class="crash-loss-badge" id="crashPct">–20%</span>
+    <!-- ── TOPBAR ── -->
+    <header class="topbar">
+        <div class="logo">
+            <div class="logo-mark">bbz</div>
+            <span class="logo-name" id="topbarTitle">Anlegeranalyse</span>
         </div>
-        <div class="crash-canvas"><canvas id="crashChart"></canvas></div>
-      </div>
-      <div class="react-list" id="reactList"></div>
-    </div>
-    <div class="stress-right">
-      <div class="ctx-ttl" id="ctxTtl">Wählen Sie Ihre ehrliche Reaktion</div>
-      <div class="ctx-body" id="ctxBody" style="color:var(--ink-4);font-style:italic;">Die meisten Menschen überschätzen ihre Risikobereitschaft in ruhigen Phasen. Diese Frage zielt auf Ihr tatsächliches Verhalten, nicht auf das gewünschte.</div>
-      <div class="ctx-psych" id="ctxPsych" style="display:none;">
-        <div class="ctx-psych-lbl">Verhaltenspsychologie</div>
-        <div class="ctx-psych-txt" id="ctxPsychTxt"></div>
-      </div>
-      <div class="ctx-badge" id="ctxBadge" style="display:none;">
-        <div class="ctx-badge-lbl">Verlusttoleranz-Einschätzung</div>
-        <div class="ctx-badge-val" id="ctxBadgeVal"></div>
-      </div>
-      <div class="ctx-conflict" id="ctxConflict">
-        <div class="ctx-conflict-lbl">Widerspruch zur Strategiewahl</div>
-        <div class="ctx-conflict-txt" id="ctxConflictTxt"></div>
-      </div>
-    </div>
-  </div>
-</div>
+        <div class="topbar-right">
+            <button class="icon-btn" id="adminIconBtn" onclick="openAdminModal()" title="Admin" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.5a2.12 2.12 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                </svg>
+            </button>
+            <a href="index.html" class="home-btn" title="Home">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/>
+                </svg>
+            </a>
+            <span class="topbar-brand">bbz bank st.gallen ag</span>
+        </div>
+    </header>
 
-<!-- ═══ S4: KENNTNISSE ═══ -->
-<div class="screen hidden" id="s4">
-  <div class="sc-head">
-    <div class="sc-step">Schritt 4 von 6</div>
-    <div class="sc-title">Was kennen Sie bereits?</div>
-    <div class="sc-sub">Je mehr Erfahrung Sie mitbringen, desto besser kann die Strategie darauf aufgebaut werden.</div>
-  </div>
-  <div class="sc-body">
-    <div class="kn-wrap">
-      <table class="kn-table">
-        <thead><tr>
-          <th style="text-align:left;width:26%;">Anlageklasse</th>
-          <th>Kenntnisse vorhanden</th>
-          <th>Erfahrung vorhanden</th>
-          <th>Im Gespräch erworben</th>
-          <th>Nicht relevant</th>
-        </tr></thead>
-        <tbody id="knBody"></tbody>
-      </table>
-    </div>
-    <div class="kn-foot">
-      <span class="kn-foot-lbl">Abdeckung</span>
-      <div class="kn-prog-bg"><div class="kn-prog" id="knProg" style="width:0%;"></div></div>
-      <span class="kn-foot-lbl" id="knPct" style="min-width:2.5vw;text-align:right;">0%</span>
-    </div>
-  </div>
-</div>
+    <!-- ── MIDDLE CONTENT WRAPPER (single grid-row slot) ── -->
+    <div style="overflow:hidden; display:flex; flex-direction:column; min-height:0; height:100%;">
 
-<!-- ═══ S5: ESG ═══ -->
-<div class="screen hidden" id="s5">
-  <div class="sc-head">
-    <div class="sc-step">Schritt 5 von 6</div>
-    <div class="sc-title">Nachhaltigkeit & Ausschlusskriterien</div>
-    <div class="sc-sub">Sollen Nachhaltigkeitspräferenzen bei der Produktauswahl berücksichtigt werden?</div>
-  </div>
-  <div class="sc-body" style="padding-bottom:.8vh;">
-    <div class="esg-left">
-      <div class="esg-toggle-card" id="esgCard">
-        <div class="esg-tc-info">
-          <div class="esg-tc-title">ESG-Präferenzen berücksichtigen</div>
-          <div class="esg-tc-sub">Nachhaltigkeitskriterien fliessen in die Produktauswahl ein.</div>
-        </div>
-        <div class="toggle" id="esgToggle" onclick="toggleEsg()"></div>
-      </div>
-      <div class="esg-explainer">
-        <strong>Was bedeutet ESG?</strong><br><br>
-        <strong>E – Environmental:</strong> Klimaschutz, Ressourcenschonung, erneuerbare Energien.<br><br>
-        <strong>S – Social:</strong> Arbeitnehmerrechte, Menschenrechte, faire Arbeitsbedingungen.<br><br>
-        <strong>G – Governance:</strong> Transparente Unternehmensführung, Compliance, Ethik.<br><br>
-        Ausschlusskriterien verhindern, dass Ihr Kapital in entsprechende Sektoren fliesst.
-      </div>
-    </div>
-    <div class="esg-right">
-      <div class="esg-right-title">Ausschlusskriterien</div>
-      <div class="esg-right-sub">Unabhängig von ESG-Priorisierung erfassbar — regulatorische Dokumentationspflicht.</div>
-      <div class="esg-chips" id="esgChips"></div>
-      <div class="esg-sum-card">
-        <div class="esg-sum-lbl">Aktive Ausschlüsse</div>
-        <div class="esg-sum-chips" id="esgSumChips"><span class="esg-sum-none">Keine Ausschlüsse gewählt</span></div>
-      </div>
-    </div>
-  </div>
-</div>
+    <!-- ══════════════════════════════════════════ -->
+    <!--  TEIL A: Anlegerprofilierung (Screens 0–5) -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="part-a" id="partA" style="flex:1; min-height:0;">
+        <aside class="sidebar">
+            <div id="stepList">
+                <div class="step-link active" onclick="goToStep(0)"><div class="step-circle">1</div> Parameter</div>
+                <div class="step-link" onclick="goToStep(1)"><div class="step-circle">2</div> Strategiewunsch</div>
+                <div class="step-link disabled" onclick="goToStep(2)" id="link-stress"><div class="step-circle">3</div> Stresstest</div>
+                <div class="step-link disabled" onclick="goToStep(3)" id="link-knowledge"><div class="step-circle">4</div> Kenntnisse</div>
+                <div class="step-link disabled" onclick="goToStep(4)" id="link-esg"><div class="step-circle">5</div> ESG</div>
+                <div class="step-link disabled" onclick="goToStep(5)" id="link-conclusion"><div class="step-circle">6</div> Konklusion</div>
+            </div>
+            <div style="margin-top: auto; background: var(--bg); padding: 1.5vh; border-radius: 10px;">
+                <label>Fortschritt</label>
+                <div style="height: 4px; background: var(--line); border-radius: 2px; margin-top: 1vh;">
+                    <div id="progressBar" style="width: 16%; height: 100%; background: var(--blue); border-radius: 2px; transition: 0.3s;"></div>
+                </div>
+            </div>
+        </aside>
 
-<!-- ═══ S6: KONKLUSION ═══ -->
-<div class="screen hidden" id="s6">
-  <div class="sc-head">
-    <div class="sc-step">Schritt 6 von 6</div>
-    <div class="sc-title">Ihre Anlagestrategie</div>
-    <div class="sc-sub">Empfehlung auf Basis aller Angaben. Die Umsetzungsstrategie kann bewusst abweichen.</div>
-  </div>
-  <div class="sc-body">
-    <div class="konk-left">
-      <div class="konk-hero">
-        <div class="konk-hero-lbl">Empfohlene Anlagestrategie</div>
-        <div class="konk-hero-name" id="konkName">—</div>
-        <div class="konk-hero-text" id="konkText">—</div>
-      </div>
-      <div class="konk-curve-card">
-        <div class="konk-curve-lbl">Einordnung im Risiko-Rendite-Spektrum</div>
-        <div class="konk-curve-area">
-          <svg id="konkSvg" viewBox="0 0 900 180" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;">
-            <defs>
-              <linearGradient id="kGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#004078" stop-opacity=".08"/>
-                <stop offset="100%" stop-color="#dce8f4" stop-opacity=".3"/>
-              </linearGradient>
-            </defs>
-            <path d="M60,162 C180,158 320,136 460,104 C580,76 690,52 840,28 L840,168 L60,168 Z" fill="url(#kGrad)"/>
-            <path d="M60,162 C180,158 320,136 460,104 C580,76 690,52 840,28" fill="none" stroke="#004078" stroke-width="2.5" stroke-linecap="round"/>
-            <text x="62" y="176" font-size="10" fill="#94a3b8" font-family="DM Sans" font-weight="700">Geringes Risiko</text>
-            <text x="760" y="176" font-size="10" fill="#94a3b8" font-family="DM Sans" font-weight="700">Hohes Risiko</text>
-            <!-- Points: same positions as S2 -->
-            <g id="konkPoints"></g>
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div class="konk-right">
-      <div class="konk-sum-block">
-        <div class="ksb-header">Zusammenfassung</div>
-        <div class="ksb-row">
-          <div class="ksb-lbl">Anlagehorizont</div>
-          <div class="ksb-val blue" id="ks-h">—</div>
-        </div>
-        <div class="ksb-divider"></div>
-        <div class="ksb-row">
-          <div class="ksb-lbl">Investitionsbetrag</div>
-          <div class="ksb-val blue" id="ks-b">—</div>
-        </div>
-        <div class="ksb-divider"></div>
-        <div class="ksb-row">
-          <div class="ksb-lbl">Strategie-Selbsteinschätzung</div>
-          <div class="ksb-val" id="ks-s">—</div>
-        </div>
-        <div class="ksb-divider"></div>
-        <div class="ksb-row">
-          <div class="ksb-lbl">Marktreaktion unter Stress</div>
-          <div class="ksb-val" id="ks-r">—</div>
-        </div>
-        <div class="ksb-divider"></div>
-        <div class="ksb-row">
-          <div class="ksb-lbl">Nachhaltigkeitspräferenzen (ESG)</div>
-          <div class="ksb-val" id="ks-e">—</div>
-        </div>
-      </div>
-      <div class="konk-impl">
-        <div class="konk-impl-lbl">Umsetzungsstrategie — finale Festlegung</div>
-        <div class="override-banner" id="overrideBanner">
-          <span class="override-banner-icon">⚠</span>
-          <span class="override-banner-txt" id="overrideBannerTxt"></span>
-        </div>
-        <div class="impl-grid" id="implGrid"></div>
-      </div>
-    </div>
-  </div>
-</div>
+        <section class="content-a">
+            <!-- SCREEN 0: Parameter -->
+            <div class="screen active" id="scr0">
+                <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6vh;">Schritt 1 von 6</div>
+                <h1>Ausgangslage</h1>
+                <p class="subtitle">Wie lange soll das Kapital arbeiten — und wie viel steht zur Verfügung?</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5vw; flex: 1; min-height: 0; align-content: end; padding-bottom: 2vh;">
+                    <!-- Links: Horizont -->
+                    <div style="display: flex; flex-direction: column; gap: 1vh;">
+                        <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Anlagehorizont</div>
+                        <div style="display: flex; align-items: baseline; gap: 0.6vw;">
+                            <div id="hzDisplay" style="font-size: 7vh; font-weight: 800; color: var(--blue); line-height: 1;">10</div>
+                            <span style="font-size: 2vh; font-weight: 600; color: var(--ink-3);">Jahre</span>
+                        </div>
+                        <input type="range" class="hz-slider" id="hzInput" min="1" max="35" value="10" oninput="updateHz(this.value)" style="margin: 1.5vh 0 0.5vh;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.58vw; color: var(--ink-4); font-weight: 600;">
+                            <span>1 Jahr</span><span>15 Jahre</span><span>30+ Jahre</span>
+                        </div>
+                        <div id="hzHint" style="margin-top: 1.5vh; font-size: 0.68vw; font-weight: 700; color: var(--blue);">Mittlerer bis langer Horizont: Wachstumsorientierung denkbar.</div>
+                    </div>
+                    <!-- Rechts: Betrag -->
+                    <div style="display: flex; flex-direction: column; gap: 1vh;">
+                        <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Investitionsbetrag</div>
+                        <div style="background: white; border: 1.5px solid var(--line); border-radius: 12px; padding: 1.8vh 1.5vw; display: flex; align-items: center; gap: 1vw;">
+                            <span style="font-size: 1.4vh; font-weight: 700; color: var(--ink-3);">CHF</span>
+                            <input type="text" id="amtInput" placeholder="100'000" oninput="formatAmt(this)"
+                                style="border: none; outline: none; font-family: var(--font); font-size: 4vh; font-weight: 800; color: var(--blue); flex: 1; background: transparent; width: 100%;">
+                        </div>
+                        <p style="font-size: 0.62vw; color: var(--ink-4); line-height: 1.5; margin-top: 0.5vh;">Der Betrag fliesst in die Stresstest-Simulation ein und gibt dem Beratungsgespräch einen konkreten Ankerpunkt.</p>
+                    </div>
+                </div>
+                <div class="screen-btn-row" style="justify-content: flex-end;">
+                    <button class="btn-primary" onclick="showScreen(1)">Weiter zu Strategiewunsch →</button>
+                </div>
+            </div>
 
-</div><!-- /main -->
+            <!-- SCREEN 1: Strategiewunsch -->
+            <div class="screen" id="scr1">
+                <h1>Strategiewunsch</h1>
+                <p class="subtitle">Welche Renditeerwartung haben Sie? (Netto nach Kosten)</p>
+                <div class="strat-grid" id="stratGrid"></div>
+                <div class="sim-container">
+                    <div style="display: flex; flex-direction: column; gap: 2.5vh; border-right: 1px solid var(--line); padding-right: 1.5vw;">
+                        <div>
+                            <div class="sim-label">Erwarteter Endwert (Median)</div>
+                            <div class="sim-val" id="simEndAmt">CHF 0</div>
+                            <div id="simGain" style="font-weight: 700; color: var(--green); font-size: 0.8vw;">+ CHF 0 Gewinn</div>
+                        </div>
+                        <div style="background: var(--bg); padding: 1.5vh; border-radius: 8px;">
+                            <div class="sim-label">Wahrscheinliche Bandbreite (95%)</div>
+                            <div id="bandRange" style="font-size: 0.72vw; font-weight: 800; color: var(--ink-2);">CHF 0 — CHF 0</div>
+                        </div>
+                    </div>
+                    <div style="border-right: 1px solid var(--line); padding-right: 1.5vw; padding-left: 0.5vw;">
+                        <div class="sim-label">Charakteristik</div>
+                        <p id="stratDesc" style="font-size: 0.7vw; line-height: 1.5; color: var(--ink-2); margin-top: 1vh;">Wählen Sie eine Strategie.</p>
+                        <div id="behavioralNote" class="behavioral-note" style="display:none; margin-top: 2vh;">
+                            <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                            <span id="behavioralText">Zwischenzeitliche Verluste von 20–40% sind möglich.</span>
+                        </div>
+                    </div>
+                    <div class="vol-chart-wrap">
+                        <div class="sim-label">Marktverlauf (Simulation)</div>
+                        <div style="flex: 1; min-height: 0;"><canvas id="volatilityChart"></canvas></div>
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div> Erwartet</div>
+                            <div class="legend-item"><div class="legend-dot" style="background:rgba(0,64,120,0.12);"></div> Korridor</div>
+                            <div class="legend-item" style="color:var(--red);"><div class="legend-dot" style="background:var(--red);"></div> Pessimistisch (Crash-Szenario)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="screen-btn-row">
+                    <button class="btn-outline" onclick="showScreen(0)">← Zurück</button>
+                    <button class="btn-primary" onclick="showScreen(2)">Weiter zu Stresstest →</button>
+                </div>
+            </div>
 
-<footer class="footer">
-    <a href="01_agenda.html" class="nav-tab">Agenda</a>
-    <a href="02_bank.html" class="nav-tab">Bank</a>
-    <a href="03_berater.html" class="nav-tab">Berater:in</a>
-    <a href="04_philosophie.html" class="nav-tab">Philosophie</a>
-    <a href="05_cockpit.html" class="nav-tab">Cockpit</a>
-    <a href="06_ziele.html" class="nav-tab">Ziele</a>
-    <div class="nav-tab-split">
-      <a href="07a_finanzieren.html" class="nav-tab-half">Finanzieren</a>
-      <a href="07b_anlegen.html" class="nav-tab-half active">Anlegen</a>
-    </div>
-    <a href="08_vereinbarungen.html" class="nav-tab">Vereinbarungen</a>
-    <a href="09_feedback.html" class="nav-tab">Feedback</a>
-    <a href="10_abschluss.html" class="nav-tab">Abschluss</a>
-    <div class="nav-spacer"></div>
-    <span class="nav-brand">bbz bank</span>
-  </div>
-</footer>
+            <!-- SCREEN 2: Stresstest -->
+            <div class="screen" id="scr2">
+                <h1>Stresstest & Belastbarkeit</h1>
+                <p class="subtitle" id="stressSubtitle">Frage 1 von 3</p>
+                <div class="split-layout">
+                    <div class="vis-box" id="stressVis"></div>
+                    <div id="stressQuestions" style="display:flex; flex-direction:column; gap:2vh;"></div>
+                </div>
+                <div class="screen-btn-row">
+                    <button class="btn-outline" id="stressPrevBtn" onclick="prevStressStep()">← Zurück</button>
+                    <button class="btn-primary" id="stressNextBtn" onclick="nextStressStep()">Weiter</button>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: Kenntnisse -->
+            <div class="screen" id="scr3">
+                <h1>Kenntnisse & Erfahrungen</h1>
+                <p class="subtitle">Detaillierte Erfassung Ihrer Erfahrungen pro Anlageklasse.</p>
+                <div class="split-layout" style="grid-template-columns: 0.82fr 1.38fr; gap: 2vw;">
+                    <div class="vis-box">
+                        <div class="sim-label">Komplexitäts-Pyramide</div>
+                        <div class="pyramid-wrap" id="pyramid"></div>
+                        <div class="knowledge-note">
+                            <label>Hinweis</label>
+                            <p>Die dargestellte Komplexität basiert auf Ihren Angaben zu Kenntnissen und Erfahrungen. Höhere Komplexitätsstufen erfordern ein vertieftes Verständnis der Funktionsweise und Risiken der jeweiligen Anlageklassen.</p>
+                        </div>
+                    </div>
+                    <div class="knowledge-grid" id="knowledgeGrid"></div>
+                </div>
+                <div class="screen-btn-row">
+                    <button class="btn-outline" onclick="showScreen(2)">← Zurück</button>
+                    <button class="btn-primary" onclick="showScreen(4)">Weiter zu ESG →</button>
+                </div>
+            </div>
+
+            <!-- SCREEN 4: ESG -->
+            <div class="screen" id="scr4">
+                <h1>Nachhaltigkeit (ESG)</h1>
+                <p class="subtitle">Welche Bedeutung hat Nachhaltigkeit bei Ihrer Anlageentscheidung?</p>
+                <div class="split-layout">
+                    <div class="esg-info-box">
+                        <div class="sim-label">Was ist ESG?</div>
+                        <p class="esg-lead">ESG steht für Umwelt, Soziales und gute Unternehmensführung. Nachhaltigkeitspräferenzen helfen dabei, Ihre Anlagen nicht nur nach Rendite und Risiko, sondern auch nach inhaltlichen Werten auszurichten.</p>
+                        <div class="esg-points">
+                            <div class="esg-point"><strong>Environment:</strong> Umgang mit Klima, Ressourcen und Umweltbelastungen.</div>
+                            <div class="esg-point"><strong>Social:</strong> Umgang mit Mitarbeitenden, Gesellschaft und Lieferketten.</div>
+                            <div class="esg-point"><strong>Governance:</strong> Transparenz, Kontrollmechanismen und verantwortungsvolle Führung.</div>
+                        </div>
+                        <div style="margin-top:auto; background:var(--bg); padding:1.4vh 1vw; border-radius:10px;">
+                            <label>Einordnung</label>
+                            <p style="font-size:0.64vw; color:var(--ink-3); line-height:1.5;">Ihre Präferenz beeinflusst nicht die Risikohöhe der Strategie, sondern die inhaltliche Ausrichtung der späteren Anlagelösung.</p>
+                        </div>
+                    </div>
+                    <div class="esg-options" id="esgOptions"></div>
+                </div>
+                <div class="screen-btn-row">
+                    <button class="btn-outline" onclick="showScreen(3)">← Zurück</button>
+                    <button class="btn-primary" onclick="showScreen(5)">Weiter zur Konklusion →</button>
+                </div>
+            </div>
+
+            <!-- SCREEN 5: Konklusion -->
+            <div class="screen" id="scr5">
+                <h1>Konklusion</h1>
+                <p class="subtitle">Systemische Empfehlung und finale Strategiewahl im Überblick.</p>
+                <div class="conclusion-layout">
+                    <div class="summary-card">
+                        <div class="summary-kicker">Empfohlene Strategie</div>
+                        <div class="recommendation-frame">
+                            <div class="summary-reco" id="recommendedStrategyLabel">–</div>
+                            <p class="summary-intro" id="recommendationLead">–</p>
+                        </div>
+                        <div class="summary-section">
+                            <div class="summary-section-label">Strategiewunsch des Kunden</div>
+                            <div class="summary-section-value" id="customerWishLine">–</div>
+                        </div>
+                        <div class="summary-section">
+                            <div class="summary-section-label">Herleitung</div>
+                            <div class="summary-section-text" id="recommendationReason">–</div>
+                        </div>
+                        <div class="summary-section">
+                            <div class="summary-section-label">Nachhaltigkeit</div>
+                            <div class="summary-section-text" id="esgConclusionText">–</div>
+                        </div>
+                        <div class="deviation-note" id="deviationNote" style="display:none;">Die gewählte Strategie weicht von der systemischen Empfehlung ab.</div>
+                    </div>
+                    <div class="summary-card" style="min-height:0;">
+                        <div class="summary-kicker">Finale Strategiewahl</div>
+                        <p class="summary-body" style="margin-top:-0.3vh;">Die Empfehlung dient als Ausgangspunkt. Im Beratungsgespräch kann die finale Strategie bewusst angepasst werden.</p>
+                        <div class="strat-grid" id="finalStratGrid" style="margin-top:0.5vh;"></div>
+                    </div>
+                </div>
+                <div class="screen-btn-row">
+                    <button class="btn-outline" onclick="showScreen(4)">← Zurück</button>
+                    <button class="btn-primary" onclick="goToPartB()">Zur Umsetzung →</button>
+                </div>
+            </div>
+        </section>
+    </div><!-- /partA -->
+
+    <!-- ══════════════════════════════════════════ -->
+    <!--  TEIL B: Umsetzung (Screens B1–B3)         -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="part-b" id="partB">
+        <main class="content-b">
+            <div class="step-indicator">
+                <div class="step-chip active" id="chip1">1 · Präferenz</div>
+                <div class="step-chip" id="chip2">2 · Alltag</div>
+                <div class="step-chip" id="chip3">3 · Auswahl</div>
+            </div>
+
+            <!-- SCREEN B1: Präferenz -->
+            <section class="screen-b" id="screenB1">
+                <h1>Welche Form der Zusammenarbeit passt besser zu Ihnen?</h1>
+                <p class="subtitle">Freuen Sie sich darüber, selbst entscheiden zu dürfen? Oder legen Sie lieber Ihre Präferenzen fest und überlassen die Anlageentscheide anschliessend der Bank?</p>
+                <div class="grid-2">
+                    <div class="choice-panel" id="pref-advisory" onclick="setPreference('advisory')">
+                        <div class="eyebrow">Beratungsdepot</div>
+                        <div class="panel-title">Ich entscheide selbst</div>
+                        <div class="panel-intro">Sie bleiben aktiv eingebunden und treffen die Anlageentscheide selbst.</div>
+                        <div class="vertical-flow">
+                            <div class="flow-node"><div class="node-bullet">1</div><div class="node-text">Beratung und Einordnung</div></div>
+                            <div class="flow-line"></div>
+                            <div class="flow-node"><div class="node-bullet">2</div><div class="node-text">Ihr Entscheid</div></div>
+                            <div class="flow-line"></div>
+                            <div class="flow-node"><div class="node-bullet">3</div><div class="node-text">Umsetzung bei Bedarf</div></div>
+                        </div>
+                        <div class="panel-note">Passt eher, wenn Sie aktiv eingebunden bleiben und den Zeitpunkt von Anpassungen selbst bestimmen möchten.</div>
+                    </div>
+                    <div class="choice-panel" id="pref-vv" onclick="setPreference('vv')">
+                        <div class="eyebrow">Vermögensverwaltung</div>
+                        <div class="panel-title">Die Bank entscheidet für mich</div>
+                        <div class="panel-intro">Sie definieren den Rahmen, die Bank übernimmt die laufende Umsetzung.</div>
+                        <div class="vertical-flow">
+                            <div class="flow-node"><div class="node-bullet">1</div><div class="node-text">Präferenzen festlegen</div></div>
+                            <div class="flow-line"></div>
+                            <div class="flow-node"><div class="node-bullet">2</div><div class="node-text">Entscheid durch die Bank</div></div>
+                            <div class="flow-line"></div>
+                            <div class="flow-node"><div class="node-bullet">3</div><div class="node-text">Laufende Umsetzung</div></div>
+                        </div>
+                        <div class="panel-note">Passt eher, wenn Sie die laufende Umsetzung delegieren und nicht selbst jede Anpassung auslösen möchten.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN B2: Alltag -->
+            <section class="screen-b" id="screenB2">
+                <h1>Was bedeutet das für Sie im Alltag?</h1>
+                <p class="subtitle">Die strategische Ausrichtung bleibt dieselbe. Der Unterschied liegt darin, wie Entscheidungen, Umsetzung, Betreuung und Kostenstruktur organisiert sind.</p>
+                <div style="background:white; border:1px solid var(--line); border-radius:18px; overflow:hidden;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <colgroup>
+                            <col style="width:20%;">
+                            <col style="width:40%;">
+                            <col style="width:40%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th style="padding:1.8vh 1.2vw; background:#cbd5e1; border-right:1px solid var(--line);"></th>
+                                <th style="padding:1.8vh 1.5vw; background:#004078; color:white; font-size:0.95vw; font-weight:800; text-align:left; letter-spacing:0;">Beratungsdepot</th>
+                                <th style="padding:1.8vh 1.5vw; background:#1a6098; color:white; font-size:0.95vw; font-weight:800; text-align:left; border-left:2px solid rgba(255,255,255,0.25); letter-spacing:0;">Vermögensverwaltung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">↗</span>Entscheidung</span>
+                                </td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Sie treffen die Anlageentscheide selbst.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Die Anlageentscheide erfolgen durch die Bank.</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">↻</span>Umsetzung</span>
+                                </td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Anpassungen erfolgen situativ und nach Bedarf.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Die Strategie wird laufend umgesetzt.</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">✦</span>Betreuung</span>
+                                </td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Begleitung im Gespräch und bei konkreten Fragen.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Strukturierte Begleitung ohne laufenden Entscheidungsbedarf.</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">◔</span>Kostenstruktur</span>
+                                </td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Depotgebühr, Transaktionen und Zusatzleistungen werden separat ausgewiesen.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Die Dienstleistung wird über einen All-in-Fee-Ansatz abgebildet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="padding:1vh 1vw; display:flex; justify-content:flex-end; background:white; border-top:1px solid var(--line);">
+                        <button class="cost-link" onclick="openCalcModal()">Kostenvergleich</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN B3: Auswahl -->
+            <section class="screen-b" id="screenB3">
+                <h1>Welche Form wählen Sie?</h1>
+                <p class="subtitle">Es gibt kein richtig oder falsch. Entscheidend ist, welche Form der Zusammenarbeit besser zu Ihren Präferenzen passt.</p>
+                <div class="selection-grid">
+                    <div class="selection-card" id="choice-advisory" onclick="setFinalChoice('advisory')">
+                        <div class="eyebrow">Beratungsdepot</div>
+                        <div class="selection-title">Ich möchte die Anlageentscheide selbst treffen</div>
+                        <div class="selection-sub">Ich bleibe aktiv eingebunden und entscheide situativ, wann Anpassungen umgesetzt werden sollen.</div>
+                        <div class="card-check" id="check-advisory">✓</div>
+                    </div>
+                    <div class="selection-card" id="choice-vv" onclick="setFinalChoice('vv')">
+                        <div class="eyebrow">Vermögensverwaltung</div>
+                        <div class="selection-title">Ich möchte die Anlageentscheide der Bank überlassen</div>
+                        <div class="selection-sub">Ich definiere den Rahmen und delegiere die laufende Umsetzung anschliessend an die Bank.</div>
+                        <div class="card-check" id="check-vv">✓</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin-top:1.4vh;">
+                    <button class="cost-link" onclick="openCalcModal()">Kostenvergleich</button>
+                </div>
+                <div class="confirmation" id="confirmationBox">
+                    <div class="confirm-mark">✓</div>
+                    <div>
+                        <div class="confirmation-title" id="confirmationTitle"></div>
+                        <div class="confirmation-text" id="confirmationText"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Teil B Footer Nav -->
+        <div class="footer-b">
+            <button class="btn-outline" id="btnBPrev" onclick="prevStepB()">← Zurück</button>
+            <button class="btn-primary" id="btnBNext" onclick="nextStepB()">Weiter →</button>
+        </div>
+    </div><!-- /partB -->
+
+    </div><!-- /middle-wrapper -->
+
+    <!-- ── BOTTOM NAV ── -->
+    <footer class="footer">
+        <a href="01_agenda.html" class="nav-tab">Agenda</a>
+        <a href="02_bank.html" class="nav-tab">Bank</a>
+        <a href="03_berater.html" class="nav-tab">Berater:in</a>
+        <a href="04_philosophie.html" class="nav-tab">Philosophie</a>
+        <a href="05_cockpit.html" class="nav-tab">Cockpit</a>
+        <a href="06_ziele.html" class="nav-tab">Ziele</a>
+        <div class="nav-tab-split">
+            <a href="07a_finanzieren.html" class="nav-tab-half">Finanzieren</a>
+            <a href="07b_anlegen.html" class="nav-tab-half active">Anlegen</a>
+        </div>
+        <a href="08_vereinbarungen.html" class="nav-tab">Vereinbarungen</a>
+        <a href="09_feedback.html" class="nav-tab">Feedback</a>
+        <a href="10_abschluss.html" class="nav-tab">Abschluss</a>
+        <div class="nav-spacer"></div>
+        <span class="nav-brand">bbz bank st.gallen ag © 2026</span>
+    </footer>
 </div><!-- /canvas -->
 
-<!-- MODAL -->
-<div class="modal-ov" id="stratModal" onclick="closeModal(event)">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title" id="mdTitle">Strategie</div>
-        <div class="modal-sub" id="mdSub"></div>
-      </div>
-      <button class="modal-close" onclick="closeModal()">✕ Schliessen</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-kpis" id="mdKpis"></div>
-      <div class="modal-cols">
-        <div>
-          <div class="modal-sec-title">Muster-Assetallokation</div>
-          <div class="alloc-wrap">
-            <canvas id="allocChart" width="110" height="110" style="flex-shrink:0;"></canvas>
-            <div class="alloc-legend" id="allocLegend"></div>
-          </div>
+<!-- ── MODALS (ausserhalb Canvas) ── -->
+<div class="modal-ov" id="adminModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Admin – Preisparameter</div>
+            <button class="close-btn" onclick="closeAdminModal()">×</button>
         </div>
-        <div style="display:flex;flex-direction:column;">
-          <div class="modal-sec-title">Illustrative historische Entwicklung (10 Jahre)</div>
-          <div class="perf-wrap"><canvas id="perfChart"></canvas></div>
-          <div class="modal-disc">Illustrative Darstellung. Vergangene Wertentwicklungen sind keine Garantie für zukünftige Ergebnisse. * Erwartete Netto-Rendite nach Kosten, basierend auf langfristigen historischen Durchschnittswerten.</div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="panel">
+                    <h3>Beratungsdepot</h3>
+                    <div class="field-grid">
+                        <div class="field"><label>Depotgebühr %</label><input id="adminDepotPct" type="number" step="0.01"></div>
+                        <div class="field"><label>Mindestgebühr CHF</label><input id="adminDepotMin" type="number" step="1"></div>
+                        <div class="field"><label>TA-Kosten %</label><input id="adminTaPct" type="number" step="0.01"></div>
+                        <div class="field"><label>Steuerauszug CHF</label><input id="adminTax" type="number" step="1"></div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3>Vermögensverwaltung</h3>
+                    <div class="field-grid">
+                        <div class="field"><label>Bis Betrag 1 CHF</label><input id="adminVvLimit1" type="number" step="1"></div>
+                        <div class="field"><label>Fee 1 %</label><input id="adminVvPct1" type="number" step="0.01"></div>
+                        <div class="field"><label>Bis Betrag 2 CHF</label><input id="adminVvLimit2" type="number" step="1"></div>
+                        <div class="field"><label>Fee 2 %</label><input id="adminVvPct2" type="number" step="0.01"></div>
+                        <div class="field"><label>Ab Betrag 3 CHF</label><input id="adminVvLimit3" type="number" step="1"></div>
+                        <div class="field"><label>Fee 3 %</label><input id="adminVvPct3" type="number" step="0.01"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-actions">
+                <button class="btn-outline" onclick="closeAdminModal()">Schliessen</button>
+                <button class="btn-primary" onclick="saveAdminSettings()">Speichern</button>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
+
+<div class="modal-ov" id="calcModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Kostenvergleich</div>
+            <button class="close-btn" onclick="closeCalcModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="panel">
+                    <h3>Eingaben</h3>
+                    <div class="field-grid">
+                        <div class="field"><label>Anlagebetrag CHF</label><input id="calcAmount" type="number" step="1"></div>
+                        <div class="field"><label>Transaktionen pro Jahr</label><input id="calcTrades" type="number" step="1"></div>
+                        <div class="field" style="grid-column:1 / span 2;"><label>Ø Betrag pro Transaktion CHF</label><input id="calcAvgTradeAmount" type="number" step="1"></div>
+                    </div>
+                    <div class="admin-actions" style="justify-content:flex-start; margin-top:1.4vh;">
+                        <button class="btn-primary" onclick="calculateCosts()">Berechnen</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3>Vergleich</h3>
+                    <div class="result-grid">
+                        <div class="result-card">
+                            <div class="result-label">Beratungsdepot</div>
+                            <div class="result-value" id="resAdvisoryTotal">CHF –</div>
+                            <div class="result-sub" id="resAdvisorySub">Depotgebühr, Transaktionskosten und Zusatzleistungen</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Vermögensverwaltung</div>
+                            <div class="result-value" id="resVvTotal">CHF –</div>
+                            <div class="result-sub" id="resVvSub">All-in-Fee gemäss Staffel</div>
+                        </div>
+                    </div>
+                    <div class="bar-compare">
+                        <div class="bar-row">
+                            <div class="bar-head"><div class="bar-name">Beratungsdepot</div><div class="bar-value" id="barValueAdv">–</div></div>
+                            <div class="bar-bg"><div class="bar-fill" id="barAdv" style="width:0%"></div></div>
+                        </div>
+                        <div class="bar-row">
+                            <div class="bar-head"><div class="bar-name">Vermögensverwaltung</div><div class="bar-value" id="barValueVv">–</div></div>
+                            <div class="bar-bg"><div class="bar-fill alt" id="barVv" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-// ─── DATA ────────────────────────────────────────────────────────────────────
-const STEPS=[{id:'s1',lbl:'Parameter'},{id:'s2',lbl:'Strategie'},{id:'s3',lbl:'Stresstest'},{id:'s4',lbl:'Kenntnisse'},{id:'s5',lbl:'Nachhaltigkeit'},{id:'s6',lbl:'Auswertung'}];
+    // ════════════════════════════════════════
+    // TEIL A: DATEN & STATE
+    // ════════════════════════════════════════
+    const STRATS = [
+        { name: 'Einkommen',   yield: 0.25,  vol: 1.5,  loss: '2–5%',   desc: 'Fokus auf Werterhalt. Sehr geringe Schwankungen durch Fokus auf Geldmarkt und erstklassige Obligationen.' },
+        { name: 'Konservativ', yield: 1.25,  vol: 4.5,  loss: '5–10%',  desc: 'Moderater Zuwachs bei begrenztem Risiko. Geeignet für mittelfristige Horizonte oder vorsichtige Anleger.' },
+        { name: 'Ausgewogen',  yield: 2.75,  vol: 8.5,  loss: '10–20%', desc: 'Klassische Balance zwischen Aktienchancen und Anleihen-Stabilität. Erfordert Durchhaltewillen.' },
+        { name: 'Wachstum',    yield: 4.5,   vol: 12.5, loss: '20–30%', desc: 'Deutliche Ausrichtung auf globale Aktienmärkte. Hohes Renditepotenzial bei akzeptierten Marktkorrekturen.' },
+        { name: 'Dynamisch',   yield: 5.5,   vol: 18.0, loss: '30–50%', desc: 'Maximaler Aktienanteil für langfristigen Vermögensaufbau. Hohe Volatilität und markante Einbrüche sind Teil der Strategie.' }
+    ];
 
-// Curve positions: x=0..1 along viewBox width 80..920, y on curve
-// Curve: M80,148 C200,142 340,118 480,86 C600,60 720,38 920,20
-// Pre-computed t values for each strategy
-const STRATS=[
-  {key:'einkommen', name:'Einkommen', sub:'Kapitalerhalt & Liquidität',
-   eq:'10–25% Aktienquote', ret:'0.5%–1.5%', risk:'~3%', dd:'-8%',
-   cx:'15%', cy:'88%', pos:8,
-   desc:'Sie legen besonderes Gewicht auf laufende Erträge und eine möglichst stabile Wertentwicklung.',
-   focus:'Kapitalerhalt & Liquidität; hoher Anteil CHF-Obligationen.',
-   alloc:[{name:'Obligationen CHF',pct:55,col:'#004078'},{name:'Aktien',pct:15,col:'#dce8f4'},{name:'Immobilien',pct:15,col:'#334155'},{name:'Geldmarkt',pct:15,col:'#64748b'}],
-   perfVol:3,perfTrend:.010},
-  {key:'konservativ', name:'Konservativ', sub:'Moderater Zuwachs, tiefes Risiko',
-   eq:'20–35% Aktienquote', ret:'1.5%–2.5%', risk:'~5%', dd:'-12%',
-   cx:'28%', cy:'72%', pos:26,
-   desc:'Sie suchen Stabilität und begrenzte Schwankungen. Kapitalerhalt ist wichtiger als Renditemaximierung.',
-   focus:'Moderater Zuwachs; Beimischung von Immobilien & Gold.',
-   alloc:[{name:'Obligationen',pct:45,col:'#004078'},{name:'Aktien',pct:25,col:'#dce8f4'},{name:'Immobilien',pct:20,col:'#334155'},{name:'Gold / Alt.',pct:10,col:'#64748b'}],
-   perfVol:5,perfTrend:.020},
-  {key:'ausgewogen', name:'Ausgewogen', sub:'Balance zwischen Stabilität und Wachstum',
-   eq:'40–55% Aktienquote', ret:'3.0%–4.5%', risk:'~9%', dd:'-20%',
-   cx:'48%', cy:'48%', pos:50,
-   desc:'Sie bevorzugen ein ausgewogenes Verhältnis zwischen Ertragschancen und Wertschwankungen.',
-   focus:'Klassischer 50/50 Mix; Fokus auf SMI-Dividendenwerte.',
-   alloc:[{name:'Aktien',pct:45,col:'#004078'},{name:'Obligationen',pct:35,col:'#dce8f4'},{name:'Immobilien',pct:15,col:'#334155'},{name:'Alternative',pct:5,col:'#64748b'}],
-   perfVol:9,perfTrend:.037},
-  {key:'wachstum', name:'Wachstum', sub:'Langfristige Wertsteigerung',
-   eq:'60–80% Aktienquote', ret:'5.0%–6.5%', risk:'~13%', dd:'-30%',
-   cx:'68%', cy:'26%', pos:74,
-   desc:'Sie fokussieren langfristige Wertsteigerung und akzeptieren erhöhte Kursschwankungen.',
-   focus:'Globaler Fokus; Schwerpunkt Tech (KI) & Emerging Markets.',
-   alloc:[{name:'Aktien',pct:70,col:'#004078'},{name:'Obligationen',pct:15,col:'#dce8f4'},{name:'Immobilien',pct:10,col:'#334155'},{name:'Alternative',pct:5,col:'#64748b'}],
-   perfVol:13,perfTrend:.057},
-  {key:'dynamisch', name:'Dynamisch', sub:'Maximales Wachstumspotenzial',
-   eq:'85–100% Aktienquote', ret:'7.0%–8.5%', risk:'~18%', dd:'-40%',
-   cx:'87%', cy:'12%', pos:98,
-   desc:'Sie akzeptieren deutliche Kursschwankungen, um langfristig das volle Renditepotenzial auszuschöpfen.',
-   focus:'Maximaler Aktienanteil; Akzeptanz hoher Schwankungen.',
-   alloc:[{name:'Aktien',pct:90,col:'#004078'},{name:'Obligationen',pct:3,col:'#dce8f4'},{name:'Alternative',pct:7,col:'#334155'}],
-   perfVol:18,perfTrend:.075}
-];
+    const KNOWLEDGE_CATS = [
+        { id: 'anleihen', name: 'Anleihen / Obligationen', complexity: 1 },
+        { id: 'aktien',   name: 'Aktien',                  complexity: 2 },
+        { id: 'fonds',    name: 'Fonds / ETFs',            complexity: 2 },
+        { id: 'hebel',    name: 'Hebelprodukte / Derivate', complexity: 3 },
+        { id: 'krypto',   name: 'Kryptowährungen',         complexity: 3 }
+    ];
 
-const REACTS=[
-  {key:'schlaflos',
-   txt:'Ich verkaufe — dieser Verlust ist unerträglich.',
-   sub:'Hauptsache raus, bevor es schlimmer wird.',
-   ctx:'Das ist eine Reaktion auf den <strong>Schmerz des Verlustes</strong>. Kahneman und Tversky zeigten: Verluste fühlen sich doppelt so stark an wie gleichwertige Gewinne. Der Verkauf auf dem Tief realisiert den Verlust dauerhaft.',
-   psych:'Anleger mit dieser Reaktion verkaufen im Schnitt 3–5% unter dem Tiefpunkt und kaufen erst wieder ein, wenn die Kurse sich erholt haben. Das kostet langfristig mehr als der ursprüngliche Einbruch.',
-   tol:'Sehr tiefe Verlusttoleranz — defensive Strategie zwingend',warn:true},
-  {key:'nervoes',
-   txt:'Ich bin unruhig und prüfe täglich den Stand.',
-   sub:'Ich handle noch nicht, aber es belastet mich.',
-   ctx:'<strong>Monitoring-Stress</strong>: Je öfter man ins E-Banking schaut, desto grösser der emotionale Druck. Studien zeigen, dass häufiges Beobachten die Risikoaversion erhöht — unabhängig von der eigentlichen Strategie.',
-   psych:'Empfehlung: Prüfintervall vorab vereinbaren (z.B. quartalsweise). Wer weniger schaut, trifft bessere Entscheidungen. Diese Reaktion spricht für eine konservative bis ausgewogene Ausrichtung.',
-   tol:'Tiefe bis mittlere Verlusttoleranz — konservativ bis ausgewogen',warn:false},
-  {key:'bewusst',
-   txt:'Ich halte durch. Schwankungen gehören dazu.',
-   sub:'Meine Strategie ist langfristig — das ist ein Zwischentief.',
-   ctx:'<strong>Rationale Disziplin unter Druck</strong> — die Schlüsseleigenschaft erfolgreicher Anleger. Der grösste Feind der Performance ist nicht der Markt, sondern die emotionale Reaktion auf ihn.',
-   psych:'Anleger, die bei Einbrüchen halten, erzielen langfristig nachweislich bessere Ergebnisse als jene, die aktiv «steuern». Diese Haltung trägt ausgewogene bis wachstumsorientierte Strategien.',
-   tol:'Mittlere Verlusttoleranz — strategisch diszipliniert',warn:false},
-  {key:'chance',
-   txt:'Das ist eine Kaufgelegenheit. Ich kaufe nach.',
-   sub:'Günstige Einstiegskurse nutzen.',
-   ctx:'<strong>Antizyklisches Denken</strong> — die Haltung institutioneller Anleger. Wer im Einbruch kauft, profitiert überproportional von der Erholung. Das setzt aber voraus, dass Liquidität, Horizont und Psyche das tragen.',
-   psych:'Vorsicht: Viele schätzen sich antizyklisch ein, handeln in der echten Krise aber prozyklisch. Nur wenn alle drei Faktoren stimmen — Liquidität, langer Horizont, stabile Psyche — ist diese Reaktion glaubwürdig.',
-   tol:'Hohe Verlusttoleranz — chancenorientiert',warn:false}
-];
+    const KNOWLEDGE_LEVELS = [
+        { id: 'kenntnisse',   label: 'Kenntnisse vorhanden' },
+        { id: 'erfahrung',    label: 'Erfahrung vorhanden' },
+        { id: 'im-gespraech', label: 'Im Gespräch erworben' },
+        { id: 'n-r',          label: 'Nicht relevant' }
+    ];
 
-const KN_CLS=['Aktien','Anleihen','Fonds / ETFs','Derivate / Hebelprodukte','Kryptowerte'];
-const KN_COLS=['know','exp','advised','na'];
-const ESG_OPT=['Rüstung','Kohle','Tabak','Glücksspiel','Fossile Energie','Kinderarbeit','Tierversuche','Alkohol'];
-const HZ_CTX=[
-  {max:2, t:'Sehr kurzer Horizont: Kapitalerhalt hat absoluten Vorrang.'},
-  {max:4, t:'Kurzer Horizont: Konservative Ausrichtung empfohlen.'},
-  {max:7, t:'Mittlerer Horizont: Ausgewogene Strategie möglich.'},
-  {max:12,t:'Mittlerer bis langer Horizont: Wachstumsorientierung denkbar.'},
-  {max:20,t:'Langer Horizont: Wachstums- oder dynamische Strategie möglich.'},
-  {max:99,t:'Sehr langer Horizont: Maximales Renditepotenzial erreichbar.'}
-];
+    const ESG_OPTIONS = [
+        { id: 'none',        title: 'Keine Bedeutung', desc: 'Rendite steht klar im Vordergrund.' },
+        { id: 'nachrangig',  title: 'Nachrangig',      desc: 'Nachhaltigkeit ist ein Plus, kein Muss.' },
+        { id: 'gleichwertig',title: 'Gleichwertig',    desc: 'Rendite und ESG sind gleich wichtig.' },
+        { id: 'vorrangig',   title: 'Vorrangig',       desc: 'Ich investiere nur in nachhaltige Anlagen.' }
+    ];
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-const S={cur:0,horizon:10,betrag:'',strategy:'ausgewogen',reaction:'nervoes',knowledge:{},esg:{active:false,exclusions:[]},impl:null};
-KN_CLS.forEach(c=>{S.knowledge[c]={know:false,exp:false,advised:false,na:false};});
+    const STRESS_DATA = [
+        {
+            title: "Reaktion auf Markteinbruch", subtitle: "Ihr Portfolio verliert 20%. Wie handeln Sie?",
+            options: [
+                { id: 'sell', t: "Positionen schliessen",    d: "Ich sichere mein restliches Kapital und verkaufe sofort." },
+                { id: 'wait', t: "Abwarten & Beobachten",    d: "Ich bin beunruhigt, unternehme aber vorerst nichts." },
+                { id: 'hold', t: "Strategie treu bleiben",   d: "Schwankungen gehören dazu. Ich sitze den Verlust aus." },
+                { id: 'buy',  t: "Zukaufen / Rebalancing",   d: "Günstige Einstiegspreise nutzen und Zukäufe tätigen." }
+            ], vis: 'crash'
+        },
+        {
+            title: "Durchhaltevermögen", subtitle: "Wie lange halten Sie eine Durststrecke aus?",
+            options: [
+                { id: '1y',   t: "Maximal 1 Jahr",     d: "Danach benötige ich das Kapital oder verliere das Vertrauen." },
+                { id: '3y',   t: "Bis zu 3 Jahre",     d: "Eine normale Marktphase, die ich aussitzen kann." },
+                { id: '5y',   t: "5 Jahre und länger", d: "Ich habe einen langen Atem und brauche das Geld nicht." },
+                { id: 'open', t: "Zeitpunkt offen",    d: "Ich investiere für Generationen." }
+            ], vis: 'recovery'
+        },
+        {
+            title: "Bisherige Erfahrung", subtitle: "Haben Sie bereits einen Crash aktiv miterlebt?",
+            options: [
+                { id: 'none',   t: "Nein, keine Erfahrung",  d: "Ich bin Neuanleger." },
+                { id: 'little', t: "Ja, am Rande",           d: "Ich hatte kleine Beträge investiert." },
+                { id: 'lot',    t: "Ja, voll investiert",    d: "Ich kenne das Gefühl realer Verluste." }
+            ], vis: 'history'
+        }
+    ];
 
-let crashInst=null,allocInst=null,perfInst=null,konkInst=null;
+    let stateA = {
+        horizon: 10, amount: 100000, stratIdx: 2, stressStep: 0,
+        maxUnlockedStep: 1,
+        stress: { react: null, wait: null, exp: null },
+        knowledge: { anleihen: [], aktien: [], fonds: [], hebel: [], krypto: [] },
+        esg: 'nachrangig',
+        riskFromStress: 2, recommendation: 2, finalStrategy: 2, finalStrategyTouched: false
+    };
 
-// ─── SCORING ─────────────────────────────────────────────────────────────────
-function score(){
-  let sc=0;
-  if(S.horizon<=2)sc+=0;else if(S.horizon<=4)sc+=6;else if(S.horizon<=7)sc+=12;
-  else if(S.horizon<=12)sc+=18;else if(S.horizon<=20)sc+=22;else sc+=25;
-  const sm={einkommen:0,konservativ:10,ausgewogen:20,wachstum:32,dynamisch:40};
-  sc+=sm[S.strategy]??20;
-  const rm={schlaflos:0,nervoes:8,bewusst:18,chance:25};
-  sc+=rm[S.reaction]??8;
-  const kp=knPct(); sc+=Math.round(kp/10);
-  if(S.horizon<=2)return mkR('einkommen',sc);
-  if(S.horizon<=4)sc=Math.min(sc,26);
-  if(kp<20)sc=Math.min(sc,54);
-  let key;
-  if(sc>=80)key='dynamisch';else if(sc>=62)key='wachstum';
-  else if(sc>=44)key='ausgewogen';else if(sc>=26)key='konservativ';else key='einkommen';
-  return mkR(key,sc);
-}
-function mkR(key,sc){const s=STRATS.find(x=>x.key===key);return {key,name:s.name,text:s.desc,pos:s.pos,cx:s.cx,cy:s.cy};}
-function knPct(){const r=Object.values(S.knowledge);return Math.round(r.filter(x=>x.know||x.exp||x.advised||x.na).length/r.length*100);}
+    let volChartObj = null;
 
-// ─── STEP NAV ────────────────────────────────────────────────────────────────
-const HINTS=['Schieberegler für den Horizont verwenden','Kurven-Punkt klicken für Details, dann Strategie unten wählen','Ehrliche Reaktion wählen — nicht die gewünschte','Angaben für alle Anlageklassen erfassen','ESG optional — kann übersprungen werden','Finale Umsetzungsstrategie festlegen'];
+    function seededRandom(seed) { let x = Math.sin(seed) * 10000; return x - Math.floor(x); }
 
-function renderBar(){
-  document.getElementById('stepProgress').innerHTML=STEPS.map((s,i)=>{
-    let cl='sp-item';if(i<S.cur)cl+=' done';if(i===S.cur)cl+=' act';
-    const conn=i<STEPS.length-1?'<div class="sp-conn"></div>':'';
-    return `<div class="${cl}" onclick="jump(${i})"><div class="sp-num">${i+1}</div>${s.lbl}</div>${conn}`;
-  }).join('');
-}
-
-function show(idx){
-  S.cur=idx;
-  STEPS.forEach((s,i)=>document.getElementById(s.id).classList.toggle('hidden',i!==idx));
-  document.getElementById('btnBack').disabled=idx===0;
-  document.getElementById('btnNext').textContent=idx===STEPS.length-1?'Abschliessen':'Weiter →';
-  document.getElementById('footHint').textContent=HINTS[idx]||'';
-  renderBar();
-  if(idx===1){renderRRDots();renderStratStrip();}
-  if(idx===2){updateS3Sub();initCrash();}
-  if(idx===5)renderKonk();
-}
-function go(d){const n=S.cur+d;if(n>=0&&n<STEPS.length){show(n);save();}}
-function jump(i){show(i);save();}
-
-// ─── S2: STRATEGIE ───────────────────────────────────────────────────────────
-// Exact curve: M60,162 C180,158 320,136 460,104 C580,76 690,52 840,28
-// Pre-calculated points ON the bezier at the right t-values:
-const RR_PTS = {
-  einkommen:   {x:132, y:157},
-  konservativ: {x:246, y:144},
-  ausgewogen:  {x:395, y:118},
-  wachstum:    {x:560, y:85},
-  dynamisch:   {x:730, y:48}
-};
-
-function renderRRDots(){
-  const g=document.getElementById('rrPoints');
-  if(!g)return;
-  g.innerHTML=STRATS.map(s=>{
-    const pt=RR_PTS[s.key];
-    const sel=S.strategy===s.key;
-    const r=sel?9:6;
-    const labelY=pt.y-14;
-    return `<g class="rr-pt" onclick="pickStrat('${s.key}')" style="cursor:pointer;">
-      <circle cx="${pt.x}" cy="${pt.y}" r="${r+6}" fill="transparent"/>
-      <circle cx="${pt.x}" cy="${pt.y}" r="${r}"
-        fill="${sel?'#004078':'white'}"
-        stroke="#004078" stroke-width="${sel?0:2}"
-        style="transition:all .2s;"/>
-      <text x="${pt.x}" y="${labelY}"
-        font-size="${sel?11:10}" font-family="DM Sans"
-        font-weight="${sel?800:600}"
-        fill="${sel?'#004078':'#64748b'}"
-        text-anchor="middle"
-        style="transition:all .2s;">${s.name}</text>
-    </g>`;
-  }).join('');
-}
-
-function renderStratStrip(){
-  document.getElementById('stratStrip').innerHTML=STRATS.map(s=>{
-    const sel=S.strategy===s.key;
-    return `<div class="ss-card ${sel?'sel':''}" onclick="pickStrat('${s.key}')">
-      <div class="ss-name">${s.name}</div>
-      <div class="ss-eq">${s.eq}</div>
-      <div class="ss-kpis">
-        <div><div class="ss-kpi-lbl">Ø Rendite</div><div class="ss-kpi-val g">${s.ret}</div></div>
-        <div><div class="ss-kpi-lbl">Volatilität</div><div class="ss-kpi-val r">${s.risk}</div></div>
-      </div>
-      <div class="ss-detail" onclick="event.stopPropagation();openModal('${s.key}')">Details ansehen →</div>
-    </div>`;
-  }).join('');
-}
-
-// ─── S3: STRESSTEST ──────────────────────────────────────────────────────────
-function updateS3Sub(){
-  const base=S.betrag||200000;
-  const loss=Math.round(base*.2);
-  const fmt=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,"'");
-  const el=document.getElementById('s3Loss');
-  if(el)el.textContent=`CHF –${fmt(loss)}`;
-}
-
-function initCrash(){
-  const ctx=document.getElementById('crashChart').getContext('2d');
-  if(crashInst){crashInst.destroy();}
-  // Exact data: starts at 100, falls cleanly to 80, STOPS
-  const labels=[];const data=[];
-  // Phase 1: calm (6 points, ~100)
-  for(let i=0;i<6;i++){labels.push('');data.push(100+Math.random()*.6-.3);}
-  // Phase 2: crash (14 points, 100→80)
-  for(let i=0;i<14;i++){labels.push('');const t=i/13;data.push(100-(t*t)*20+(Math.random()*.4-.2));}
-  // END — last point exactly 80
-  data[data.length-1]=80;
-  const crash0=5; // index where crash starts
-  crashInst=new Chart(ctx,{
-    type:'line',
-    data:{labels,datasets:[{
-      data,
-      segment:{
-        borderColor:c=>c.p0DataIndex>=crash0?'rgba(149,14,19,.9)':'rgba(0,64,120,.8)',
-        backgroundColor:c=>c.p0DataIndex>=crash0?'rgba(149,14,19,.07)':'rgba(0,64,120,.07)'
-      },
-      fill:true,borderWidth:2.5,pointRadius:0,tension:.4
-    }]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{
-        x:{display:false},
-        y:{display:false,min:72,max:102}
-      },
-      animation:{duration:900}
+    // ── Part switching ──
+    function goToPartB() {
+        persistConclusion();
+        document.getElementById('partA').style.display = 'none';
+        const partB = document.getElementById('partB');
+        partB.classList.add('active');
+        document.getElementById('topbarTitle').innerText = 'Umsetzung der Anlagestrategie';
+        document.getElementById('adminIconBtn').style.display = 'flex';
+        stateB.step = 1;
+        renderB();
     }
-  });
-}
 
-function renderReacts(){
-  document.getElementById('reactList').innerHTML=REACTS.map(r=>{
-    const sel=S.reaction===r.key;
-    return `<div class="rc ${sel?'sel':''}" onclick="pickReact('${r.key}')">
-      <div class="rc-dot"></div>
-      <div>
-        <div class="rc-main">${r.txt}</div>
-        <div class="rc-sub">${r.sub}</div>
-      </div>
-    </div>`;
-  }).join('');
-  updateCtx();
-}
-
-function updateCtx(){
-  const r=REACTS.find(x=>x.key===S.reaction);if(!r)return;
-  document.getElementById('ctxTtl').textContent='Was das bedeutet';
-  document.getElementById('ctxBody').innerHTML=r.ctx;
-  document.getElementById('ctxBody').style.fontStyle='normal';
-  document.getElementById('ctxBody').style.color='var(--ink-2)';
-  const psych=document.getElementById('ctxPsych');
-  psych.style.display='block';
-  document.getElementById('ctxPsychTxt').textContent=r.psych;
-  const badge=document.getElementById('ctxBadge');
-  badge.style.display='block';
-  badge.className='ctx-badge'+(r.warn?' warn':'');
-  document.getElementById('ctxBadgeVal').textContent=r.tol;
-  const conf=document.getElementById('ctxConflict');
-  if(['wachstum','dynamisch'].includes(S.strategy)&&['schlaflos','nervoes'].includes(S.reaction)){
-    conf.style.display='block';
-    const sn=STRATS.find(x=>x.key===S.strategy).name;
-    document.getElementById('ctxConflictTxt').textContent=`Ihre Strategie-Präferenz («${sn}») und Ihre Stressreaktion sind nicht deckungsgleich. Die Empfehlung wird entsprechend angepasst.`;
-  }else{conf.style.display='none';}
-}
-
-// ─── S4: KENNTNISSE ──────────────────────────────────────────────────────────
-function renderKn(){
-  document.getElementById('knBody').innerHTML=KN_CLS.map(name=>{
-    const f=S.knowledge[name];
-    return `<tr><td>${name}</td>${KN_COLS.map(c=>`<td><div class="kn-cb-wrap"><div class="kn-cb ${f[c]?'chk':''}" onclick="pickKn('${name}','${c}')"></div></div></td>`).join('')}</tr>`;
-  }).join('');
-  updateKnFoot();
-}
-function updateKnFoot(){const p=knPct();document.getElementById('knProg').style.width=p+'%';document.getElementById('knPct').textContent=p+'%';}
-
-// ─── S5: ESG ─────────────────────────────────────────────────────────────────
-function renderEsg(){
-  document.getElementById('esgChips').innerHTML=ESG_OPT.map(opt=>{
-    const on=S.esg.exclusions.includes(opt);
-    return `<div class="esg-chip ${on?'on':''}" onclick="pickEsgChip('${opt}')">${opt}</div>`;
-  }).join('');
-  updateEsgSum();
-}
-function updateEsgSum(){
-  const w=document.getElementById('esgSumChips');
-  if(!S.esg.exclusions.length){w.innerHTML='<span class="esg-sum-none">Keine Ausschlüsse gewählt</span>';}
-  else{w.innerHTML=S.esg.exclusions.map(e=>`<span class="esg-sum-chip">${e}</span>`).join('');}
-}
-
-// ─── S6: KONKLUSION ──────────────────────────────────────────────────────────
-function renderKonk(){
-  const p=score();
-  document.getElementById('konkName').textContent=p.name;
-  document.getElementById('konkText').textContent=p.text;
-  document.getElementById('ks-h').textContent=S.horizon>=30?'30+ Jahre':S.horizon+' Jahre';
-  document.getElementById('ks-b').textContent=S.betrag?'CHF '+String(S.betrag).replace(/\B(?=(\d{3})+(?!\d))/g,"'"):'—';
-  document.getElementById('ks-s').textContent=STRATS.find(x=>x.key===S.strategy)?.name||'—';
-  document.getElementById('ks-r').textContent=REACTS.find(x=>x.key===S.reaction)?.txt||'—';
-  document.getElementById('ks-e').textContent = (() => {
-    const parts = [];
-    if(S.esg.active) parts.push('ESG priorisiert');
-    if(S.esg.exclusions.length) parts.push(`${S.esg.exclusions.length} Ausschluss${S.esg.exclusions.length>1?'kriterien':'kriterium'}`);
-    return parts.length ? parts.join(' · ') : 'Keine Präferenzen';
-  })();
-  renderImpl(p.key);
-
-  // Pure SVG — same bezier as S2, same pre-calculated points
-  const g=document.getElementById('konkPoints');
-  if(!g)return;
-  g.innerHTML=STRATS.map(s=>{
-    const pt=RR_PTS[s.key];
-    const isRec=s.key===p.key;
-    const r=isRec?10:6;
-    return `<g>
-      <circle cx="${pt.x}" cy="${pt.y}" r="${r}"
-        fill="${isRec?'#004078':'white'}"
-        stroke="#004078" stroke-width="${isRec?0:1.5}"/>
-      <text x="${pt.x}" y="${pt.y-14}"
-        font-size="${isRec?12:9}" font-family="DM Sans"
-        font-weight="${isRec?800:600}"
-        fill="${isRec?'#004078':'#94a3b8'}"
-        text-anchor="middle">${s.name}</text>
-    </g>`;
-  }).join('');
-}
-
-function renderImpl(rec){
-  const chosen = S.impl;
-  const isOverride = chosen && chosen !== rec;
-
-  // Banner
-  const banner = document.getElementById('overrideBanner');
-  if(banner){
-    if(isOverride){
-      const recName = STRATS.find(x=>x.key===rec)?.name||'—';
-      const chosenName = STRATS.find(x=>x.key===chosen)?.name||'—';
-      document.getElementById('overrideBannerTxt').textContent =
-        `Empfehlung «${recName}» wird übersteuert — Umsetzung mit «${chosenName}» festgelegt.`;
-      banner.classList.add('visible');
-    } else {
-      banner.classList.remove('visible');
+    function goToPartA() {
+        document.getElementById('partB').classList.remove('active');
+        document.getElementById('partA').style.display = 'grid';
+        document.getElementById('topbarTitle').innerText = 'Anlegerprofilierung';
+        document.getElementById('adminIconBtn').style.display = 'none';
+        showScreen(5);
     }
-  }
 
-  document.getElementById('implGrid').innerHTML=STRATS.map(s=>{
-    const isSel  = chosen === s.key;
-    const isRec  = s.key === rec;
-    const isOver = isSel && !isRec;  // chosen but not recommended
+    // ── Teil A: Screen Navigation ──
+    function showScreen(idx) {
+        document.querySelectorAll('#partA .screen').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(`scr${idx}`);
+        if (target) target.classList.add('active');
+        stateA.maxUnlockedStep = Math.max(stateA.maxUnlockedStep, idx);
+        updateStepState(idx);
+        if (idx === 1) { renderStrats(); requestAnimationFrame(() => requestAnimationFrame(() => initVolChart())); }
+        if (idx === 2) renderStressStep();
+        if (idx === 3) { renderKnowledgeGrid(); renderPyramid(); }
+        if (idx === 4) renderESG();
+        if (idx === 5) renderConclusion();
+        const progress = ((idx + 1) / 6) * 100;
+        document.getElementById('progressBar').style.width = progress + '%';
+    }
 
-    let cls = 'impl-btn';
-    if(isSel && isRec)  cls += ' sel rec';
-    else if(isRec)      cls += ' rec';
-    else if(isOver)     cls += ' override';
+    function goToStep(idx) { if (idx <= stateA.maxUnlockedStep) showScreen(idx); }
 
-    let tag = '';
-    if(isRec && isSel)  tag = '<div class="impl-tag">Empfehlung</div>';
-    else if(isRec)      tag = '<div class="impl-tag">Empfehlung</div>';
-    else if(isOver)     tag = '<div class="impl-tag override-tag">Übersteuert</div>';
+    function updateStepState(activeIdx) {
+        document.querySelectorAll('.step-link').forEach((l, i) => {
+            l.classList.toggle('active', i === activeIdx);
+            l.classList.toggle('done', i < activeIdx);
+            l.classList.toggle('disabled', i > stateA.maxUnlockedStep);
+        });
+    }
 
-    return `<div class="${cls}" onclick="pickImpl('${s.key}')">
-      <div class="impl-name">${s.name}</div>
-      ${tag}
-    </div>`;
-  }).join('');
-}
+    // ── Params ──
+    function updateHz(val) {
+        stateA.horizon = parseInt(val);
+        document.getElementById('hzDisplay').innerText = val;
+        const hint = document.getElementById('hzHint');
+        if (hint) {
+            if (stateA.horizon <= 2) hint.innerText = 'Kurzer Horizont: Kapitalerhalt steht im Vordergrund.';
+            else if (stateA.horizon <= 5) hint.innerText = 'Mittlerer Horizont: Konservative bis ausgewogene Strategien denkbar.';
+            else if (stateA.horizon <= 9) hint.innerText = 'Mittlerer bis langer Horizont: Wachstumsorientierung denkbar.';
+            else hint.innerText = 'Langer Horizont: Auch dynamische Strategien sind vertretbar.';
+        }
+        updateSimulation();
+    }
+    function formatAmt(input) { let val = input.value.replace(/\D/g, ''); stateA.amount = val ? parseInt(val) : 0; input.value = stateA.amount ? stateA.amount.toLocaleString('de-CH') : ''; updateSimulation(); }
 
-// ─── MODAL ───────────────────────────────────────────────────────────────────
-function openModal(key){
-  const s=STRATS.find(x=>x.key===key);if(!s)return;
-  document.getElementById('mdTitle').textContent=s.name+' — Details';
-  document.getElementById('mdSub').textContent=s.sub+' · '+s.eq;
-  document.getElementById('mdKpis').innerHTML=`
-    <div class="mkpi"><div class="mkpi-lbl">Erw. Rendite (Netto*)</div><div class="mkpi-val">${s.ret}</div></div>
-    <div class="mkpi"><div class="mkpi-lbl">Volatilität</div><div class="mkpi-val r">${s.risk}</div></div>
-    <div class="mkpi"><div class="mkpi-lbl">Max. Drawdown</div><div class="mkpi-val r">${s.dd}</div></div>
-    <div class="mkpi"><div class="mkpi-lbl">Aktienquote</div><div class="mkpi-val">${s.eq.split(' ')[0]}</div></div>
-    <div class="mkpi" style="grid-column:1/-1;background:var(--blue-lt);">
-      <div class="mkpi-lbl">Fokus / Strategie</div>
-      <div style="font-size:1.2vh;font-weight:700;color:var(--blue);margin-top:.15vh;">${s.focus}</div>
-    </div>`;
-  if(allocInst){allocInst.destroy();allocInst=null;}
-  allocInst=new Chart(document.getElementById('allocChart').getContext('2d'),{
-    type:'doughnut',
-    data:{labels:s.alloc.map(a=>a.name),datasets:[{data:s.alloc.map(a=>a.pct),backgroundColor:s.alloc.map(a=>a.col),borderWidth:0,hoverOffset:4}]},
-    options:{responsive:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}%`}}},cutout:'62%',animation:{duration:400}}
-  });
-  document.getElementById('allocLegend').innerHTML=s.alloc.map(a=>`
-    <div class="alloc-row"><div class="alloc-dot" style="background:${a.col};"></div><span class="alloc-name">${a.name}</span><span class="alloc-pct">${a.pct}%</span></div>`).join('');
-  if(perfInst){perfInst.destroy();perfInst=null;}
-  const years=Array.from({length:11},(_,i)=>(2015+i).toString());
-  let v=100;const vals=[100],upper=[100],lower=[100];
-  for(let i=1;i<=10;i++){
-    v=v*(1+s.perfTrend+(Math.random()*.04-.02));
-    const vol=s.perfVol/100;
-    vals.push(Math.round(v*10)/10);
-    upper.push(Math.round(v*(1+vol)*10)/10);
-    lower.push(Math.round(v*(1-vol)*10)/10);
-  }
-  perfInst=new Chart(document.getElementById('perfChart').getContext('2d'),{
-    type:'line',
-    data:{labels:years,datasets:[
-      {label:'_u',data:upper,borderColor:'rgba(0,64,120,.15)',backgroundColor:'rgba(0,64,120,.05)',fill:'+1',borderWidth:1,pointRadius:0,tension:.4},
-      {label:'Wertentwicklung',data:vals,borderColor:'#004078',backgroundColor:'rgba(0,64,120,.07)',fill:false,borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#004078',tension:.4},
-      {label:'_l',data:lower,borderColor:'rgba(0,64,120,.15)',backgroundColor:'rgba(0,64,120,.05)',fill:'-1',borderWidth:1,pointRadius:0,tension:.4}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{filter:c=>c.dataset.label!=='_u'&&c.dataset.label!=='_l'}},
-      scales:{
-        x:{grid:{display:false},ticks:{font:{size:9,family:'DM Sans',weight:'700'},color:'#94a3b8'},border:{display:false}},
-        y:{grid:{color:'#e2e8f0'},ticks:{font:{size:9,family:'DM Sans'},color:'#94a3b8'},border:{display:false}}
-      },animation:{duration:600}}
-  });
-  document.getElementById('stratModal').classList.add('open');
-}
-function closeModal(e){if(!e||e.target===document.getElementById('stratModal'))document.getElementById('stratModal').classList.remove('open');}
+    // ── Strategy ──
+    function renderStrats() { document.getElementById('stratGrid').innerHTML = STRATS.map((s, i) => `<div class="strat-card ${i === stateA.stratIdx ? 'active' : ''}" onclick="selectStrat(${i})"><div class="strat-name">${s.name}</div><div class="strat-yield">${s.yield.toFixed(2)}% – ${(s.yield + 0.5).toFixed(2)}%</div></div>`).join(''); }
+    function selectStrat(idx) { stateA.stratIdx = idx; BBZ.set('anlage_strategiewunsch', idx); renderStrats(); updateSimulation(); updateVolChart(); }
 
-// ─── INTERACTIONS ─────────────────────────────────────────────────────────────
-function pickStrat(key){S.strategy=key;renderRRDots();renderStratStrip();save();}
-function pickReact(key){S.reaction=key;renderReacts();save();}
-function pickKn(name,col){S.knowledge[name][col]=!S.knowledge[name][col];renderKn();save();}
-function toggleEsg(){S.esg.active=!S.esg.active;document.getElementById('esgToggle').classList.toggle('on',S.esg.active);document.getElementById('esgCard').classList.toggle('on',S.esg.active);renderEsg();save();}
-function pickEsgChip(opt){const i=S.esg.exclusions.indexOf(opt);if(i>=0)S.esg.exclusions.splice(i,1);else S.esg.exclusions.push(opt);renderEsg();save();}
-function pickImpl(k){S.impl=S.impl===k?null:k;const p=score();renderImpl(p.key);save();}
+    function updateSimulation() {
+        const strat = STRATS[stateA.stratIdx];
+        const endAmt = stateA.amount * Math.pow(1 + (strat.yield / 100), stateA.horizon);
+        const sigmaScale = (strat.vol / 100) * Math.sqrt(stateA.horizon);
+        document.getElementById('simEndAmt').innerText = 'CHF ' + Math.round(endAmt).toLocaleString('de-CH');
+        document.getElementById('simGain').innerText = '+ CHF ' + Math.round(endAmt - stateA.amount).toLocaleString('de-CH');
+        document.getElementById('bandRange').innerText = 'CHF ' + Math.round(endAmt * Math.exp(-1.645 * sigmaScale)).toLocaleString('de-CH') + ' — ' + Math.round(endAmt * Math.exp(1.645 * sigmaScale)).toLocaleString('de-CH');
+        document.getElementById('stratDesc').innerText = strat.desc;
+        const note = document.getElementById('behavioralNote');
+        if (strat.vol > 3) { note.style.display = 'flex'; document.getElementById('behavioralText').innerText = `Zwischenzeitliche Verluste von ${strat.loss} sind jederzeit möglich.`; }
+        else note.style.display = 'none';
+    }
 
-document.getElementById('hzRange').addEventListener('input',e=>{
-  const v=Number(e.target.value);S.horizon=v;
-  document.getElementById('hzVal').textContent=v>=30?'30+':v;
-  const h=HZ_CTX.find(x=>v<=x.max);
-  document.getElementById('s1Context').textContent=h?h.t:'';save();
-});
-document.getElementById('betragInp').addEventListener('input',e=>{
-  const d=e.target.value.replace(/\D/g,'');
-  e.target.value=d?d.replace(/\B(?=(\d{3})+(?!\d))/g,"'"):'';
-  S.betrag=d?Number(d):'';
-  document.getElementById('betragPrefill').style.display='none';
-  save();
-});
+    function initVolChart() {
+        const ctx = document.getElementById('volatilityChart').getContext('2d');
+        if (volChartObj) volChartObj.destroy();
+        volChartObj = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [
+            { label: 'Erwartet',     data: [], borderColor: '#004078', borderWidth: 3, pointRadius: 0, fill: false, tension: 0.4 },
+            { label: 'Korridor',     data: [], borderColor: 'transparent', backgroundColor: 'rgba(0,64,120,0.08)', fill: 2, pointRadius: 0, tension: 0.4 },
+            { label: 'Pessimistisch',data: [], borderColor: '#950e13', borderWidth: 2, borderDash: [6,4], fill: false, pointRadius: 0, tension: 0.3 }
+        ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { suggestedMin: stateA.amount * 0.5 } } }});
+        updateVolChart();
+    }
 
-// ─── PERSIST ──────────────────────────────────────────────────────────────────
-function save(){
-  try{
-    const p=score();
-    BBZ.merge({
-      anlage_horizont:  S.horizon,
-      anlage_betrag:    S.betrag,
-      anlage_strategie: S.strategy,
-      anlage_reaktion:  S.reaction,
-      anlage_profil:    p.key,
-      anlage_kenntnisse:S.knowledge,
-      anlage_esg:       {active:S.esg.active,exclusions:[...S.esg.exclusions]},
-      anlage_impl:      S.impl
+    function updateVolChart() {
+        if (!volChartObj) return;
+        const strat = STRATS[stateA.stratIdx]; const horizon = stateA.horizon; const startAmt = stateA.amount || 100000;
+        const labels = [], expectedP = [], upperP = [], lowerP = [];
+        for (let i = 0; i <= horizon; i++) {
+            labels.push('Jahr ' + i);
+            const mu = strat.yield / 100; const sigma = strat.vol / 100; const sqrtT = Math.sqrt(i);
+            const expected = startAmt * Math.pow(1 + mu, i);
+            expectedP.push(expected + (i > 0 ? (seededRandom(i + stateA.stratIdx) - 0.5) * 2 * (expected * sigma * 0.15) : 0));
+            upperP.push(expected * Math.exp(1.28 * sigma * sqrtT));
+            if (i === 0) lowerP.push(startAmt);
+            else if (i <= 2) lowerP.push(startAmt * (1 - ((strat.vol / 100) * 1.8 * (i / 2))));
+            else lowerP.push((startAmt * (1 - ((strat.vol / 100) * 1.8))) * Math.pow(1 + (mu * 0.4), i - 2));
+        }
+        volChartObj.data.labels = labels; volChartObj.data.datasets[0].data = expectedP; volChartObj.data.datasets[1].data = upperP; volChartObj.data.datasets[2].data = lowerP; volChartObj.update();
+    }
+
+    // ── Stresstest ──
+    function renderStressStep() {
+        const step = STRESS_DATA[stateA.stressStep];
+        document.getElementById('stressSubtitle').innerText = `Frage ${stateA.stressStep + 1} von 3: ${step.title}`;
+        const visBox = document.getElementById('stressVis');
+        visBox.innerHTML = '';
+        if (step.vis === 'crash') {
+            visBox.innerHTML = `<div class="sim-label">Beispielhafter Verlauf (-20%)</div><div style="flex:1;"><canvas id="stressChart"></canvas></div><div class="loss-badge"><div><div style="font-size:0.6vw; opacity:0.8; font-weight:700;">DEPOTVERLUST</div><div style="font-size:1.8vw; font-weight:900;">CHF -${Math.round(stateA.amount * 0.2).toLocaleString('de-CH')}</div></div><div style="text-align:right;"><div style="font-size:0.6vw; opacity:0.8; font-weight:700;">RESTWERT</div><div style="font-size:1.2vw; font-weight:800;">CHF ${Math.round(stateA.amount * 0.8).toLocaleString('de-CH')}</div></div></div>`;
+            setTimeout(initStressChart, 50);
+        } else if (step.vis === 'recovery') {
+            visBox.innerHTML = `<div class="sim-label">Historische Erholungszeiten</div><div style="display:flex; flex-direction:column; gap:2vh; margin-top:2vh;"><p style="font-size:0.75vw; line-height:1.5;">Je nach Strategie dauert es unterschiedlich lange, bis ein Verlust wieder aufgeholt ist.</p><div style="background:var(--bg); padding:2vh; border-radius:10px;"><div class="sim-label" style="color:var(--blue);">Ø Erholung bei -20%</div><div style="font-size:1.5vw; font-weight:800; color:var(--ink);">~ 18 bis 36 Monate</div><p style="font-size:0.6vw; color:var(--ink-4); margin-top:1vh;">Basierend auf historischen Aktienmarkt-Daten.</p></div></div>`;
+        } else {
+            visBox.innerHTML = `<div class="sim-label">Grosse Marktereignisse</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:1vh; margin-top:1vh;"><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Dotcom (2000)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-50% in 2 Jahren</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Finanzkrise (2008)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-55% in 1.5 Jahren</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Corona (2020)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-35% in 4 Wochen</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Ukraine (2022)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-25% in 10 Monaten</div></div></div>`;
+        }
+        const qBox = document.getElementById('stressQuestions');
+        qBox.innerHTML = `<h2 style="font-size:1.4vw; font-weight:800; color:var(--ink); margin-bottom:1vh;">${step.subtitle}</h2><div style="display:flex; flex-direction:column; gap:1.2vh;">${step.options.map(o => `<button class="option-btn ${stateA.stress[Object.keys(stateA.stress)[stateA.stressStep]] === o.id ? 'active' : ''}" onclick="selectStressOpt('${o.id}')"><span class="opt-title">${o.t}</span><span class="opt-desc">${o.d}</span></button>`).join('')}</div>`;
+        document.getElementById('stressPrevBtn').style.visibility = stateA.stressStep === 0 ? 'hidden' : 'visible';
+        document.getElementById('stressNextBtn').innerText = stateA.stressStep === 2 ? 'Weiter zu Kenntnissen' : 'Nächste Frage';
+    }
+
+    function selectStressOpt(id) { stateA.stress[Object.keys(stateA.stress)[stateA.stressStep]] = id; renderStressStep(); }
+    function nextStressStep() { if (stateA.stressStep < 2) { stateA.stressStep++; renderStressStep(); } else { BBZ.set('anlage_stresstest', stateA.stress); showScreen(3); } }
+    function prevStressStep() { if (stateA.stressStep > 0) { stateA.stressStep--; renderStressStep(); } else { showScreen(1); } }
+    function initStressChart() { const ctx = document.getElementById('stressChart').getContext('2d'); new Chart(ctx, { type: 'line', data: { labels: ['W0','W1','W2','W3','W4'], datasets: [{ data: [100,98,92,85,80], borderColor: '#950e13', backgroundColor: 'rgba(149,14,19,0.05)', fill: true, tension: 0.3, borderWidth: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 70, max: 105 } } } }); }
+
+    // ── Knowledge ──
+    function normalizeKnowledgeState(raw) {
+        const next = { anleihen: [], aktien: [], fonds: [], hebel: [], krypto: [] };
+        if (!raw || typeof raw !== 'object') return next;
+        KNOWLEDGE_CATS.forEach(cat => {
+            const val = raw[cat.id];
+            if (Array.isArray(val)) next[cat.id] = val.filter(v => KNOWLEDGE_LEVELS.some(lvl => lvl.id === v));
+            else if (typeof val === 'string' && KNOWLEDGE_LEVELS.some(lvl => lvl.id === val)) next[cat.id] = [val];
+        });
+        return next;
+    }
+
+    function renderKnowledgeGrid() {
+        const grid = document.getElementById('knowledgeGrid');
+        grid.innerHTML = `<table class="knowledge-table"><thead><tr><th>Anlageklasse</th>${KNOWLEDGE_LEVELS.map(lvl => `<th>${lvl.label}</th>`).join('')}</tr></thead><tbody>${KNOWLEDGE_CATS.map(cat => `<tr><td>${cat.name}</td>${KNOWLEDGE_LEVELS.map(lvl => { const active = (stateA.knowledge[cat.id] || []).includes(lvl.id); return `<td><button class="k-check ${active ? 'active' : ''}" onclick="toggleKnowledge('${cat.id}','${lvl.id}')" aria-label="${cat.name} – ${lvl.label}"></button></td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+
+    function toggleKnowledge(catId, lvlId) {
+        const current = Array.isArray(stateA.knowledge[catId]) ? [...stateA.knowledge[catId]] : [];
+        stateA.knowledge[catId] = current.includes(lvlId) ? current.filter(v => v !== lvlId) : [...current, lvlId];
+        renderKnowledgeGrid(); renderPyramid(); BBZ.set('anlage_kenntnisse', stateA.knowledge);
+    }
+
+    function isKnowledgeRelevant(catId) { const s = Array.isArray(stateA.knowledge[catId]) ? stateA.knowledge[catId] : []; return s.length > 0 && !s.includes('n-r'); }
+
+    function getKnowledgeComplexityLevel() {
+        const highRelevant = isKnowledgeRelevant('hebel') || isKnowledgeRelevant('krypto');
+        const bothHighNR = (stateA.knowledge.hebel || []).includes('n-r') && (stateA.knowledge.krypto || []).includes('n-r');
+        if (highRelevant && !bothHighNR) return 3;
+        if (isKnowledgeRelevant('aktien') || isKnowledgeRelevant('fonds') || bothHighNR) return 2;
+        if (isKnowledgeRelevant('anleihen')) return 1;
+        return 0;
+    }
+
+    function renderPyramid() {
+        const maxLevel = getKnowledgeComplexityLevel();
+        const layers = [
+            { id: 3, label: 'HOCHKOMPLEX', w: '36%', active: '#950e13' },
+            { id: 2, label: 'MODERAT',     w: '56%', active: '#004078' },
+            { id: 1, label: 'BASIS',       w: '74%', active: '#475569' }
+        ];
+        document.getElementById('pyramid').innerHTML = layers.map(layer => {
+            const isActive = maxLevel >= layer.id;
+            return `<div class="pyramid-step ${isActive ? 'active' : ''}" style="--w:${layer.w}; background:${isActive ? layer.active : '#d9e1ea'};">${layer.label}</div>`;
+        }).join('');
+    }
+
+    // ── ESG ──
+    function renderESG() {
+        document.getElementById('esgOptions').innerHTML = ESG_OPTIONS.map(opt => `<button class="esg-option ${stateA.esg === opt.id ? 'active' : ''}" onclick="selectESG('${opt.id}')"><div class="esg-radio"></div><div><div class="esg-title">${opt.title}</div><div class="esg-desc">${opt.desc}</div></div></button>`).join('');
+        BBZ.set('anlage_esg', stateA.esg);
+    }
+
+    function selectESG(id) { stateA.esg = id; renderESG(); }
+
+    // ── Conclusion Logic ──
+    function getHorizonMaxStrategyIdx() {
+        if (stateA.horizon <= 2) return 1; if (stateA.horizon <= 5) return 2;
+        if (stateA.horizon <= 9) return 3; return 4;
+    }
+
+    function getStressScore() {
+        const crashMap = { sell: 0, wait: 1, hold: 2, buy: 3 };
+        const waitMap  = { '1y': 0, '3y': 1, '5y': 2, open: 3 };
+        const expMap   = { none: 0, little: 1, lot: 2 };
+        return (crashMap[stateA.stress.react] ?? 0) * 0.5 + (waitMap[stateA.stress.wait] ?? 0) * 0.3 + (expMap[stateA.stress.exp] ?? 0) * 0.2;
+    }
+
+    function getStressStrategyIdx() {
+        const s = getStressScore();
+        if (s < 0.75) return 0; if (s < 1.5) return 1; if (s < 2.25) return 2; if (s < 2.75) return 3; return 4;
+    }
+
+    function calculateRecommendation() {
+        const horizonMax = getHorizonMaxStrategyIdx();
+        const wishIdx = Math.min(stateA.stratIdx, horizonMax);
+        const stressIdx = getStressStrategyIdx();
+        let recommendation = wishIdx;
+        if (stressIdx >= wishIdx) recommendation = wishIdx;
+        else if ((wishIdx - stressIdx) === 1) recommendation = wishIdx;
+        else recommendation = Math.min(wishIdx, stressIdx + 1);
+        recommendation = Math.min(recommendation, horizonMax);
+        stateA.riskFromStress = stressIdx; stateA.recommendation = recommendation;
+        if (!stateA.finalStrategyTouched) stateA.finalStrategy = recommendation;
+        return recommendation;
+    }
+
+    function getESGConclusionText() {
+        const map = { none: 'Nachhaltigkeit hat keine besondere Bedeutung.', nachrangig: 'Nachhaltigkeit wird als ergänzender Faktor berücksichtigt.', gleichwertig: 'Nachhaltigkeit und Rendite sind gleich wichtig.', vorrangig: 'Es sollen ausschliesslich nachhaltigkeitsorientierte Anlagen berücksichtigt werden.' };
+        return map[stateA.esg] || map.nachrangig;
+    }
+
+    function getRecommendationLead() {
+        const horizonMax = STRATS[getHorizonMaxStrategyIdx()].name;
+        const stressName = STRATS[stateA.riskFromStress].name;
+        return `Die Empfehlung verbindet den Anlagehorizont mit dem Strategiewunsch und spiegelt eine im Stresstest tragbare Risikobereitschaft wider. Der zeitliche Rahmen erlaubt maximal ${horizonMax}, der Stresstest stützt aktuell ${stressName}.`;
+    }
+
+    function getRecommendationReason() {
+        const horizonMax = getHorizonMaxStrategyIdx(); const wishIdx = stateA.stratIdx; const stressIdx = stateA.riskFromStress; const recommendationIdx = stateA.recommendation;
+        const parts = [`Der Anlagehorizont von ${stateA.horizon} Jahren bildet die objektive Leitplanke und erlaubt maximal die Strategie ${STRATS[horizonMax].name}.`, `Ihr Strategiewunsch liegt bei ${STRATS[wishIdx].name}.`];
+        if (stressIdx > recommendationIdx) parts.push(`Im Stresstest zeigt sich eine höhere Risikobereitschaft. Die Empfehlung bleibt dennoch innerhalb des zeitlich sinnvollen Rahmens bei ${STRATS[recommendationIdx].name}.`);
+        else if (stressIdx === recommendationIdx) parts.push(`Im Stresstest zeigt sich eine dazu passende Risikobereitschaft. Damit wird ${STRATS[recommendationIdx].name} als stimmige Empfehlung gestützt.`);
+        else if ((wishIdx - stressIdx) >= 2 && recommendationIdx > stressIdx) parts.push(`Im Stresstest zeigt sich eine spürbar vorsichtigere Risikobereitschaft. Deshalb wird mit ${STRATS[recommendationIdx].name} eine nachvollziehbare Mittelposition empfohlen.`);
+        else if (stressIdx < recommendationIdx) parts.push(`Im Stresstest zeigt sich eine etwas vorsichtigere Risikobereitschaft. Die Empfehlung bleibt mit ${STRATS[recommendationIdx].name} dennoch im vertretbaren Rahmen.`);
+        else parts.push(`Aus der Gesamtschau ergibt sich ${STRATS[recommendationIdx].name} als stimmige Empfehlung.`);
+        return parts.join(' ');
+    }
+
+    function renderConclusion() {
+        calculateRecommendation();
+        document.getElementById('recommendedStrategyLabel').innerText = STRATS[stateA.recommendation].name;
+        document.getElementById('recommendationLead').innerText = getRecommendationLead();
+        document.getElementById('customerWishLine').innerText = STRATS[stateA.stratIdx].name;
+        document.getElementById('recommendationReason').innerText = getRecommendationReason();
+        document.getElementById('esgConclusionText').innerText = getESGConclusionText();
+        document.getElementById('finalStratGrid').innerHTML = STRATS.map((s, i) => `<div class="strat-card ${i === stateA.finalStrategy ? 'active' : ''} ${i === stateA.recommendation ? 'recommended' : ''}" onclick="selectFinalStrategy(${i})"><div class="strat-name">${s.name}</div><div class="strat-yield">${s.yield.toFixed(2)}% – ${(s.yield + 0.5).toFixed(2)}%</div></div>`).join('');
+        document.getElementById('deviationNote').style.display = stateA.finalStrategy !== stateA.recommendation ? 'block' : 'none';
+    }
+
+    function selectFinalStrategy(idx) { stateA.finalStrategyTouched = true; stateA.finalStrategy = idx; renderConclusion(); }
+
+    function persistConclusion() {
+        calculateRecommendation();
+        BBZ.set('anlage_konklusion', {
+            strategiewunsch: STRATS[stateA.stratIdx].name,
+            stresstest: STRATS[stateA.riskFromStress].name,
+            horizonMax: STRATS[getHorizonMaxStrategyIdx()].name,
+            empfehlung: STRATS[stateA.recommendation].name,
+            finaleStrategie: STRATS[stateA.finalStrategy].name,
+            esg: stateA.esg, esgText: getESGConclusionText(), begruendung: getRecommendationReason()
+        });
+    }
+
+    // ════════════════════════════════════════
+    // TEIL B: DATEN & STATE
+    // ════════════════════════════════════════
+    const defaultAdmin = {
+        advisory: { depotPct: 0.30, depotMin: 120, taPct: 0.20, taxFee: 90 },
+        vv: { limit1: 500000, pct1: 1.50, limit2: 1000000, pct2: 1.20, limit3: 1000000, pct3: 1.00 }
+    };
+
+    let stateB = {
+        step: 1,
+        amount: 250000,
+        productPreference: null,
+        productChoice: null,
+        admin: JSON.parse(JSON.stringify(defaultAdmin))
+    };
+
+    function renderB() {
+        [1, 2, 3].forEach(i => {
+            document.getElementById('screenB' + i).classList.toggle('active', stateB.step === i);
+            document.getElementById('chip' + i).classList.toggle('active', stateB.step === i);
+        });
+        // Weiter-Button auf Screen 3 ausblenden
+        document.getElementById('btnBNext').style.display = stateB.step === 3 ? 'none' : '';
+
+        document.getElementById('pref-advisory').classList.toggle('active', stateB.productPreference === 'advisory');
+        document.getElementById('pref-vv').classList.toggle('active', stateB.productPreference === 'vv');
+        document.getElementById('choice-advisory').classList.toggle('active', stateB.productChoice === 'advisory');
+        document.getElementById('choice-vv').classList.toggle('active', stateB.productChoice === 'vv');
+        const box = document.getElementById('confirmationBox');
+        if (stateB.productChoice) {
+            box.classList.add('show');
+            document.getElementById('confirmationTitle').innerText = stateB.productChoice === 'advisory' ? 'Sie haben sich für das Beratungsdepot entschieden' : 'Sie haben sich für die Vermögensverwaltung entschieden';
+            document.getElementById('confirmationText').innerText = stateB.productChoice === 'advisory' ? 'Sie bleiben aktiv eingebunden und treffen die Anlageentscheide selbst.' : 'Sie definieren den Rahmen und delegieren die laufende Umsetzung anschliessend an die Bank.';
+        } else { box.classList.remove('show'); }
+    }
+
+    function nextStepB() {
+        if (stateB.step === 1 && !stateB.productPreference) { return; } // silent — kein alert()
+        if (stateB.step < 3) { stateB.step++; renderB(); }
+    }
+
+    function prevStepB() {
+        if (stateB.step > 1) { stateB.step--; renderB(); }
+        else { goToPartA(); } // Zurück zu Teil A Konklusion
+    }
+
+    function setPreference(mode) { stateB.productPreference = mode; persistChoiceB(); renderB(); }
+    function setFinalChoice(mode) { stateB.productChoice = mode; persistChoiceB(); renderB(); }
+
+    function persistChoiceB() {
+        BBZ.set('anlage_produktwahl', { praeferenz: stateB.productPreference, auswahl: stateB.productChoice });
+    }
+
+    // Admin Modal
+    function openAdminModal() { fillAdminFields(); document.getElementById('adminModal').style.display = 'flex'; }
+    function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+    function fillAdminFields() {
+        document.getElementById('adminDepotPct').value = stateB.admin.advisory.depotPct;
+        document.getElementById('adminDepotMin').value = stateB.admin.advisory.depotMin;
+        document.getElementById('adminTaPct').value = stateB.admin.advisory.taPct;
+        document.getElementById('adminTax').value = stateB.admin.advisory.taxFee;
+        document.getElementById('adminVvLimit1').value = stateB.admin.vv.limit1;
+        document.getElementById('adminVvPct1').value = stateB.admin.vv.pct1;
+        document.getElementById('adminVvLimit2').value = stateB.admin.vv.limit2;
+        document.getElementById('adminVvPct2').value = stateB.admin.vv.pct2;
+        document.getElementById('adminVvLimit3').value = stateB.admin.vv.limit3;
+        document.getElementById('adminVvPct3').value = stateB.admin.vv.pct3;
+    }
+    function saveAdminSettings() {
+        stateB.admin.advisory.depotPct = Number(document.getElementById('adminDepotPct').value || 0);
+        stateB.admin.advisory.depotMin = Number(document.getElementById('adminDepotMin').value || 0);
+        stateB.admin.advisory.taPct    = Number(document.getElementById('adminTaPct').value || 0);
+        stateB.admin.advisory.taxFee   = Number(document.getElementById('adminTax').value || 0);
+        stateB.admin.vv.limit1 = Number(document.getElementById('adminVvLimit1').value || 0);
+        stateB.admin.vv.pct1   = Number(document.getElementById('adminVvPct1').value || 0);
+        stateB.admin.vv.limit2 = Number(document.getElementById('adminVvLimit2').value || 0);
+        stateB.admin.vv.pct2   = Number(document.getElementById('adminVvPct2').value || 0);
+        stateB.admin.vv.limit3 = Number(document.getElementById('adminVvLimit3').value || 0);
+        stateB.admin.vv.pct3   = Number(document.getElementById('adminVvPct3').value || 0);
+        BBZ.set('anlage_preise', stateB.admin); closeAdminModal();
+    }
+
+    // Kalkulator Modal
+    function openCalcModal() {
+        document.getElementById('calcAmount').value = stateB.amount || '';
+        document.getElementById('calcTrades').value = 6;
+        document.getElementById('calcAvgTradeAmount').value = Math.round((stateB.amount || 0) * 0.2);
+        document.getElementById('calcModal').style.display = 'flex';
+        calculateCosts();
+    }
+    function closeCalcModal() { document.getElementById('calcModal').style.display = 'none'; }
+
+    function getVvRate(amount) {
+        const vv = stateB.admin.vv;
+        if (amount <= vv.limit1) return vv.pct1; if (amount <= vv.limit2) return vv.pct2; return vv.pct3;
+    }
+
+    function calculateCosts() {
+        const amount = Number(document.getElementById('calcAmount').value || 0);
+        const trades = Number(document.getElementById('calcTrades').value || 0);
+        const avgTA  = Number(document.getElementById('calcAvgTradeAmount').value || 0);
+        const adv = stateB.admin.advisory;
+        const depotFee = Math.max(amount * (adv.depotPct / 100), adv.depotMin);
+        const tradeFee = trades * avgTA * (adv.taPct / 100);
+        const taxFee   = adv.taxFee;
+        const advisoryTotal = depotFee + tradeFee + taxFee;
+        const vvRate = getVvRate(amount); const vvTotal = amount * (vvRate / 100);
+        document.getElementById('resAdvisoryTotal').innerText = 'CHF ' + BBZ.fmt(advisoryTotal, 0);
+        document.getElementById('resAdvisorySub').innerText   = `Depot: CHF ${BBZ.fmt(depotFee,0)} · Transaktionen: CHF ${BBZ.fmt(tradeFee,0)} · Steuerauszug: CHF ${BBZ.fmt(taxFee,0)}`;
+        document.getElementById('resVvTotal').innerText = 'CHF ' + BBZ.fmt(vvTotal, 0);
+        document.getElementById('resVvSub').innerText   = `All-in-Fee mit ${vvRate.toFixed(2)}% auf CHF ${BBZ.fmt(amount,0)}`;
+        const maxVal = Math.max(advisoryTotal, vvTotal, 1);
+        document.getElementById('barAdv').style.width = `${(advisoryTotal / maxVal) * 100}%`;
+        document.getElementById('barVv').style.width  = `${(vvTotal / maxVal) * 100}%`;
+        document.getElementById('barValueAdv').innerText = 'CHF ' + BBZ.fmt(advisoryTotal, 0);
+        document.getElementById('barValueVv').innerText  = 'CHF ' + BBZ.fmt(vvTotal, 0);
+    }
+
+    // Modal backdrop close
+    window.addEventListener('click', function(e) {
+        if (e.target.id === 'adminModal') closeAdminModal();
+        if (e.target.id === 'calcModal') closeCalcModal();
     });
-  }catch(e){}
-}
-function load(){
-  try{
-    const d=BBZ.all();
-    if(d.anlage_horizont!=null){S.horizon=d.anlage_horizont;document.getElementById('hzRange').value=S.horizon;document.getElementById('hzVal').textContent=S.horizon>=30?'30+':S.horizon;}
-    if(d.anlage_betrag!=null&&d.anlage_betrag!==''){S.betrag=d.anlage_betrag;document.getElementById('betragInp').value=String(d.anlage_betrag).replace(/\B(?=(\d{3})+(?!\d))/g,"'");}
-    else if(d.cockpit_anlage_f>0){
-      // Prefill from Finanzcockpit — setIfEmpty
-      S.betrag=d.cockpit_anlage_f;
-      document.getElementById('betragInp').value=String(d.cockpit_anlage_f).replace(/\B(?=(\d{3})+(?!\d))/g,"'");
-      document.getElementById('betragPrefill').style.display='flex';
-    }
-    if(d.anlage_strategie)S.strategy=d.anlage_strategie;
-    if(d.anlage_reaktion)S.reaction=d.anlage_reaktion;
-    if(d.anlage_kenntnisse)KN_CLS.forEach(k=>{if(d.anlage_kenntnisse[k])S.knowledge[k]=d.anlage_kenntnisse[k];});
-    if(d.anlage_esg){S.esg.active=d.anlage_esg.active||false;S.esg.exclusions=d.anlage_esg.exclusions||[];}
-    if(d.anlage_impl)S.impl=d.anlage_impl;
-  }catch(e){}
-}
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-load();
-const h0=HZ_CTX.find(x=>S.horizon<=x.max);
-if(h0)document.getElementById('s1Context').textContent=h0.t;
-if(S.esg.active){document.getElementById('esgToggle').classList.add('on');document.getElementById('esgCard').classList.add('on');}
-renderStratStrip();renderReacts();renderKn();renderEsg();
-show(0);
+    // ════════════════════════════════════════
+    // INIT
+    // ════════════════════════════════════════
+    window.onload = () => {
+        // Teil A: restore from localStorage
+        const saved = BBZ.get('cockpit_anlage_f');
+        if (saved) { stateA.amount = parseInt(saved); document.getElementById('amtInput').value = stateA.amount.toLocaleString('de-CH'); }
+        const savedWish       = BBZ.get('anlage_strategiewunsch');
+        const savedKnowledge  = BBZ.get('anlage_kenntnisse');
+        const savedStress     = BBZ.get('anlage_stresstest');
+        const savedESG        = BBZ.get('anlage_esg');
+        const savedConclusion = BBZ.get('anlage_konklusion');
+        if (savedWish !== null && savedWish !== undefined && savedWish !== '') stateA.stratIdx = parseInt(savedWish, 10);
+        if (savedKnowledge) stateA.knowledge = normalizeKnowledgeState(savedKnowledge);
+        if (savedStress)    stateA.stress = { ...stateA.stress, ...savedStress };
+        if (savedESG)       stateA.esg = savedESG;
+        if (savedConclusion && savedConclusion.finaleStrategie) {
+            const finalIdx = STRATS.findIndex(s => s.name === savedConclusion.finaleStrategie);
+            if (finalIdx >= 0) { stateA.finalStrategy = finalIdx; stateA.finalStrategyTouched = true; }
+        }
 
-window.go=go;window.jump=jump;window.pickStrat=pickStrat;window.openModal=openModal;window.closeModal=closeModal;
-window.pickReact=pickReact;window.pickKn=pickKn;window.toggleEsg=toggleEsg;window.pickEsgChip=pickEsgChip;window.pickImpl=pickImpl;
+        // Teil B: restore from localStorage
+        const savedBAmount = BBZ.get('cockpit_anlage_f');
+        if (savedBAmount !== null && savedBAmount !== undefined && savedBAmount !== '') stateB.amount = Number(savedBAmount);
+        const savedAdmin  = BBZ.get('anlage_preise');
+        if (savedAdmin) stateB.admin = { advisory: { ...defaultAdmin.advisory, ...(savedAdmin.advisory || {}) }, vv: { ...defaultAdmin.vv, ...(savedAdmin.vv || {}) } };
+        const savedChoice = BBZ.get('anlage_produktwahl');
+        if (savedChoice) { stateB.productPreference = savedChoice.praeferenz || null; }
+        // productChoice absichtlich nicht restored — B3 startet immer ohne vorausgewählte Option
+
+        updateSimulation();
+        updateStepState(0);
+    };
 </script>
 </body>
 </html>
