@@ -40,10 +40,11 @@
 
     // ── Cockpit (05) ─────────────────────────────────────────────────────
     // Hinweis: cockpit_income war Legacy — korrekt ist cockpit_einkommen
-    cockpit_einkommen:    { type: 'number',  scope: 'session', default: null },
-    cockpit_ausgaben:     { type: 'number',  scope: 'session', default: null },
-    cockpit_pk_saldo:     { type: 'number',  scope: 'session', default: null },
-    cockpit_anlage_f:     { type: 'number',  scope: 'session', default: null },
+    cockpit_einkommen:       { type: 'number',  scope: 'session', default: null },
+    cockpit_verpflichtungen: { type: 'number',  scope: 'session', default: null },
+    cockpit_pk_saldo:        { type: 'number',  scope: 'session', default: null },
+    cockpit_anlage_f:        { type: 'number',  scope: 'session', default: null },
+    cockpit_data:            { type: 'object',  scope: 'session', default: null },
 
     // ── Ziele (06) ───────────────────────────────────────────────────────
     ziele:                { type: 'array',   scope: 'session', default: [] },
