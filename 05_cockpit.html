@@ -1,219 +1,1071 @@
-/**
- * bbz-data.js — Gemeinsame Datenschicht
- * Einbinden: <script src="bbz-data.js"></script>
- *
- * Globales Objekt: BBZ
- * BBZ.get('p1name')                → Wert oder Default
- * BBZ.set('cockpit_einkommen', 85000) → Speichern (type-safe)
- * BBZ.merge({ p1name: 'Anna' })    → Mehrere Keys auf einmal
- * BBZ.setIfEmpty('price', 850000)  → Nur wenn noch leer (Prefill)
- * BBZ.clearSession()               → Neue Beratung (Config bleibt)
- * BBZ.getProfile()                 → Promise → aktives Berater-Profil
- * BBZ.fmt(85000)                   → "85'000"
- * BBZ.parseNum("85'000")           → 85000
- * BBZ.fmtDate('1980-03-15')        → '15.03.1980'
- * BBZ.age('1980-03-15')            → 46
- */
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<title>bbz bank – Finanz-Cockpit</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="bbz-data.js"></script>
+<style>
+:root {
+  --blue:    #004078;
+  --blue-dk: #002d57;
+  --blue-md: #00528a;
+  --blue-lt: #dce8f4;
+  --red:     #950e13;
+  --red-dk:  #6b080c;
+  --red-lt:  #f5dcdd;
+  --ink:     #0f172a;
+  --ink-2:   #334155;
+  --ink-3:   #64748b;
+  --ink-4:   #94a3b8;
+  --surface: #ffffff;
+  --bg:      #f1f5f9;
+  --line:    #e2e8f0;
+  --green:   #15803d;
+  --amber:   #b45309;
+  --font:    'DM Sans', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--blue-dk);display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
 
-(function (global) {
+/* ── CANVAS 16:9 ── */
+.canvas{width:95vw;aspect-ratio:16/9;max-height:95vh;background:var(--bg);display:grid;grid-template-rows:6vh 10vh 1fr 25vh 4vh;overflow:hidden;box-shadow:0 50px 120px rgba(0,0,0,0.55);position:relative;}
 
-  const STORAGE_KEY = 'bbzData';
+/* ── TOPBAR ── */
+.topbar{background:var(--blue);display:flex;align-items:center;justify-content:space-between;padding:0 2vw 0 2.2vw;gap:1vw;}
+.logo{display:flex;align-items:center;gap:0.55vw;flex-shrink:0;}
+.logo-mark{width:2.1vw;height:2.1vw;background:white;color:var(--blue);font-size:0.68vw;font-weight:900;border-radius:3px;display:flex;align-items:center;justify-content:center;}
+.logo-name{color:white;font-size:0.82vw;font-weight:800;letter-spacing:-0.02em;}
+.mod-nav{display:flex;align-items:center;gap:0.15vw;flex:1;justify-content:center;overflow:hidden;}
+.mod-chip{display:flex;align-items:center;gap:0.2vw;padding:0.3vh 0.48vw;border-radius:4px;font-size:0.52vw;font-weight:700;color:rgba(255,255,255,0.35);text-decoration:none;white-space:nowrap;transition:color 0.15s,background 0.15s;flex-shrink:0;}
+.mod-chip:hover{color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.07);}
+.mod-chip.active{background:white;color:var(--blue);pointer-events:none;}
+.chip-num{font-size:0.44vw;font-weight:900;opacity:0.55;}
+.mod-chip.active .chip-num{opacity:0.45;}
+.nav-sep{width:1px;height:1.8vh;background:rgba(255,255,255,0.15);flex-shrink:0;margin:0 0.18vw;}
+.topbar-brand{color:rgba(255,255,255,0.2);font-size:0.58vw;font-weight:600;flex-shrink:0;}
 
-  // ── SCHEMA ──────────────────────────────────────────────────────────────
-  // scope 'session' = wird bei clearSession() gelöscht
-  // scope 'config'  = bleibt erhalten (Berater, Module-Config)
-  const SCHEMA = {
-    // ── Stammdaten ───────────────────────────────────────────────────────
-    p1name:               { type: 'string',  scope: 'session', default: '' },
-    p1geb:                { type: 'string',  scope: 'session', default: '' },
-    p2name:               { type: 'string',  scope: 'session', default: '' },
-    p2geb:                { type: 'string',  scope: 'session', default: '' },
-    beratungsdatum:       { type: 'string',  scope: 'session', default: '' },
+/* ── KPI LEISTE ── */
+.kpi-row{background:var(--surface);border-bottom:2px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);}
+.kpi{padding:0 1.4vw;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;}
+.kpi:last-child{border-right:none;}
+.kpi-l{font-size:0.52vw;font-weight:700;color:var(--ink-4);margin-bottom:.2vh;white-space:nowrap;}
+.kpi-v{font-size:2vh;font-weight:800;color:var(--blue);letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.kpi-v.pos{color:var(--green);}
+.kpi-v.neg{color:var(--red);}
+.kpi-v.dim{color:var(--ink-3);}
+.kpi-s{font-size:0.48vw;color:var(--ink-4);font-weight:500;margin-top:.1vh;}
+.kpi.hl{background:#1a6bad;}
+.kpi.hl .kpi-l{color:rgba(255,255,255,0.6);}
+.kpi.hl .kpi-v{color:white;font-size:2.2vh;}
+.kpi.hl .kpi-s{color:rgba(255,255,255,0.5);}
 
-    // ── Agenda (01) ──────────────────────────────────────────────────────
-    agenda_traktanden:    { type: 'array',   scope: 'session', default: [] },
-    agenda_erwartungen:   { type: 'array',   scope: 'session', default: [] },
+/* ── MITTE ── */
+.mid{display:grid;grid-template-columns:1fr 2px 1fr;overflow:hidden;min-height:0;}
+.vdiv{background:var(--line);}
+.col{display:flex;flex-direction:column;padding:1.8vh 2.8vw 1.5vh;overflow:hidden;min-height:0;}
+.col-a{background:var(--surface);}
+.col-l{background:var(--bg);}
+.col-hd{display:flex;align-items:baseline;justify-content:space-between;flex-shrink:0;margin-bottom:1.2vh;}
+.col-hd-lbl{font-size:0.68vw;font-weight:700;color:var(--ink-3);letter-spacing:.02em;}
+.col-hd-tot{font-size:1.35vh;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+.col-hd-tot.blue{color:var(--blue);}
+.col-hd-tot.red{color:var(--red);}
 
-    // ── Bank (02) — config, bleibt bei clearSession ──────────────────────
-    bankTexts:            { type: 'object',  scope: 'config',  default: {} },
-    bankHeroSub:          { type: 'string',  scope: 'config',  default: '' },
+/* ── BAR ROWS (Vermögen) ── */
+.bar-list{flex:1;display:flex;flex-direction:column;justify-content:space-around;min-height:0;}
+.bar-row{display:flex;align-items:center;gap:.8vw;cursor:pointer;padding:.5vh .4vw;border-radius:8px;transition:background .15s;flex-shrink:0;}
+.bar-row:hover{background:var(--blue-lt);}
+.bar-icon-block{width:4.2vw;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3vh;}
+.bar-icon-block svg{width:2.2vh;height:2.2vh;color:var(--ink-3);flex-shrink:0;stroke-width:1.6;}
+.bar-row.filled .bar-icon-block svg{color:var(--blue);}
+.bar-icon-lbl{font-size:0.6vw;font-weight:700;color:var(--ink-3);text-align:center;line-height:1.1;white-space:nowrap;}
+.bar-row.filled .bar-icon-lbl{color:var(--ink-2);}
+.bar-track{flex:1;height:3.4vh;background:var(--blue-lt);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.fill-zahlen{background:#2b7fc0;}
+.fill-sparen{background:var(--blue-md);}
+.fill-vorsorgen{background:var(--blue);}
+.fill-anlegen{background:var(--blue-dk);}
+.bar-val{width:8vw;flex-shrink:0;font-size:0.7vw;font-weight:700;color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;}
+.bar-row.filled .bar-val{color:var(--blue);}
 
-    // ── Cockpit (05) ─────────────────────────────────────────────────────
-    // Hinweis: cockpit_income war Legacy — korrekt ist cockpit_einkommen
-    cockpit_einkommen:       { type: 'number',  scope: 'session', default: null },
-    cockpit_verpflichtungen: { type: 'number',  scope: 'session', default: null },
-    cockpit_pk_saldo:        { type: 'number',  scope: 'session', default: null },
-    cockpit_anlage_f:        { type: 'number',  scope: 'session', default: null },
-    cockpit_data:            { type: 'object',  scope: 'session', default: null },
+/* ── VERPFLICHTUNGEN: Cashflow ── */
+.liab-wrap{flex:1;display:flex;flex-direction:column;min-height:0;gap:.5vh;}
 
-    // ── Ziele (06) ───────────────────────────────────────────────────────
-    ziele:                { type: 'array',   scope: 'session', default: [] },
-    wuensche:             { type: 'array',   scope: 'session', default: [] },
+.cf-lbl{font-size:0.52vw;font-weight:700;color:var(--ink-4);flex-shrink:0;margin-bottom:.1vh;}
 
-    // ── Anlegen (07b) ────────────────────────────────────────────────────
-    anlage_horizont:      { type: 'number',  scope: 'session', default: null },
-    anlage_betrag:        { type: 'number',  scope: 'session', default: null },
-    anlage_strategie:     { type: 'string',  scope: 'session', default: '' },
-    anlage_reaktion:      { type: 'string',  scope: 'session', default: '' },
-    anlage_profil:        { type: 'string',  scope: 'session', default: '' },
-    anlage_kenntnisse:    { type: 'object',  scope: 'session', default: null },
-    anlage_esg:           { type: 'object',  scope: 'session', default: null },
-    anlage_impl:          { type: 'object',  scope: 'session', default: null },
+.cf-row{display:flex;align-items:center;gap:.8vw;cursor:pointer;padding:.4vh .4vw;border-radius:8px;transition:background .15s;flex-shrink:0;}
+.cf-row:hover{background:var(--red-lt);}
+.cf-icon-block{width:4.2vw;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3vh;}
+.cf-icon-block svg{width:2.2vh;height:2.2vh;color:var(--ink-3);flex-shrink:0;stroke-width:1.6;}
+.cf-row.filled .cf-icon-block svg{color:var(--red);}
+.cf-icon-lbl{font-size:0.6vw;font-weight:700;color:var(--ink-3);text-align:center;line-height:1.1;white-space:nowrap;}
+.cf-row.filled .cf-icon-lbl{color:var(--red-dk);}
 
-    // ── Vereinbarungen (08) ──────────────────────────────────────────────
-    vereinbarungen:       { type: 'array',   scope: 'session', default: [] },
-    vereinbarungen_v1:    { type: 'object',  scope: 'session', default: null },
-    vereinbarungenHeroImage: { type: 'string', scope: 'session', default: '' },
+/* Track mit Overflow für Kapitalverzehr-Überhang */
+.cf-track-wrap{flex:1;position:relative;height:3.4vh;}
+.cf-track{width:100%;height:100%;background:var(--red-lt);border-radius:5px;overflow:hidden;position:relative;}
+.cf-track.blue{background:var(--blue-lt);}
+.cf-bar{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1);position:absolute;left:0;top:0;}
+.cf-bar-eink{background:var(--blue);}
+.cf-bar-ausg{background:var(--red-dk);}
+/* Kapitalverzehr-Überhang: gestrichelt, rechts vom Track */
+.cf-overhang{position:absolute;right:0;top:0;height:100%;background:repeating-linear-gradient(-45deg,var(--red),var(--red) 3px,#ff8080 3px,#ff8080 6px);border-radius:0 5px 5px 0;transform:translateX(100%);transition:width .6s cubic-bezier(.4,0,.2,1);}
+.cf-val{width:8vw;flex-shrink:0;font-size:0.7vw;font-weight:700;color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;}
+.cf-row.filled .cf-val{color:var(--red);}
+#cfr-eink.filled .cf-val{color:var(--blue);}
 
-    // ── Feedback (09) ────────────────────────────────────────────────────
-    fb_ratings:           { type: 'array',   scope: 'session', default: [] },
-    fb_q_text_0:          { type: 'string',  scope: 'session', default: '' },
-    fb_q_text_1:          { type: 'string',  scope: 'session', default: '' },
+/* Sparquote-Zeile */
+.cf-spar{display:flex;align-items:center;gap:.5vw;padding:.2vh .4vw .2vh calc(4.2vw + .8vw + .4vw);flex-shrink:0;}
+.cf-spar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--ink-4);}
+.cf-spar-txt{font-size:0.58vw;font-weight:700;color:var(--ink-4);}
 
-    // ── Abschluss (10) ───────────────────────────────────────────────────
-    abschluss_bgImage:    { type: 'string',  scope: 'session', default: '' },
+/* ── FINANZIERUNGS-BEREICH ── */
+/* Trennlinie zwischen Cashflow und Finanzierung */
+#fin-wrap {
+  flex-shrink: 0;
+  margin-top: 1.4vh;
+  padding-top: 1.2vh;
+  border-top: 1.5px solid var(--line);
+}
 
-    // ── Config (bleibt bei clearSession) ────────────────────────────────
-    aktiverBerater:       { type: 'number',  scope: 'config',  default: 1 },
-    beraterName:          { type: 'string',  scope: 'config',  default: '' },
-    beraterTitel:         { type: 'string',  scope: 'config',  default: '' },
-    beratervorstellung:   { type: 'object',  scope: 'config',  default: {} },
-    activeBranches:       { type: 'object',  scope: 'config',  default: {} },
-    disabled:             { type: 'object',  scope: 'config',  default: {} },
-  };
+/* Zustand 1: Nicht erfasst – gleiche Struktur wie cf-row */
+.fin-invite {
+  display: flex; align-items: center; gap: .8vw;
+  cursor: pointer; padding: .4vh .4vw;
+  border-radius: 8px; transition: background .15s;
+}
+.fin-invite:hover { background: var(--blue-lt); }
+.fin-invite-icon-block {
+  width: 4.2vw; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .3vh;
+}
+.fin-invite-icon-block svg { width: 2.2vh; height: 2.2vh; color: var(--ink-4); flex-shrink: 0; stroke-width: 1.6; }
+.fin-invite-lbl { font-size: 0.6vw; font-weight: 700; color: var(--ink-4); text-align: center; line-height: 1.1; white-space: nowrap; }
+.fin-invite-txt {
+  flex: 1;
+  font-size: 0.62vw; font-weight: 600; color: var(--ink-4);
+}
 
-  function _load() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-    catch (e) { return {}; }
+/* Zustand 2: Keine Finanzierung */
+.fin-none {
+  display: flex; align-items: center; gap: .8vw;
+  cursor: pointer; padding: .4vh .4vw;
+  border-radius: 8px; transition: background .15s;
+}
+.fin-none:hover { background: var(--blue-lt); }
+.fin-none-icon-block {
+  width: 4.2vw; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .3vh;
+}
+.fin-none-icon-block svg { width: 2.2vh; height: 2.2vh; color: var(--ink-4); flex-shrink: 0; stroke-width: 1.6; }
+.fin-none-icon-lbl { font-size: 0.6vw; font-weight: 700; color: var(--ink-4); text-align: center; line-height: 1.1; white-space: nowrap; }
+.fin-none-badge { font-size: 0.6vw; font-weight: 600; color: var(--ink-4); }
+
+/* Zustand 3: Finanzierung vorhanden – im System, aber prominent */
+.fin-card {
+  display: flex; align-items: center; gap: .8vw;
+  cursor: pointer; padding: .5vh .4vw;
+  border-radius: 8px; transition: background .15s;
+}
+.fin-card:hover { background: var(--red-lt); }
+.fin-card-icon-block {
+  width: 4.2vw; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .3vh;
+}
+.fin-card-icon-block svg { width: 2.2vh; height: 2.2vh; color: var(--red); flex-shrink: 0; stroke-width: 1.6; }
+.fin-card-icon-lbl { font-size: 0.6vw; font-weight: 700; color: var(--red-dk); text-align: center; line-height: 1.1; white-space: nowrap; }
+.fin-card-body { flex: 1; display: flex; flex-direction: column; gap: .15vh; }
+.fin-card-betrag { font-size: 1.6vh; font-weight: 800; color: var(--red); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.fin-card-tags { display: flex; gap: .5vw; }
+.fin-card-tag { font-size: 0.5vw; font-weight: 700; color: var(--ink-4); background: var(--line); padding: .2vh .45vw; border-radius: 3px; }
+.fin-card-edit { font-size: 0.5vw; font-weight: 600; color: transparent; transition: color .2s; }
+.fin-card:hover .fin-card-edit { color: var(--ink-4); }
+
+/* ── CHART ── */
+.chart-row{background:var(--surface);border-top:2px solid var(--line);display:grid;grid-template-columns:1fr 16vw;overflow:hidden;min-height:0;}
+.chart-main{padding:1.4vh 1.8vw 1.4vh 2.8vw;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;}
+.chart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6vh;flex-shrink:0;}
+.chart-ttl{font-size:0.68vw;font-weight:700;color:var(--ink-3);}
+.chart-wrap{flex:1;min-height:0;position:relative;}
+.rendite-badge{position:absolute;top:.4vh;left:0;background:var(--green);color:white;font-size:0.62vw;font-weight:800;padding:.28vh .55vw;border-radius:4px;pointer-events:none;z-index:10;display:none;}
+.chart-ctrl{background:var(--bg);border-left:2px solid var(--line);padding:1.3vh 1.3vw;display:flex;flex-direction:column;gap:1.1vh;overflow:hidden;}
+.ctrl-g{display:flex;flex-direction:column;gap:.38vh;}
+.ctrl-l{font-size:0.5vw;font-weight:700;color:var(--ink-3);}
+.btn-row{display:flex;flex-wrap:wrap;gap:3px;}
+.tb{padding:.3vh .44vw;border-radius:4px;font-size:0.55vw;font-weight:700;background:var(--surface);color:var(--ink-3);cursor:pointer;border:1px solid var(--line);font-family:var(--font);transition:all .15s;white-space:nowrap;}
+.tb.on{background:var(--blue);color:white;border-color:var(--blue);}
+
+/* ── FOOTER ── */
+.footer{background:var(--surface);border-top:2px solid var(--line);padding:0 3.5vw;display:flex;align-items:center;justify-content:space-between;}
+.footer-copy{font-size:.6vw;font-weight:500;color:var(--ink-4);}
+.status{display:flex;align-items:center;gap:.4vw;font-size:.55vw;font-weight:700;color:var(--green);}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5);}50%{box-shadow:0 0 0 5px rgba(34,197,94,0);}}
+
+/* ── MODAL ── */
+.mbg{position:fixed;inset:0;background:rgba(0,20,55,.85);backdrop-filter:blur(16px);z-index:9999;display:none;align-items:center;justify-content:center;padding:3vh 4vw;}
+.mbox{background:white;width:min(900px,74vw);max-height:90vh;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 50px 100px rgba(0,0,0,.5);}
+.mhd{padding:2.6vh 3vw 2.2vh;border-bottom:2px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mttl{font-size:clamp(16px,2.2vh,26px);font-weight:800;color:var(--blue);letter-spacing:-.02em;}
+.mttl.red{color:var(--red);}
+.mbody{padding:2.6vh 3vw;overflow-y:auto;flex:1;}
+.mclose{background:none;border:none;cursor:pointer;color:var(--ink-4);display:flex;align-items:center;transition:color .15s;font-family:var(--font);padding:.4vh;}
+.mclose:hover{color:var(--red);}
+.mclose svg{width:clamp(18px,1.5vw,26px);height:clamp(18px,1.5vw,26px);}
+
+/* ── FORMULAR ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;}
+.f2{grid-column:span 2;}
+.sec{grid-column:span 2;font-size:11px;font-weight:800;color:var(--blue);border-bottom:2px solid var(--blue-lt);padding-bottom:5px;margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+.ig{display:flex;flex-direction:column;gap:5px;}
+.ig label{font-size:12px;font-weight:700;color:var(--ink-2);}
+.ig input,.ig select,.ig textarea{padding:10px 14px;border:1.5px solid var(--line);border-radius:7px;font-size:15px;font-weight:600;font-family:var(--font);background:var(--bg);color:var(--ink);outline:none;transition:border-color .15s,background .15s;}
+.ig input:focus,.ig select:focus{border-color:var(--blue);background:white;}
+.ig textarea{resize:vertical;min-height:75px;}
+.hint{font-size:11px;color:var(--ink-4);font-weight:500;margin-top:2px;}
+.rbg{display:flex;flex-wrap:wrap;gap:6px;}
+.rb{padding:7px 14px;border-radius:6px;border:1.5px solid var(--line);font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--ink-3);font-family:var(--font);transition:all .13s;}
+.rb.on{background:var(--blue);color:white;border-color:var(--blue);}
+.tag{padding:6px 12px;border-radius:6px;border:1.5px solid var(--line);font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--ink-3);font-family:var(--font);transition:all .13s;}
+.tag.on{background:var(--blue);color:white;border-color:var(--blue);}
+.calc-box{grid-column:span 2;background:#f0f4f8;border-radius:10px;border:1.5px solid var(--blue-lt);padding:14px 18px;display:flex;flex-direction:column;gap:4px;}
+.calc-lbl{font-size:12px;font-weight:700;color:var(--ink-3);}
+.calc-val{font-size:26px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+.calc-val.pos{color:var(--green);}
+.calc-val.neg{color:var(--red);}
+.btn-save{margin-top:20px;width:100%;padding:13px 0;background:var(--blue);color:white;font-size:15px;font-weight:700;font-family:var(--font);border:none;border-radius:8px;cursor:pointer;transition:background .15s;}
+.btn-save:hover{background:var(--blue-dk);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
+
+        /* ── TOPBAR ADMIN ── */
+        .topbar-right { display: flex !important; align-items: center; gap: 0.6vw; flex-shrink: 0; }
+        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: 0.5vw; font-weight: 600; }
+        .edit-btn {
+            background: none !important; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.28); font-size: 0.5vw;
+            font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 0;
+            transition: color 0.15s; white-space: nowrap;
+        }
+        .edit-btn:hover { color: rgba(255,255,255,0.7); }
+        .home-btn {
+            background: rgba(255,255,255,0.12) !important; border: none; border-radius: 5px;
+            padding: 0.42vh 0.42vw; cursor: pointer; color: white;
+            display: flex; align-items: center; transition: background 0.15s;
+            text-decoration: none; flex-shrink: 0;
+        }
+        .home-btn:hover { background: rgba(255,255,255,0.22) !important; }
+        .home-btn svg { width: 13px; height: 13px; display: block; }
+
+        /* ── BOTTOM NAV ── */
+        .footer, footer {
+            background: var(--surface, #fff) !important; border-top: 1px solid var(--line, #e2e8f0) !important;
+            display: flex !important; align-items: center; padding: 0 1vw; gap: 0.1vw;
+            justify-content: flex-start !important;
+        }
+        .nav-tab {
+            display: flex; align-items: center; justify-content: center;
+            height: 100%; padding: 0 0.75vw;
+            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            white-space: nowrap; flex-shrink: 0; text-decoration: none;
+            border-radius: 3px; transition: color 0.15s, background 0.15s;
+        }
+        .nav-tab:hover { color: #64748b; background: #f1f5f9; }
+        .nav-tab.active { background: #dce8f4; color: #004078; font-weight: 700; }
+        .nav-tab-split { display: flex; align-items: center; height: 100%; flex-shrink: 0; border-radius: 3px; overflow: hidden; }
+        .nav-tab-half {
+            display: flex; align-items: center; justify-content: center;
+            height: 100%; padding: 0 0.65vw;
+            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            white-space: nowrap; text-decoration: none;
+            transition: color 0.15s, background 0.15s;
+        }
+        .nav-tab-half:hover { color: #64748b; background: #f1f5f9; }
+        .nav-tab-half.active { background: #dce8f4; color: #004078; font-weight: 700; }
+        .nav-spacer { flex: 1; }
+        .nav-brand { font-size: 0.48vw; color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+<div class="canvas">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark">bbz</div>
+      <span class="logo-name">Finanz-Cockpit</span>
+    </div>
+
+    <!-- Modul-Navigation -->
+    <div class="topbar-right" style="display:flex;align-items:center;flex-shrink:0;">
+
+    <a href="index.html" class="home-btn" title="Home">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>
+    </a>
+    <span class="topbar-brand">bbz bank</span>
+  </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi" id="kpi-gesamt-wrap">
+      <div class="kpi-l">Gesamtvermögen (inkl. BV)</div>
+      <div class="kpi-v" id="k-gesamt">–</div>
+      <div class="kpi-s">Vermögen total</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">Freies Vermögen</div>
+      <div class="kpi-v" id="k-exkl">–</div>
+      <div class="kpi-s">ohne Pensionskasse</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">Liquidität</div>
+      <div class="kpi-v" id="k-liq">–</div>
+      <div class="kpi-s">Zahlen &amp; Sparen</div>
+    </div>
+    <div class="kpi hl">
+      <div class="kpi-l">Anlagefähiges Kapital</div>
+      <div class="kpi-v" id="k-anlage">–</div>
+      <div class="kpi-s" id="k-anlage-s">Liq. – Wohlfühlreserve</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">Sparquote</div>
+      <div class="kpi-v" id="k-spar">–</div>
+      <div class="kpi-s">pro Monat</div>
+    </div>
+    <div class="kpi" id="kpi-fin-wrap" style="display:none">
+      <div class="kpi-l">Finanzierung</div>
+      <div class="kpi-v neg" id="k-fin">–</div>
+      <div class="kpi-s" id="k-fin-s">Kapitalwert</div>
+    </div>
+  </div>
+
+  <!-- MITTE -->
+  <div class="mid">
+
+    <!-- VERMÖGEN -->
+    <div class="col col-a">
+      <div class="col-hd">
+        <span class="col-hd-lbl">VERMÖGEN</span>
+        <span class="col-hd-tot blue" id="a-total">–</span>
+      </div>
+      <div class="bar-list">
+
+        <div class="bar-row" id="br-zahlen" onclick="openModal('zahlen')">
+          <div class="bar-icon-block">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span class="bar-icon-lbl">Zahlungsverkehr</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill fill-zahlen" id="bf-zahlen" style="width:0%"></div></div>
+          <span class="bar-val" id="bv-zahlen">Erfassen →</span>
+        </div>
+
+        <div class="bar-row" id="br-sparen" onclick="openModal('sparen')">
+          <div class="bar-icon-block">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <span class="bar-icon-lbl">Sparen</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill fill-sparen" id="bf-sparen" style="width:0%"></div></div>
+          <span class="bar-val" id="bv-sparen">Erfassen →</span>
+        </div>
+
+        <div class="bar-row" id="br-vorsorgen" onclick="openModal('vorsorgen')">
+          <div class="bar-icon-block">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span class="bar-icon-lbl">Vorsorgen</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill fill-vorsorgen" id="bf-vorsorgen" style="width:0%"></div></div>
+          <span class="bar-val" id="bv-vorsorgen">Erfassen →</span>
+        </div>
+
+        <div class="bar-row" id="br-anlegen" onclick="openModal('anlegen')">
+          <div class="bar-icon-block">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <span class="bar-icon-lbl">Anlegen</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill fill-anlegen" id="bf-anlegen" style="width:0%"></div></div>
+          <span class="bar-val" id="bv-anlegen">Erfassen →</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="vdiv"></div>
+
+    <!-- VERPFLICHTUNGEN -->
+    <div class="col col-l">
+      <div class="col-hd">
+        <span class="col-hd-lbl">VERPFLICHTUNGEN</span>
+        <span class="col-hd-tot red" id="l-total">–</span>
+      </div>
+
+      <div class="liab-wrap">
+
+        <!-- Cashflow Section -->
+        <div class="cf-lbl">Monatlicher Cashflow</div>
+
+        <!-- Einkommen -->
+        <div class="cf-row filled" id="cfr-eink" onclick="openModal('ausgaben')">
+          <div class="cf-icon-block">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="cf-icon-lbl">Einkommen</span>
+          </div>
+          <div class="cf-track-wrap">
+            <div class="cf-track blue">
+              <div class="cf-bar cf-bar-eink" id="bf-eink" style="width:100%"></div>
+            </div>
+          </div>
+          <span class="cf-val" id="bv-eink">Erfassen →</span>
+        </div>
+
+        <!-- Ausgaben (inkl. aller Unterkategorien) -->
+        <div class="cf-row" id="cfr-ausg" onclick="openModal('ausgaben')">
+          <div class="cf-icon-block">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M3 6h18M3 18h12"/></svg>
+            <span class="cf-icon-lbl">Ausgaben</span>
+          </div>
+          <div class="cf-track-wrap">
+            <div class="cf-track">
+              <div class="cf-bar cf-bar-ausg" id="bf-ausg" style="width:0%"></div>
+            </div>
+            <div class="cf-overhang" id="bf-ueber" style="width:0%"></div>
+          </div>
+          <span class="cf-val" id="bv-ausg">Erfassen →</span>
+        </div>
+
+        <!-- Sparquote Ergebnis -->
+        <div class="cf-spar">
+          <div class="cf-spar-dot" id="spar-dot"></div>
+          <span class="cf-spar-txt" id="spar-txt">Einkommen erfassen für Cashflow-Analyse</span>
+        </div>
+
+        <!-- Finanzierung: drei Zustände -->
+        <div id="fin-wrap"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-row">
+    <div class="chart-main">
+      <div class="chart-hd">
+        <span class="chart-ttl">Vermögensentwicklung (Simulation)</span>
+        <div class="btn-row">
+          <button class="tb on" id="btn-ohneBV" onclick="setMode('ohneBV',this)">Freies Vermögen</button>
+          <button class="tb" onclick="setMode('anlage',this)">Anlagefähig</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="rendite-badge" id="rendite-badge"></div>
+        <canvas id="gChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-ctrl">
+      <div class="ctrl-g"><span class="ctrl-l">Rendite p.a.</span>
+        <div class="btn-row">
+          <button class="tb on" onclick="setY(0,this)">0%</button>
+          <button class="tb" onclick="setY(.005,this)">0.5%</button>
+          <button class="tb" onclick="setY(.01,this)">1%</button>
+          <button class="tb" onclick="setY(.02,this)">2%</button>
+          <button class="tb" onclick="setY(.03,this)">3%</button>
+          <button class="tb" onclick="setY(.05,this)">5%</button>
+        </div>
+      </div>
+      <div class="ctrl-g"><span class="ctrl-l">Zeithorizont</span>
+        <div class="btn-row">
+          <button class="tb on" onclick="setJr(10,this)">10J</button>
+          <button class="tb" onclick="setJr(15,this)">15J</button>
+          <button class="tb" onclick="setJr(20,this)">20J</button>
+          <button class="tb" onclick="setJr(30,this)">30J</button>
+        </div>
+      </div>
+      <div class="ctrl-g"><span class="ctrl-l">Sparquote einbeziehen</span>
+        <div class="btn-row">
+          <button class="tb on" onclick="setSp(true,this)">Ja</button>
+          <button class="tb" onclick="setSp(false,this)">Nein</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <a href="01_agenda.html" class="nav-tab">Agenda</a>
+    <a href="02_bank.html" class="nav-tab">Bank</a>
+    <a href="03_berater.html" class="nav-tab">Berater:in</a>
+    <a href="04_philosophie.html" class="nav-tab">Philosophie</a>
+    <a href="05_cockpit.html" class="nav-tab active">Cockpit</a>
+    <a href="06_ziele.html" class="nav-tab">Ziele</a>
+    <div class="nav-tab-split">
+      <a href="07a_finanzieren.html" class="nav-tab-half">Finanzieren</a>
+      <a href="07b_anlegen.html" class="nav-tab-half">Anlegen</a>
+    </div>
+    <a href="08_vereinbarungen.html" class="nav-tab">Vereinbarungen</a>
+    <a href="09_feedback.html" class="nav-tab">Feedback</a>
+    <a href="10_abschluss.html" class="nav-tab">Abschluss</a>
+    <div class="nav-spacer"></div>
+    <span class="nav-brand">bbz bank</span>
+  </div>
+
+</div><!-- /canvas -->
+
+<!-- MODAL – ausserhalb Canvas damit overflow:hidden nicht greift -->
+<div class="mbg" id="mbg" onclick="bgClick(event)">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <span class="mttl" id="mttl">Erfassung</span>
+      <button class="mclose" onclick="closeModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+const S = {
+  zahlen:    { saldo:0, bank:'', konten:1, banken:1, kanaele:[], kommentar:'' },
+  sparen:    { saldo:0, banken:1, konten:1, quoteBetrag:0, quoteFreq:'mtl', quoteTyp:'positiv', reserve:0, sichergestellt:'nein', kommentar:'' },
+  vorsorgen: { pkSaldo:0, pkBekannt:'nein', pkEinkaeufe:'nein', pkAusbezahlt:'nein',
+               s3Saldo:0, s3Konten:1, s3Banken:1, s3Form:'Konto',
+               s3Einz:'nein', s3EinzBetrag:7258, s3Strategie:'Unbekannt', kommentar:'' },
+  anlegen:   { vorhanden:'nein', volumen:0, strategie:'Unbekannt', typ:'Beratungsdepot', kommentar:'' },
+  // Ausgaben: Einkommen + alle Unterkategorien in einem Modal
+  ausgaben:  { eMann:0, eFrau:0, typ:'netto', freq:'mtl',
+               haushalt:0, leasing:0, unterhalt:0, uebrige:0, kommentar:'' },
+  finanzieren:{ vorhanden:'nein', betrag:0, form:'Hypothek', laufzeit:'>3', kommentar:'' },
+  chart:     { mode:'ohneBV', yld:0, years:10, spar:true }
+};
+let gChart = null;
+
+const CHF = n => n===0 ? 'CHF 0'
+  : new Intl.NumberFormat('de-CH',{style:'currency',currency:'CHF',maximumFractionDigits:0}).format(n);
+const pN  = v => parseFloat(String(v).replace(/[^0-9.-]/g,''))||0;
+// Tausender-Trennzeichen für Input-Felder (Apostroph nach CH-Norm)
+const fmtInput = v => { const n=pN(v); return n>0 ? new Intl.NumberFormat('de-CH',{maximumFractionDigits:0}).format(n) : ''; };
+function onBlurFmt(el){ el.value = fmtInput(el.value); }
+function onFocusFmt(el){ el.value = pN(el.value)||''; }
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const $   = id => document.getElementById(id);
+const gv  = id => { const e=$(id); return e?e.value:''; };
+const gn  = id => pN(gv(id));
+
+/* ══════════════════════════════════════
+   BERECHNUNG
+   LOGIK:
+   Ausgaben total = Haushalt + Leasing + Unterhalt + Übrige
+   Sparquote = Einkommen – Ausgaben total
+   Finanzierung = Kapitalwert, separater Block
+══════════════════════════════════════ */
+function calc() {
+  const liq      = S.zahlen.saldo + S.sparen.saldo;
+  const s3       = S.vorsorgen.s3Saldo;
+  const pk       = S.vorsorgen.pkSaldo;
+  const anlagen  = S.anlegen.volumen;
+  const totalMit = liq + pk + s3 + anlagen;
+  const totalOhne= liq + s3 + anlagen;
+  const anlageF  = Math.max(0, liq - S.sparen.reserve);
+
+  // Sparquote aus Sparen-Layer
+  const sparLayerM = S.sparen.quoteFreq==='mtl' ? S.sparen.quoteBetrag : S.sparen.quoteBetrag/12;
+  const sparSign   = S.sparen.quoteTyp==='negativ' ? -1 : 1;
+
+  // Einkommen
+  const eMannM   = S.ausgaben.freq==='mtl' ? S.ausgaben.eMann : S.ausgaben.eMann/12;
+  const eFrauM   = S.ausgaben.freq==='mtl' ? S.ausgaben.eFrau : S.ausgaben.eFrau/12;
+  const einkGesM = eMannM + eFrauM;
+
+  // Ausgaben total (alle Unterkategorien)
+  const ausgGesM = S.ausgaben.haushalt + S.ausgaben.leasing
+                 + S.ausgaben.unterhalt + S.ausgaben.uebrige;
+
+  // Cashflow-Saldo (nur wenn Einkommen erfasst)
+  const hasSpar = sparLayerM > 0;
+  const hasCF   = einkGesM > 0;
+  const cashflowSaldoM = hasCF ? einkGesM - ausgGesM : null;
+  const verzehr = hasCF && ausgGesM > einkGesM;
+
+  // Effektive Sparquote = tieferer Betrag beider Erfassungen (konservativ)
+  let effSparM;
+  if (hasSpar && hasCF) {
+    effSparM = Math.max(0, Math.min(sparLayerM, cashflowSaldoM));
+  } else if (hasSpar) {
+    effSparM = sparLayerM * sparSign;
+  } else if (hasCF) {
+    effSparM = Math.max(0, cashflowSaldoM);
+  } else {
+    effSparM = 0;
   }
+  const sparNetto = effSparM;
 
-  function _save(data) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-    catch (e) { console.warn('bbz-data: localStorage write failed', e); }
-  }
+  // Finanzierung
+  const finBetrag = S.finanzieren.vorhanden==='ja' ? S.finanzieren.betrag : 0;
 
-  function _coerce(key, value) {
-    const schema = SCHEMA[key];
-    if (!schema || value === null || value === undefined) return value;
-    if (schema.type === 'number') {
-      return typeof value === 'string'
-        ? parseFloat(value.replace(/['\s]/g, '').replace(',', '.')) || null
-        : Number(value);
+  const pkBekannt = S.vorsorgen.pkBekannt === 'ja';
+
+  /* ── KPIs ── */
+  const kpiGWrap = $('kpi-gesamt-wrap');
+  if(kpiGWrap) kpiGWrap.style.display = pkBekannt ? '' : 'none';
+  $('k-gesamt').textContent = totalMit  >0 ? CHF(totalMit)  : '–';
+  $('k-exkl').textContent   = totalOhne >0 ? CHF(totalOhne) : '–';
+  $('k-liq').textContent    = liq       >0 ? CHF(liq)       : '–';
+  $('k-anlage').textContent = anlageF   >0 ? CHF(anlageF)   : '–';
+  $('k-anlage-s').textContent = S.sparen.reserve>0
+    ? 'Liq. – '+CHF(S.sparen.reserve)+' Reserve'
+    : 'Liq. – Wohlfühlreserve';
+
+  const ks = $('k-spar');
+  if(sparLayerM > 0){
+    ks.textContent = (sparSign>0?'+ ':'– ')+CHF(sparLayerM);
+    ks.className   = 'kpi-v '+(sparSign>0?'pos':'neg');
+  } else { ks.textContent='–'; ks.className='kpi-v dim'; }
+
+  // Finanzierungs-KPI (nur wenn vorhanden)
+  const finWrap = $('kpi-fin-wrap');
+  if(finWrap) finWrap.style.display = finBetrag>0 ? '' : 'none';
+  $('k-fin').textContent   = finBetrag>0 ? CHF(finBetrag) : '–';
+  $('k-fin-s').textContent = finBetrag>0 ? S.finanzieren.form : 'Kapitalwert';
+
+  /* ── Vermögen-Balken ── */
+  $('a-total').textContent = totalOhne>0
+    ? CHF(totalOhne)+(pkBekannt&&pk>0?' (+ '+CHF(pk)+' PK)':'') : '–';
+  const aMax = Math.max(1, S.zahlen.saldo, S.sparen.saldo, s3, anlagen);
+  setABar('zahlen',    S.zahlen.saldo, aMax, CHF(S.zahlen.saldo));
+  setABar('sparen',    S.sparen.saldo, aMax, CHF(S.sparen.saldo));
+  setABar('vorsorgen', s3,             aMax, s3>0 ? CHF(s3)+' (3a)' : 'Erfassen →');
+  setABar('anlegen',   anlagen,        aMax, CHF(anlagen));
+
+  /* ── Verpflichtungen Header ── */
+  const lTot = ausgGesM>0
+    ? CHF(ausgGesM)+' / mtl.'+(finBetrag>0?' · '+CHF(finBetrag)+' Fin.':'')
+    : finBetrag>0 ? CHF(finBetrag)+' Finanzierung' : '–';
+  $('l-total').textContent = lTot;
+
+  /* ── Cashflow-Visualisierung ── */
+  if(einkGesM > 0) {
+    $('bv-eink').textContent = CHF(einkGesM)+' / mtl.';
+
+    // Ausgaben-Balken = Einkommen – effektive Sparquote
+    // Das ist der Betrag der «verbraucht» wird – unabhängig davon ob Ausgaben detailliert erfasst
+    const ausgabenNachSpar = einkGesM - effSparM;
+    const ausgPct = Math.min(100, Math.round(ausgabenNachSpar / einkGesM * 100));
+    $('bf-ausg').style.width = ausgPct + '%';
+    $('cfr-ausg').classList.toggle('filled', ausgabenNachSpar > 0 || ausgGesM > 0);
+    // Anzeige: wenn Ausgaben detailliert erfasst → zeige den Betrag, sonst Ableitung
+    const ausgLabel = ausgGesM > 0
+      ? CHF(ausgGesM)+' / mtl.'
+      : CHF(ausgabenNachSpar)+' / mtl. (abgeleitet)';
+    $('bv-ausg').textContent = (ausgabenNachSpar > 0 || ausgGesM > 0) ? ausgLabel : 'Erfassen →';
+
+    // Überhang bei Kapitalverzehr (Sparquote = 0 aber Ausgaben > Einkommen)
+    const ueberEl = $('bf-ueber');
+    if(verzehr && ueberEl){
+      const ueberPct = Math.min(25, Math.round((ausgGesM-einkGesM)/einkGesM*100));
+      ueberEl.style.width = ueberPct+'%';
+    } else if(ueberEl){
+      ueberEl.style.width = '0%';
     }
-    return value;
+
+    // Sparquote-Zeile
+    const dot = $('spar-dot'), txt = $('spar-txt');
+    if(dot && txt){
+      const cfLimitiert = hasSpar && hasCF && cashflowSaldoM < sparLayerM;
+      if(verzehr){
+        dot.style.background='#e53e3e'; txt.style.color='#e53e3e';
+        txt.textContent = 'Kapitalverzehr – Ausgaben übersteigen Einkommen um '+CHF(ausgGesM-einkGesM);
+      } else if(effSparM > 0 && cfLimitiert){
+        dot.style.background='#d97706'; txt.style.color='#d97706';
+        txt.textContent = 'Effektive Sparquote: '+CHF(effSparM)+' / mtl. (Cashflow limitiert Sparen-Layer von '+CHF(sparLayerM)+')';
+      } else if(effSparM > 0){
+        dot.style.background='#16a34a'; txt.style.color='#16a34a';
+        txt.textContent = 'Effektive Sparquote: '+CHF(effSparM)+' / mtl.';
+      } else {
+        dot.style.background='#94a3b8'; txt.style.color='#94a3b8';
+        txt.textContent = 'Kein Sparspielraum – Budget ausgeglichen';
+      }
+    }
+  } else {
+    $('bv-eink').textContent = 'Erfassen →';
+    $('cfr-eink').classList.remove('filled');
+    $('bf-ausg').style.width = '0%';
+    $('bv-ausg').textContent = ausgGesM>0 ? CHF(ausgGesM)+' / mtl.' : 'Erfassen →';
+    const txt = $('spar-txt');
+    if(txt){ txt.textContent='Einkommen erfassen für Cashflow-Analyse'; txt.style.color=''; }
   }
 
-  const BBZ = {
+  /* ── Finanzierung: drei Zustände ── */
+  renderFin();
 
-    get(key) {
-      const data = _load();
-      if (key in data) return data[key];
-      return (SCHEMA[key] || {}).default ?? null;
+  /* ── Chart ── */
+  const chartStart = S.chart.mode==='anlage' ? anlageF : totalOhne;
+  if(chartStart > 0 || sparNetto > 0) {
+    renderChart(Math.max(0, chartStart), sparNetto);
+  } else {
+    // Kein Kapital erfasst – Chart leer lassen
+    if(gChart){ gChart.destroy(); gChart=null; }
+    const ctx = $('gChart');
+    if(ctx){ const c=ctx.getContext('2d'); c.clearRect(0,0,ctx.width,ctx.height); }
+    const badge=$('rendite-badge'); if(badge) badge.style.display='none';
+  }
+
+  // Werte in bbzData persistieren (Downstream-Module)
+  if (typeof BBZ !== 'undefined') {
+    const freq = S.ausgaben.freq || 'mtl';
+    const mult = freq === 'mtl' ? 12 : 1;
+
+    // Einkommen p.a. (hochgerechnet falls monatlich)
+    const einkommenPA = ((S.ausgaben.eMann || 0) + (S.ausgaben.eFrau || 0)) * mult;
+
+    // Verpflichtungen p.a.: nur Leasing + Unterhalt (ohne Haushalt & übrige)
+    const verpflichtungenPA = ((S.ausgaben.leasing || 0) + (S.ausgaben.unterhalt || 0)) * mult;
+
+    BBZ.set('cockpit_einkommen',      einkommenPA);
+    BBZ.set('cockpit_verpflichtungen', verpflichtungenPA);
+    BBZ.set('cockpit_pk_saldo',        S.vorsorgen.pkSaldo || 0);
+    BBZ.set('cockpit_anlage_f',        anlageF);
+
+    // Vollständiger State für Reload (verhindert Datenverlust beim Tab-Wechsel)
+    BBZ.set('cockpit_data', JSON.parse(JSON.stringify(S)));
+  }
+}
+
+function setABar(key,val,max,lbl){
+  const row=$('br-'+key),fill=$('bf-'+key),valEl=$('bv-'+key);
+  if(!row)return;
+  row.classList.toggle('filled',val>0);
+  fill.style.width=val>0?Math.max(4,Math.round(val/max*100))+'%':'0%';
+  valEl.textContent=val>0?lbl:'Erfassen →';
+}
+
+function renderFin(){
+  const wrap = $('fin-wrap'); if(!wrap) return;
+  const f = S.finanzieren;
+  const finBetrag = f.vorhanden==='ja' ? f.betrag : 0;
+  const icon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>`;
+  const seclbl = `<div class="cf-lbl" style="margin-bottom:.4vh">Kapitalverpflichtungen</div>`;
+
+  // Zustand 1: Noch nicht erfasst
+  if(!f._touched){
+    wrap.innerHTML=seclbl+`
+      <div class="fin-invite" onclick="openModal('finanzieren')">
+        <div class="fin-invite-icon-block">${icon}<span class="fin-invite-lbl">Finanzierung</span></div>
+        <span class="fin-invite-txt">Hypothek, Kredit erfassen →</span>
+      </div>`;
+    return;
+  }
+
+  // Zustand 2: Keine Finanzierung vorhanden
+  if(f.vorhanden==='nein'){
+    wrap.innerHTML=seclbl+`
+      <div class="fin-none" onclick="openModal('finanzieren')">
+        <div class="fin-none-icon-block">${icon}<span class="fin-none-icon-lbl">Finanzierung</span></div>
+        <span class="fin-none-badge">Keine vorhanden</span>
+      </div>`;
+    return;
+  }
+
+  // Zustand 3: Finanzierung vorhanden – prominente Karte
+  const ko = f.kommentar ? f.kommentar.substring(0,28)+(f.kommentar.length>28?'…':'') : '';
+  wrap.innerHTML=seclbl+`
+    <div class="fin-card" onclick="openModal('finanzieren')">
+      <div class="fin-card-icon-block">${icon}<span class="fin-card-icon-lbl">Finanzierung</span></div>
+      <div class="fin-card-body">
+        <div class="fin-card-betrag">${CHF(finBetrag)}</div>
+        <div class="fin-card-tags">
+          <span class="fin-card-tag">${f.form}</span>
+          <span class="fin-card-tag">Laufzeit ${f.laufzeit} J.</span>
+          ${ko?`<span class="fin-card-tag">${esc(ko)}</span>`:''}
+        </div>
+      </div>
+      <span class="fin-card-edit">Bearbeiten →</span>
+    </div>`;
+}
+
+/* ══════════════════════════════════════
+   CHART
+══════════════════════════════════════ */
+function renderChart(startCap, sparNetto){
+  const {yld,years,spar} = S.chart;
+  const annSpar = spar ? sparNetto*12 : 0;
+  const labels=[],dataY=[],dataF=[];
+  let cY=startCap, cF=startCap;
+  for(let i=0;i<=years;i++){
+    labels.push('J '+i);
+    dataY.push(Math.round(cY)); dataF.push(Math.round(cF));
+    cY=cY*(1+yld)+annSpar; cF=cF+annSpar;
+  }
+  const endVal=dataY[dataY.length-1], flatVal=dataF[dataF.length-1];
+  const effekt=endVal-flatVal, hasEff=yld>0&&effekt>500;
+
+  const badge=$('rendite-badge');
+  if(badge){ badge.textContent=hasEff?'+ '+CHF(effekt)+' Rendite-Effekt':''; badge.style.display=hasEff?'block':'none'; }
+
+  const datasets=[];
+  if(hasEff) datasets.push({label:'Ohne Rendite',data:dataF,borderColor:'#94a3b8',backgroundColor:'transparent',borderDash:[6,4],borderWidth:1.5,fill:false,tension:0.3,pointRadius:0,order:2});
+  datasets.push({label:'Mit Rendite',data:dataY,borderColor:'#004078',backgroundColor:hasEff?'rgba(22,163,74,0.1)':'rgba(0,64,120,0.07)',fill:hasEff?1:true,tension:0.4,borderWidth:2.5,pointRadius:0,pointHoverRadius:5,pointBackgroundColor:'#fff',pointBorderColor:'#004078',pointBorderWidth:2,order:1});
+
+  const endDot={id:'endDot',afterDatasetsDraw(chart){
+    const{ctx:c,scales:{x,y}}=chart;
+    const ds=chart.data.datasets[datasets.length-1];
+    const last=ds.data.length-1;
+    const px=x.getPixelForValue(last), py=y.getPixelForValue(ds.data[last]);
+    c.save();
+    c.beginPath();c.arc(px,py,5,0,Math.PI*2);
+    c.fillStyle='#004078';c.fill();
+    c.strokeStyle='white';c.lineWidth=2;c.stroke();
+    c.restore();
+  }};
+
+  const ctx=$('gChart').getContext('2d');
+  if(gChart)gChart.destroy();
+  gChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:500,easing:'easeInOutQuart'},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>CHF(c.raw)},titleFont:{family:'DM Sans',weight:'700',size:11},bodyFont:{family:'DM Sans',weight:'700',size:11}}},
+    scales:{
+      y:{grid:{color:'rgba(209,218,230,0.8)'},ticks:{font:{family:'DM Sans',size:10,weight:'700'},color:'#64748b',callback:v=>v>=1000000?'CHF '+(v/1000000).toFixed(1)+'M':v>=1000?'CHF '+Math.round(v/1000)+'k':CHF(v),maxTicksLimit:5}},
+      x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:9,weight:'600'},color:'#64748b',maxTicksLimit:12}}
     },
+    interaction:{mode:'index',intersect:false}
+  },plugins:[endDot]});
+}
 
-    set(key, value) {
-      const data = _load();
-      data[key] = _coerce(key, value);
-      _save(data);
-    },
+function grp(btn){btn.parentNode.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function setMode(m,btn){S.chart.mode=m;grp(btn);calc();}
+function setY(y,btn){S.chart.yld=y;grp(btn);calc();}
+function setJr(y,btn){S.chart.years=y;grp(btn);calc();}
+function setSp(v,btn){S.chart.spar=v;grp(btn);calc();}
 
-    merge(obj) {
-      const data = _load();
-      Object.entries(obj).forEach(([k, v]) => { data[k] = _coerce(k, v); });
-      _save(data);
-    },
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+const TITLES={
+  zahlen:'Erfassung: Zahlungsverkehr & Alltag',
+  sparen:'Erfassung: Sparen',
+  vorsorgen:'Erfassung: Vorsorgen',
+  anlegen:'Erfassung: Anlegen',
+  ausgaben:'Erfassung: Ausgaben & Einkommen',
+  finanzieren:'Erfassung: Finanzierung'
+};
+const RED_M=['ausgaben','finanzieren'];
 
-    all() { return _load(); },
+function openModal(t){
+  $('mttl').textContent=TITLES[t]||t;
+  $('mttl').className='mttl'+(RED_M.includes(t)?' red':'');
+  $('mbody').innerHTML=buildForm(t);
+  $('mbg').style.display='flex';
+  // Tausender-Trennzeichen auf alle Betrags-Inputs anwenden
+  setTimeout(()=>{
+    $('mbody').querySelectorAll('input[type="text"]').forEach(el=>{
+      const v=pN(el.value);
+      if(v>0) el.value=fmtInput(v);
+      el.addEventListener('focus', ()=>{ el.value=pN(el.value)||''; });
+      el.addEventListener('blur',  ()=>{ const n=pN(el.value); if(n>0) el.value=fmtInput(n); });
+    });
+    if(t==='ausgaben') prevCF();
+    if(t==='vorsorgen') toggleStrat();
+  },30);
+}
+function closeModal(){$('mbg').style.display='none';}
+function bgClick(e){if(e.target===$('mbg'))closeModal();}
 
-    setIfEmpty(key, value) {
-      const cur = this.get(key);
-      if (cur === null || cur === '' || cur === undefined) this.set(key, value);
-    },
+function rb(key,val,cur){return `<button class="rb ${cur===val?'on':''}" onclick="rSet('${key}','${val}',this)">${val}</button>`;}
+function rSet(key,val,btn){
+  btn.parentNode.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const p=key.split('__');
+  if(p.length===2&&S[p[0]]&&S[p[0]][p[1]]!==undefined)S[p[0]][p[1]]=val;
+  if(key==='vorsorgen__s3Form')toggleStrat();
+  if(key.startsWith('ausgaben'))prevCF();
+}
+function toggleStrat(){const w=$('strat-wrap');if(w)w.style.display=S.vorsorgen.s3Form==='Konto'?'none':'';}
 
-    clearSession() {
-      // bbzData: nur config-Keys behalten
-      const data = _load();
-      const kept = {};
-      Object.entries(SCHEMA).forEach(([k, def]) => {
-        if (def.scope === 'config' && k in data) kept[k] = data[k];
-      });
-      _save(kept);
+/* Live-Vorschau Cashflow im Modal */
+function prevCF(){
+  const p=$('cf-prev'), h=$('cf-hint'), e=$('cf-eff'); if(!p)return;
+  const freq=S.ausgaben.freq;
+  const mM=freq==='mtl'?pN(gv('f-eMann')):pN(gv('f-eMann'))/12;
+  const fM=freq==='mtl'?pN(gv('f-eFrau')):pN(gv('f-eFrau'))/12;
+  const eink=mM+fM;
+  const ausg=pN(gv('f-haushalt'))+pN(gv('f-leasing'))+pN(gv('f-unterhalt'))+pN(gv('f-uebrige'));
+  const saldo=eink-ausg;
+  const sparLayer=S.sparen.quoteFreq==='mtl'?S.sparen.quoteBetrag:S.sparen.quoteBetrag/12;
 
-      // bbzCockpit: Session-Felder löschen, Config-Felder behalten
-      try {
-        const ck = JSON.parse(localStorage.getItem('bbzCockpit') || '{}');
-        const ckKept = {};
-        if (ck.aktiverBerater !== undefined) ckKept.aktiverBerater = ck.aktiverBerater;
-        if (ck.disabled !== undefined)       ckKept.disabled = ck.disabled;
-        if (ck.branches !== undefined)       ckKept.branches = ck.branches;
-        // beratungsdatum ist session → nicht behalten
-        localStorage.setItem('bbzCockpit', JSON.stringify(ckKept));
-      } catch (e) {}
+  // Cashflow-Saldo Anzeige
+  p.textContent = eink>0 ? (saldo>=0?'+ ':'– ')+CHF(Math.abs(saldo))+' / Monat' : '–';
+  p.className='calc-val '+(saldo>=0&&eink>0?'pos':saldo<0&&eink>0?'neg':'');
 
-      // bbzBgImage: session → löschen
-      try { localStorage.removeItem('bbzBgImage'); } catch (e) {}
-    },
+  // Hinweis Sparen-Layer Vergleich
+  if(h && eink>0 && sparLayer>0){
+    if(saldo < sparLayer){
+      h.textContent='⚠ Cashflow ('+CHF(Math.max(0,saldo))+') liegt unter Sparen-Layer ('+CHF(sparLayer)+').';
+      h.style.color='#d97706';
+    } else {
+      h.textContent='✓ Cashflow deckt Sparen-Layer ('+CHF(sparLayer)+' / mtl.) vollständig.';
+      h.style.color='#16a34a';
+    }
+  } else if(h){ h.textContent='Sparquote wird im Sparen-Layer erfasst.'; h.style.color=''; }
 
-    clearAll() {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-    },
+  // Effektive Sparquote = MIN(Sparen-Layer, Cashflow-Saldo), min. 0
+  if(e){
+    let eff;
+    if(sparLayer>0 && eink>0)      eff = Math.max(0, Math.min(sparLayer, saldo));
+    else if(sparLayer>0)           eff = sparLayer;
+    else if(eink>0)                eff = Math.max(0, saldo);
+    else                           eff = 0;
+    e.textContent = (eff>0?'+ ':'')+CHF(eff)+' / mtl.';
+    e.style.color = eff>0?'#16a34a':eff<0?'#e53e3e':'#94a3b8';
+  }
+}
+function set3aEinz(val,btn){S.vorsorgen.s3Einz=val;btn.parentNode.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');$('s3bw').style.display=val==='anderer'?'':'none';}
+function setEinkFreq(val,btn){S.ausgaben.freq=val;btn.parentNode.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');prevCF();}
+function tTag(btn){btn.classList.toggle('on');}
+function yesno(key,val){return `<div class="rbg">${rb(key,'ja',val)}${rb(key,'nein',val)}</div>`;}
 
-    async getProfile(id) {
-      try {
-        const activeId = id || this.get('aktiverBerater') || 1;
-        const res = await fetch('data/berater.json');
-        if (!res.ok) return null;
-        const profiles = await res.json();
-        return profiles.find(p => p.id === activeId) || profiles[0] || null;
-      } catch (e) { return null; }
-    },
+/* ══════════════════════════════════════
+   FORM BUILDER
+══════════════════════════════════════ */
+function buildForm(t){
 
-    async getAllProfiles() {
-      try {
-        const res = await fetch('data/berater.json');
-        if (!res.ok) return [];
-        return await res.json();
-      } catch (e) { return []; }
-    },
+  if(t==='zahlen'){
+    const tags=['Klassisch','eBanking','Mobile Banking','Bargeldlos'];
+    return `<div class="fg">
+      <div class="ig"><label>Hauptbank</label><input type="text" id="f-bank" value="${esc(S.zahlen.bank)}" placeholder="z.B. bbz bank"></div>
+      <div class="ig"><label>Gesamtsaldo (CHF)</label><input type="text" id="f-saldo" value="${S.zahlen.saldo||''}"></div>
+      <div class="ig"><label>Anzahl Konten</label><input type="number" id="f-konten" value="${S.zahlen.konten}" min="1"></div>
+      <div class="ig"><label>Anzahl Banken</label><input type="number" id="f-banken" value="${S.zahlen.banken}" min="1"></div>
+      <div class="ig f2"><label>Zahlungsverkehr-Kanäle</label><div class="rbg">${tags.map(k=>`<button class="tag ${S.zahlen.kanaele.includes(k)?'on':''}" onclick="tTag(this)">${k}</button>`).join('')}</div></div>
+      <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.zahlen.kommentar)}</textarea></div>
+    </div><button class="btn-save" onclick="save('zahlen')">Übernehmen</button>`;
+  }
 
-    setAktiveBerater(id) {
-      this.set('aktiverBerater', Number(id));
-    },
+  if(t==='sparen'){
+    return `<div class="fg">
+      <div class="ig"><label>Gesamtsaldo (CHF)</label><input type="text" id="f-saldo" value="${S.sparen.saldo||''}"></div>
+      <div class="ig"><label>Anzahl Banken</label><input type="number" id="f-banken" value="${S.sparen.banken}" min="1"></div>
+      <div class="ig"><label>Anzahl Konten</label><input type="number" id="f-konten" value="${S.sparen.konten}" min="1"></div>
+      <div class="ig">
+        <label>Wohlfühlreserve (CHF)</label>
+        <input type="text" id="f-reserve" value="${S.sparen.reserve||''}">
+        <span class="hint">Betrag der immer liquide bleibt</span>
+      </div>
+      <div class="ig f2"><label>Wohlfühlreserve sichergestellt?</label>${yesno('sparen__sichergestellt',S.sparen.sichergestellt)}</div>
+      <div class="sec">Sparquote</div>
+      <div class="ig"><label>Betrag (CHF)</label><input type="text" id="f-qBetrag" value="${S.sparen.quoteBetrag||''}"></div>
+      <div class="ig"><label>Frequenz</label><select id="f-qFreq"><option value="mtl" ${S.sparen.quoteFreq==='mtl'?'selected':''}>pro Monat</option><option value="pa" ${S.sparen.quoteFreq==='pa'?'selected':''}>pro Jahr</option></select></div>
+      <div class="ig f2"><label>Tendenz</label><div class="rbg">${rb('sparen__quoteTyp','positiv',S.sparen.quoteTyp)}${rb('sparen__quoteTyp','neutral',S.sparen.quoteTyp)}${rb('sparen__quoteTyp','negativ',S.sparen.quoteTyp)}</div></div>
+      <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.sparen.kommentar)}</textarea></div>
+    </div><button class="btn-save" onclick="save('sparen')">Übernehmen</button>`;
+  }
 
-    // ── Hilfsfunktionen ──────────────────────────────────────────────────
-    fmt(n, decimals = 0) {
-      if (n === null || n === undefined || isNaN(n)) return '–';
-      const abs = Math.abs(n).toFixed(decimals).split('.');
-      abs[0] = abs[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
-      return (n < 0 ? '-' : '') + abs.join('.');
-    },
+  if(t==='vorsorgen'){
+    const sv=S.vorsorgen.s3Form!=='Konto';
+    return `<div class="fg">
+      <div class="sec">2. Säule – Pensionskasse</div>
+      <div class="ig"><label>Situation bekannt?</label>${yesno('vorsorgen__pkBekannt',S.vorsorgen.pkBekannt)}</div>
+      <div class="ig"><label>PK-Guthaben (CHF)</label><input type="text" id="f-pkSaldo" value="${S.vorsorgen.pkSaldo||''}"><span class="hint">Fliesst ins Gesamtvermögen, nicht in Simulation</span></div>
+      <div class="ig"><label>Einkäufe getätigt?</label>${yesno('vorsorgen__pkEinkaeufe',S.vorsorgen.pkEinkaeufe)}<span class="hint">Details im Kommentar</span></div>
+      <div class="ig"><label>Beträge ausbezahlt / verpfändet?</label>${yesno('vorsorgen__pkAusbezahlt',S.vorsorgen.pkAusbezahlt)}<span class="hint">Details im Kommentar</span></div>
+      <div class="sec">3. Säule (3a)</div>
+      <div class="ig"><label>Gesamtsaldo (CHF)</label><input type="text" id="f-s3Saldo" value="${S.vorsorgen.s3Saldo||''}"></div>
+      <div class="ig"><label>Anlageform</label><div class="rbg"><button class="rb ${S.vorsorgen.s3Form==='Konto'?'on':''}" onclick="rSet('vorsorgen__s3Form','Konto',this)">Konto</button><button class="rb ${S.vorsorgen.s3Form==='Wertschriften'?'on':''}" onclick="rSet('vorsorgen__s3Form','Wertschriften',this)">Wertschriften</button><button class="rb ${S.vorsorgen.s3Form==='Gemischt'?'on':''}" onclick="rSet('vorsorgen__s3Form','Gemischt',this)">Gemischt</button></div></div>
+      <div class="ig"><label>Anzahl Konten (3a)</label><input type="number" id="f-s3Konten" value="${S.vorsorgen.s3Konten}" min="0"></div>
+      <div class="ig"><label>Anzahl Banken (3a)</label><input type="number" id="f-s3Banken" value="${S.vorsorgen.s3Banken}" min="0"></div>
+      <div class="ig f2"><label>Jährliche Einzahlungen</label><div class="rbg"><button class="rb ${S.vorsorgen.s3Einz==='nein'?'on':''}" onclick="set3aEinz('nein',this)">Nein</button><button class="rb ${S.vorsorgen.s3Einz==='maximal'?'on':''}" onclick="set3aEinz('maximal',this)">Maximalbetrag (CHF 7'258)</button><button class="rb ${S.vorsorgen.s3Einz==='anderer'?'on':''}" onclick="set3aEinz('anderer',this)">Anderer Betrag</button></div></div>
+      <div class="ig f2" id="s3bw" style="display:${S.vorsorgen.s3Einz==='anderer'?'':'none'}"><label>Einzahlungsbetrag (CHF / Jahr)</label><input type="text" id="f-s3EinzB" value="${S.vorsorgen.s3EinzBetrag||7258}"><span class="hint">Max. 2025: CHF 7'258 – anpassen falls abweichend</span></div>
+      <div class="ig f2" id="strat-wrap" style="display:${sv?'':'none'}"><label>Anlagestrategie 3a</label><div class="rbg">${['Unbekannt','Einkommen','Ausgewogen','Wachstum','Dynamisch'].map(s=>`<button class="rb ${S.vorsorgen.s3Strategie===s?'on':''}" onclick="rSet('vorsorgen__s3Strategie','${s}',this)">${s}</button>`).join('')}</div></div>
+      <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.vorsorgen.kommentar)}</textarea></div>
+    </div><button class="btn-save" onclick="save('vorsorgen')">Übernehmen</button>`;
+  }
 
-    parseNum(s) {
-      if (typeof s === 'number') return s;
-      return parseFloat(String(s || '').replace(/['\s]/g, '').replace(',', '.')) || 0;
-    },
+  if(t==='anlegen'){
+    return `<div class="fg">
+      <div class="ig"><label>Anlagen vorhanden?</label>${yesno('anlegen__vorhanden',S.anlegen.vorhanden)}</div>
+      <div class="ig"><label>Anlagevolumen (CHF)</label><input type="text" id="f-volumen" value="${S.anlegen.volumen||''}"></div>
+      <div class="ig f2"><label>Strategie</label><div class="rbg">${['Unbekannt','Einkommen','Ausgewogen','Wachstum','Dynamisch'].map(s=>`<button class="rb ${S.anlegen.strategie===s?'on':''}" onclick="rSet('anlegen__strategie','${s}',this)">${s}</button>`).join('')}</div></div>
+      <div class="ig f2"><label>Betreuungsform</label><div class="rbg">${['selbstorganisiert','Beratungsdepot','Vermögensverwaltung','Verschiedene'].map(s=>`<button class="rb ${S.anlegen.typ===s?'on':''}" onclick="rSet('anlegen__typ','${s}',this)">${s}</button>`).join('')}</div></div>
+      <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.anlegen.kommentar)}</textarea></div>
+    </div><button class="btn-save" onclick="save('anlegen')">Übernehmen</button>`;
+  }
 
-    fmtDate(iso) {
-      if (!iso) return '–';
-      try {
-        return new Date(iso).toLocaleDateString('de-CH', {
-          day: '2-digit', month: '2-digit', year: 'numeric'
-        });
-      } catch (e) { return iso; }
-    },
+  if(t==='ausgaben'){
+    return `<div class="fg">
+      <div class="sec">Einkommen</div>
+      <div class="ig f2"><label>Eingabe-Frequenz</label><div class="rbg"><button class="rb ${S.ausgaben.freq==='mtl'?'on':''}" onclick="setEinkFreq('mtl',this)">pro Monat</button><button class="rb ${S.ausgaben.freq==='pa'?'on':''}" onclick="setEinkFreq('pa',this)">pro Jahr</button></div></div>
+      <div class="ig f2"><label>Einkommen-Typ</label><div class="rbg"><button class="rb ${S.ausgaben.typ==='netto'?'on':''}" onclick="rSet('ausgaben__typ','netto',this);prevCF()">Netto</button><button class="rb ${S.ausgaben.typ==='brutto'?'on':''}" onclick="rSet('ausgaben__typ','brutto',this);prevCF()">Brutto</button></div></div>
+      <div class="ig"><label>Einkommen Mann (CHF)</label><input type="text" id="f-eMann" value="${S.ausgaben.eMann||''}" oninput="prevCF()"></div>
+      <div class="ig"><label>Einkommen Frau (CHF)</label><input type="text" id="f-eFrau" value="${S.ausgaben.eFrau||''}" oninput="prevCF()"></div>
+      <div class="sec">Ausgaben (alle Kategorien)</div>
+      <div class="ig"><label>Haushalt &amp; Lebenshaltung (CHF / mtl.)</label><input type="text" id="f-haushalt" value="${S.ausgaben.haushalt||''}" oninput="prevCF()"></div>
+      <div class="ig"><label>Leasing (CHF / mtl.)</label><input type="text" id="f-leasing" value="${S.ausgaben.leasing||''}" oninput="prevCF()"></div>
+      <div class="ig"><label>Unterhaltszahlungen (CHF / mtl.)</label><input type="text" id="f-unterhalt" value="${S.ausgaben.unterhalt||''}" oninput="prevCF()"></div>
+      <div class="ig"><label>Übrige Ausgaben (CHF / mtl.)</label><input type="text" id="f-uebrige" value="${S.ausgaben.uebrige||''}" oninput="prevCF()"></div>
+      <div class="calc-box">
+        <span class="calc-lbl">Cashflow-Saldo = Einkommen – Ausgaben total</span>
+        <span class="calc-val" id="cf-prev">–</span>
+        <span class="hint" id="cf-hint">Sparquote wird im Sparen-Layer erfasst.</span>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--blue-lt);display:flex;justify-content:space-between;align-items:baseline;">
+          <span style="font-size:12px;font-weight:700;color:var(--ink-3);">Effektive Sparquote (= tieferer Betrag)</span>
+          <span style="font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;" id="cf-eff">–</span>
+        </div>
+      </div>
+      <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.ausgaben.kommentar)}</textarea></div>
+    </div><button class="btn-save" onclick="save('ausgaben')">Übernehmen</button>`;
+  }
 
-    age(isoDate) {
-      if (!isoDate) return null;
-      const geb   = new Date(isoDate);
-      const heute = new Date();
-      const alter = heute.getFullYear() - geb.getFullYear()
-        - (heute < new Date(heute.getFullYear(), geb.getMonth(), geb.getDate()) ? 1 : 0);
-      return alter > 0 && alter < 130 ? alter : null;
-    },
+  if(t==='finanzieren'){
+    return `<div class="fg">
+      <div class="ig"><label>Finanzierung vorhanden?</label>${yesno('finanzieren__vorhanden',S.finanzieren.vorhanden)}</div>
+      <div class="ig"><label>Betrag (CHF)</label><input type="text" id="f-betrag" value="${S.finanzieren.betrag||''}"></div>
+      <div class="ig"><label>Kreditform</label><select id="f-form"><option value="Hypothek" ${S.finanzieren.form==='Hypothek'?'selected':''}>Hypothek</option><option value="Andere" ${S.finanzieren.form==='Andere'?'selected':''}>Andere</option></select></div>
+      <div class="ig"><label>Restlaufzeit</label><select id="f-laufzeit"><option value="<1" ${S.finanzieren.laufzeit==='<1'?'selected':''}>unter 1 Jahr</option><option value="1-2" ${S.finanzieren.laufzeit==='1-2'?'selected':''}>1 – 2 Jahre</option><option value=">3" ${S.finanzieren.laufzeit==='>3'?'selected':''}>über 3 Jahre</option></select></div>
+      <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.finanzieren.kommentar)}</textarea></div>
+    </div><button class="btn-save" onclick="save('finanzieren')">Übernehmen</button>`;
+  }
+}
 
-    SCHEMA,
-  };
+/* ══════════════════════════════════════
+   SAVE
+══════════════════════════════════════ */
+function save(t){
+  if(t==='zahlen'){S.zahlen.bank=gv('f-bank');S.zahlen.saldo=gn('f-saldo');S.zahlen.konten=parseInt(gv('f-konten'))||1;S.zahlen.banken=parseInt(gv('f-banken'))||1;S.zahlen.kanaele=[...document.querySelectorAll('.tag.on')].map(b=>b.textContent);S.zahlen.kommentar=gv('f-kommentar');}
+  else if(t==='sparen'){S.sparen.saldo=gn('f-saldo');S.sparen.reserve=gn('f-reserve');S.sparen.banken=parseInt(gv('f-banken'))||1;S.sparen.konten=parseInt(gv('f-konten'))||1;S.sparen.quoteBetrag=gn('f-qBetrag');S.sparen.quoteFreq=gv('f-qFreq');S.sparen.kommentar=gv('f-kommentar');}
+  else if(t==='vorsorgen'){S.vorsorgen.pkSaldo=gn('f-pkSaldo');S.vorsorgen.s3Saldo=gn('f-s3Saldo');S.vorsorgen.s3Konten=parseInt(gv('f-s3Konten'))||0;S.vorsorgen.s3Banken=parseInt(gv('f-s3Banken'))||0;if(S.vorsorgen.s3Einz==='maximal')S.vorsorgen.s3EinzBetrag=7258;else if(S.vorsorgen.s3Einz==='anderer')S.vorsorgen.s3EinzBetrag=gn('f-s3EinzB');S.vorsorgen.kommentar=gv('f-kommentar');}
+  else if(t==='anlegen'){S.anlegen.volumen=gn('f-volumen');S.anlegen.kommentar=gv('f-kommentar');}
+  else if(t==='ausgaben'){
+    S.ausgaben.eMann=gn('f-eMann'); S.ausgaben.eFrau=gn('f-eFrau');
+    S.ausgaben.haushalt=gn('f-haushalt'); S.ausgaben.leasing=gn('f-leasing');
+    S.ausgaben.unterhalt=gn('f-unterhalt'); S.ausgaben.uebrige=gn('f-uebrige');
+    S.ausgaben.kommentar=gv('f-kommentar');
+  }
+  else if(t==='finanzieren'){S.finanzieren.betrag=gn('f-betrag');S.finanzieren.form=gv('f-form');S.finanzieren.laufzeit=gv('f-laufzeit');S.finanzieren.kommentar=gv('f-kommentar');S.finanzieren._touched=true;}
+  calc(); closeModal();
+}
 
-  global.BBZ = BBZ;
+// ── State aus bbzData laden (verhindert Datenverlust beim Tab-Wechsel) ──
+function loadFromBBZ() {
+  if (typeof BBZ === 'undefined') return;
+  try {
+    const d = BBZ.get('cockpit_data');
+    if (!d || typeof d !== 'object') return;
+    // Tief-mergen: nur vorhandene Keys überschreiben
+    ['zahlen','sparen','vorsorgen','anlegen','ausgaben','finanzieren','chart'].forEach(k => {
+      if (d[k] && typeof d[k] === 'object') Object.assign(S[k], d[k]);
+    });
+  } catch(e) {}
+}
 
-})(window);
+window.onload = () => { loadFromBBZ(); calc(); };
+</script>
+</body>
+</html>
