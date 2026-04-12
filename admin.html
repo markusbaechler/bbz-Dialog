@@ -233,6 +233,11 @@ window.onload = async () => {
   });
 };
 
+// Auto-Save bei Seitenverlassen
+window.addEventListener('beforeunload', () => {
+  if (activeId !== null) { flushEditor(); persist(); }
+});
+
 async function loadProfiles() {
   try {
     const raw = localStorage.getItem(ADMIN_KEY);
@@ -432,12 +437,14 @@ function onNameChange() {
   const val = document.getElementById('fieldName').value;
   const p = profiles.find(x => x.id === activeId); if (!p) return;
   p.name = val; document.getElementById('chTitle').textContent = val; renderSidebar();
+  persist();
 }
 
 function onTitelChange() {
   const val = document.getElementById('fieldTitel').value;
   const p = profiles.find(x => x.id === activeId); if (!p) return;
   p.titel = val; document.getElementById('chSubtitle').textContent = val; renderSidebar();
+  persist();
 }
 
 function onKachelTitleChange() {
