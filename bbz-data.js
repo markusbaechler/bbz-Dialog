@@ -1,226 +1,472 @@
-/**
- * bbz-data.js — Gemeinsame Datenschicht
- * Einbinden: <script src="bbz-data.js"></script>
- *
- * Globales Objekt: BBZ
- * BBZ.get('p1name')                → Wert oder Default
- * BBZ.set('cockpit_einkommen', 85000) → Speichern (type-safe)
- * BBZ.merge({ p1name: 'Anna' })    → Mehrere Keys auf einmal
- * BBZ.setIfEmpty('price', 850000)  → Nur wenn noch leer (Prefill)
- * BBZ.clearSession()               → Neue Beratung (Config bleibt)
- * BBZ.getProfile()                 → Promise → aktives Berater-Profil
- * BBZ.fmt(85000)                   → "85'000"
- * BBZ.parseNum("85'000")           → 85000
- * BBZ.fmtDate('1980-03-15')        → '15.03.1980'
- * BBZ.age('1980-03-15')            → 46
- */
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bbz bank – Administration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="bbz-data.js"></script>
+<style>
+:root {
+  --blue:#004078;--blue-dk:#002d57;--blue-lt:#dce8f4;--red:#950e13;--green:#15803d;
+  --ink:#0f172a;--ink-2:#334155;--ink-3:#64748b;--ink-4:#94a3b8;
+  --surface:#ffffff;--bg:#f1f5f9;--line:#e2e8f0;--font:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--blue-dk);display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.canvas{width:95vw;max-height:95vh;aspect-ratio:16/9;background:var(--bg);display:grid;grid-template-rows:6vh 1fr 4vh;overflow:hidden;box-shadow:0 50px 120px rgba(0,0,0,0.55);}
+/* TOPBAR */
+.topbar{background:var(--blue);display:flex;align-items:center;justify-content:space-between;padding:0 2vw 0 2.2vw;gap:1vw;flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:0.55vw;flex-shrink:0;}
+.logo-mark{width:2.1vw;height:2.1vw;background:white;color:var(--blue);font-size:0.68vw;font-weight:900;display:flex;align-items:center;justify-content:center;border-radius:3px;}
+.logo-name{color:white;font-size:0.82vw;font-weight:800;letter-spacing:-0.02em;}
+.topbar-right{display:flex;align-items:center;gap:1.2vw;flex-shrink:0;}
+.topbar-brand{color:rgba(255,255,255,0.2);font-size:0.58vw;font-weight:600;}
+.btn-back{display:flex;align-items:center;gap:0.35vw;color:rgba(255,255,255,0.6);font-size:0.62vw;font-weight:700;text-decoration:none;padding:0.4vh 0.7vw;border:1px solid rgba(255,255,255,0.2);border-radius:5px;transition:all 0.15s;}
+.btn-back:hover{color:white;border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);}
+/* MAIN */
+.main{display:grid;grid-template-columns:18vw 1fr;overflow:hidden;min-height:0;}
+/* SIDEBAR */
+.sidebar{background:var(--blue);display:flex;flex-direction:column;padding:1.8vh 1.2vw 1.5vh;gap:0.3vh;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:3px;}.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:10px;}
+.sidebar-title{font-size:0.52vw;font-weight:800;color:rgba(255,255,255,0.35);padding:0 0.3vw 0.7vh;}
+.berater-item{display:flex;align-items:center;gap:0.6vw;padding:0.65vh 0.5vw;border-radius:7px;cursor:pointer;transition:background 0.15s;border:1.5px solid transparent;}
+.berater-item:hover{background:rgba(255,255,255,0.07);}
+.berater-item.active{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.22);}
+.bi-avatar{width:3.4vh;height:3.4vh;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.1vh;font-weight:800;color:rgba(255,255,255,0.65);flex-shrink:0;overflow:hidden;}
+.bi-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.bi-info{flex:1;min-width:0;}
+.bi-name{font-size:1.05vh;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bi-titel{font-size:0.82vh;color:rgba(255,255,255,0.42);margin-top:0.1vh;}
+/* CONTENT */
+.content{display:flex;flex-direction:column;overflow:hidden;min-height:0;background:var(--bg);}
+.content-header{background:var(--surface);border-bottom:1px solid var(--line);padding:1.4vh 1.8vw;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ch-left{display:flex;flex-direction:column;gap:0.15vh;}
+.ch-title{font-size:1.25vh;font-weight:800;color:var(--ink);}
+.ch-subtitle{font-size:0.9vh;font-weight:400;color:var(--ink-3);}
+.btn-save{display:flex;align-items:center;gap:0.35vw;padding:0.55vh 1vw;background:var(--blue);color:white;border:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.62vw;font-weight:800;transition:background 0.15s;}
+.btn-save:hover{background:var(--blue-dk);}.btn-save.saved{background:var(--green);}
+/* EDITOR GRID */
+.editor-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1.5fr;overflow:hidden;}
+.col-left{display:flex;flex-direction:column;border-right:1px solid var(--line);overflow:hidden;}
+.block{padding:1.4vh 1.5vw;border-bottom:1px solid var(--line);background:var(--surface);}
+.block-title{font-size:0.6vw;font-weight:800;color:var(--ink-3);margin-bottom:0.9vh;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.7vw;}
+.form-group{display:flex;flex-direction:column;gap:0.35vh;}
+.form-label{font-size:0.52vw;font-weight:700;color:var(--ink-3);}
+.form-input{border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:0.68vw;font-weight:600;padding:0.5vh 0.6vw;outline:none;transition:border-color 0.15s,background 0.15s;width:100%;}
+.form-input:focus{border-color:var(--blue);background:white;}
+.form-input::placeholder{color:var(--ink-4);font-weight:400;}
+/* FOTO THUMBNAILS */
+.foto-block{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:1.4vh 1.5vw;background:var(--surface);}
+.foto-row{display:flex;gap:0.8vw;flex:1;align-items:stretch;}
+.foto-thumb-wrap{display:flex;flex-direction:column;gap:0.4vh;flex:1;}
+.foto-thumb-label{font-size:0.48vw;font-weight:700;color:var(--ink-4);text-align:center;}
+.foto-thumb{flex:1;border-radius:6px;border:1.5px dashed var(--line);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:border-color 0.15s;min-height:0;}
+.foto-thumb:hover{border-color:var(--blue);}
+.foto-thumb.has-img{border-style:solid;border-color:var(--line);}
+.foto-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.foto-thumb-hover{position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.18s;border-radius:5px;}
+.foto-thumb:hover .foto-thumb-hover{opacity:1;}
+.foto-thumb-hover span{font-size:0.52vw;font-weight:800;color:white;text-align:center;}
+.foto-empty-icon{color:var(--ink-4);margin-bottom:0.3vh;}
+.foto-empty-hint{font-size:0.48vw;color:var(--ink-4);text-align:center;line-height:1.3;}
+/* KACHEL EDITOR */
+.col-right{display:flex;flex-direction:column;overflow:hidden;background:var(--surface);}
+.kachel-tabs{display:flex;border-bottom:1px solid var(--line);flex-shrink:0;padding:0 1.5vw;}
+.kachel-tab{padding:1.1vh 0.8vw;font-size:0.6vw;font-weight:700;color:var(--ink-4);border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;margin-bottom:-1px;white-space:nowrap;}
+.kachel-tab:hover{color:var(--ink);}.kachel-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.kachel-editor-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:1.2vh 1.5vw;gap:0.7vh;}
+.kachel-title-row{display:flex;align-items:center;gap:0.7vw;flex-shrink:0;}
+.kachel-title-label{font-size:0.52vw;font-weight:700;color:var(--ink-3);white-space:nowrap;}
+.kachel-title-input{flex:1;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:0.7vw;font-weight:800;padding:0.45vh 0.6vw;outline:none;transition:border-color 0.15s,background 0.15s;}
+.kachel-title-input:focus{border-color:var(--blue);background:white;}
+.editor-toolbar{display:flex;align-items:center;gap:0.25vw;padding:0.35vh 0.5vw;border:1px solid var(--line);border-bottom:none;border-radius:5px 5px 0 0;background:var(--bg);flex-shrink:0;}
+.tb-btn{width:2.4vh;height:2.4vh;border-radius:3px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-size:0.62vw;font-weight:700;color:var(--ink-2);transition:background 0.1s;}
+.tb-btn:hover{background:var(--line);}
+.tb-sep{width:1px;background:var(--line);height:1.6vh;margin:0 0.15vw;}
+.kachel-editor{flex:1;min-height:0;border:1px solid var(--line);border-radius:0 0 5px 5px;background:white;color:var(--ink);font-family:var(--font);font-size:0.7vw;font-weight:400;padding:0.8vh 0.8vw;outline:none;line-height:1.6;overflow-y:auto;}
+.kachel-editor:focus{border-color:var(--blue);}
+.kachel-editor:empty::before{content:attr(data-placeholder);color:var(--ink-4);font-style:italic;}
+.kachel-editor h3{font-size:0.75vw;font-weight:800;margin:0.6vh 0 0.2vh;}
+.kachel-editor h3:first-child{margin-top:0;}
+.kachel-editor b,.kachel-editor strong{font-weight:700;}
+.kachel-editor ul{padding-left:1.2em;margin:0.2vh 0;}
+.kachel-editor li{margin-bottom:0.2vh;}
+.kachel-editor::-webkit-scrollbar{width:3px;}.kachel-editor::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
+/* FOOTER */
+.footer{background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 2vw;flex-shrink:0;}
+.footer-copy{font-size:0.55vw;font-weight:500;color:var(--ink-4);}
+.footer-hint{font-size:0.5vw;font-weight:500;color:var(--ink-4);}
+/* FOTO MODAL */
+.foto-modal-bg{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,40,80,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.foto-modal-bg.open{display:flex;}
+.foto-modal{background:var(--surface);border-radius:12px;width:26vw;box-shadow:0 30px 80px rgba(0,0,0,0.4);display:flex;flex-direction:column;overflow:hidden;}
+.fm-header{background:var(--blue);padding:1.4vh 1.5vw;display:flex;align-items:center;justify-content:space-between;}
+.fm-title{font-size:0.72vw;font-weight:800;color:white;}
+.fm-close{width:2.2vh;height:2.2vh;border-radius:50%;background:rgba(255,255,255,0.15);border:none;cursor:pointer;color:white;font-size:0.8vh;font-weight:900;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.fm-close:hover{background:rgba(255,255,255,0.3);}
+.fm-body{padding:1.6vh 1.5vw;display:flex;flex-direction:column;gap:1.2vh;}
+.fm-preview{width:100%;height:20vh;border-radius:8px;background:var(--bg);border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.fm-preview img{width:100%;height:100%;object-fit:cover;border-radius:7px;}
+.fm-preview-empty{display:flex;flex-direction:column;align-items:center;gap:0.5vh;color:var(--ink-4);}
+.fm-preview-empty span{font-size:0.6vw;}
+.fm-actions{display:flex;gap:0.6vw;}
+.btn-upload{flex:1;display:flex;align-items:center;justify-content:center;gap:0.4vw;padding:0.65vh 0;background:var(--blue);color:white;border:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.62vw;font-weight:800;transition:background 0.15s;}
+.btn-upload:hover{background:var(--blue-dk);}
+.btn-remove-foto{padding:0.65vh 0.9vw;background:var(--bg);color:var(--red);border:1px solid var(--line);border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.62vw;font-weight:700;transition:all 0.15s;}
+.btn-remove-foto:hover{background:#fef2f2;border-color:#fecaca;}
+.btn-remove-foto:disabled{opacity:0.3;pointer-events:none;}
+/* TOAST */
+.toast{position:fixed;bottom:2.5vh;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:white;padding:0.7vh 1.2vw;border-radius:7px;font-size:0.6vw;font-weight:700;opacity:0;transition:all 0.2s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="canvas">
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">bbz</div>
+      <span class="logo-name">Administration</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-brand">bbz bank st.gallen</span>
+      <a href="index.html" class="btn-back">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        &nbsp;Zurück
+      </a>
+    </div>
+  </header>
 
-(function (global) {
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-title">Berater:innen</div>
+      <div id="sidebarList"></div>
+    </div>
 
-  const STORAGE_KEY = 'bbzData';
+    <div class="content">
+      <div class="content-header">
+        <div class="ch-left">
+          <div class="ch-title" id="chTitle">—</div>
+          <div class="ch-subtitle" id="chSubtitle">Profil bearbeiten</div>
+        </div>
+        <button class="btn-save" id="btnSave" onclick="saveAll()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          &nbsp;Speichern
+        </button>
+      </div>
 
-  // ── SCHEMA ──────────────────────────────────────────────────────────────
-  // scope 'session' = wird bei clearSession() gelöscht
-  // scope 'config'  = bleibt erhalten (Berater, Module-Config)
-  const SCHEMA = {
-    // ── Stammdaten ───────────────────────────────────────────────────────
-    p1name:               { type: 'string',  scope: 'session', default: '' },
-    p1geb:                { type: 'string',  scope: 'session', default: '' },
-    p2name:               { type: 'string',  scope: 'session', default: '' },
-    p2geb:                { type: 'string',  scope: 'session', default: '' },
-    beratungsdatum:       { type: 'string',  scope: 'session', default: '' },
+      <div class="editor-grid">
+        <div class="col-left">
+          <div class="block">
+            <div class="block-title">Stammdaten</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Vor- / Nachname</label>
+                <input type="text" class="form-input" id="fieldName" placeholder="Vorname Nachname" oninput="onNameChange()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Berufsbezeichnung</label>
+                <input type="text" class="form-input" id="fieldTitel" placeholder="Kundenberater:in" oninput="onTitelChange()">
+              </div>
+            </div>
+          </div>
+          <div class="foto-block">
+            <div class="block-title">Porträtfotos <span style="font-weight:400;color:var(--ink-4);font-size:0.45vw;">— Klick zum Bearbeiten</span></div>
+            <div class="foto-row" id="fotoRow"></div>
+          </div>
+        </div>
 
-    // ── Agenda (01) ──────────────────────────────────────────────────────
-    agenda_traktanden:    { type: 'array',   scope: 'session', default: [] },
-    agenda_erwartungen:   { type: 'array',   scope: 'session', default: [] },
+        <div class="col-right">
+          <div class="kachel-tabs" id="kachelTabs"></div>
+          <div class="kachel-editor-wrap" id="kachelEditorWrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // ── Bank (02) — config, bleibt bei clearSession ──────────────────────
-    bankTexts:            { type: 'object',  scope: 'config',  default: {} },
-    bankHeroSub:          { type: 'string',  scope: 'config',  default: '' },
+  <footer class="footer">
+    <span class="footer-copy">bbz bank st.gallen ag © 2026</span>
+    <span class="footer-hint">Änderungen werden lokal im Browser gespeichert · bbzAdmin</span>
+  </footer>
+</div>
 
-    // ── Cockpit (05) ─────────────────────────────────────────────────────
-    // Hinweis: cockpit_income war Legacy — korrekt ist cockpit_einkommen
-    cockpit_einkommen:       { type: 'number',  scope: 'session', default: null },
-    cockpit_verpflichtungen: { type: 'number',  scope: 'session', default: null },
-    cockpit_pk_saldo:        { type: 'number',  scope: 'session', default: null },
-    cockpit_anlage_f:        { type: 'number',  scope: 'session', default: null },
-    cockpit_data:            { type: 'object',  scope: 'session', default: null },
+<!-- FOTO MODAL -->
+<div class="foto-modal-bg" id="fotoModalBg">
+  <div class="foto-modal">
+    <div class="fm-header">
+      <span class="fm-title" id="fmTitle">Foto</span>
+      <button class="fm-close" onclick="closeFotoModal()">✕</button>
+    </div>
+    <div class="fm-body">
+      <div class="fm-preview" id="fmPreview">
+        <div class="fm-preview-empty" id="fmEmpty">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Noch kein Foto hinterlegt</span>
+        </div>
+        <img id="fmImg" style="display:none;" alt="">
+      </div>
+      <div class="fm-actions">
+        <button class="btn-upload" onclick="triggerFotoUpload()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Foto hochladen
+        </button>
+        <button class="btn-remove-foto" id="fmBtnRemove" onclick="removeFotoModal()">Entfernen</button>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="file" id="fotoFileInput" accept="image/*" style="display:none;">
+<div class="toast" id="toast"></div>
 
-    // ── Ziele (06) ───────────────────────────────────────────────────────
-    ziele:                { type: 'array',   scope: 'session', default: [] },
-    wuensche:             { type: 'array',   scope: 'session', default: [] },
+<script>
+const ADMIN_KEY = 'bbzAdmin';
+let profiles = [], activeId = null, activeKachel = 1, fotoModalIdx = null;
 
-    // ── Anlegen (07b) ────────────────────────────────────────────────────
-    anlage_horizont:      { type: 'number',  scope: 'session', default: null },
-    anlage_betrag:        { type: 'number',  scope: 'session', default: null },
-    anlage_strategie:     { type: 'string',  scope: 'session', default: '' },
-    anlage_reaktion:      { type: 'string',  scope: 'session', default: '' },
-    anlage_profil:        { type: 'string',  scope: 'session', default: '' },
-    anlage_kenntnisse:    { type: 'object',  scope: 'session', default: null },
-    anlage_esg:           { type: 'object',  scope: 'session', default: null },
-    anlage_impl:          { type: 'object',  scope: 'session', default: null },
+window.onload = async () => {
+  await loadProfiles();
+  renderSidebar();
+  if (profiles.length > 0) openProfile(profiles[0].id);
+  document.getElementById('fotoFileInput').addEventListener('change', onFotoFileSelected);
+  document.getElementById('fotoModalBg').addEventListener('click', e => {
+    if (e.target === document.getElementById('fotoModalBg')) closeFotoModal();
+  });
+};
 
-    // ── Vereinbarungen (08) ──────────────────────────────────────────────
-    vereinbarungen:       { type: 'array',   scope: 'session', default: [] },
-    vereinbarungen_v1:    { type: 'object',  scope: 'session', default: null },
-    vereinbarungenHeroImage: { type: 'string', scope: 'session', default: '' },
+// Auto-Save bei Reload / Tab schliessen
+window.addEventListener('beforeunload', () => {
+  if (activeId !== null) { flushEditor(); persist(); }
+});
 
-    // ── Feedback (09) ────────────────────────────────────────────────────
-    fb_ratings:           { type: 'array',   scope: 'session', default: [] },
-    fb_q_text_0:          { type: 'string',  scope: 'session', default: '' },
-    fb_q_text_1:          { type: 'string',  scope: 'session', default: '' },
-
-    // ── Abschluss (10) ───────────────────────────────────────────────────
-    abschluss_bgImage:    { type: 'string',  scope: 'session', default: '' },
-
-    // ── Config (bleibt bei clearSession) ────────────────────────────────
-    aktiverBerater:       { type: 'number',  scope: 'config',  default: 1 },
-    beraterName:          { type: 'string',  scope: 'config',  default: '' },
-    beraterTitel:         { type: 'string',  scope: 'config',  default: '' },
-    beratervorstellung:   { type: 'object',  scope: 'config',  default: {} },
-    activeBranches:       { type: 'object',  scope: 'config',  default: {} },
-    disabled:             { type: 'object',  scope: 'config',  default: {} },
-  };
-
-  function _load() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-    catch (e) { return {}; }
-  }
-
-  function _save(data) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-    catch (e) { console.warn('bbz-data: localStorage write failed', e); }
-  }
-
-  function _coerce(key, value) {
-    const schema = SCHEMA[key];
-    if (!schema || value === null || value === undefined) return value;
-    if (schema.type === 'number') {
-      return typeof value === 'string'
-        ? parseFloat(value.replace(/['\s]/g, '').replace(',', '.')) || null
-        : Number(value);
+async function loadProfiles() {
+  try {
+    const raw = localStorage.getItem(ADMIN_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (Array.isArray(saved) && saved.length > 0) { profiles = saved; return; }
+      if (saved && Array.isArray(saved.profiles) && saved.profiles.length > 0) { profiles = saved.profiles; return; }
     }
-    return value;
+  } catch(e) {}
+  try {
+    const res = await fetch('data/berater.json');
+    if (res.ok) {
+      const json = await res.json();
+      profiles = json.map(p => ({
+        id: p.id, name: p.name || 'Vorname Nachname', titel: p.titel || 'Kundenberater:in',
+        kacheln: [
+          { titel: 'Wer ich bin',                    foto_b64: null, content: p.kacheln?.[0]?.content || '' },
+          { titel: 'Was ich mag',                    foto_b64: null, content: p.kacheln?.[1]?.content || '' },
+          { titel: 'Was Sie von mir erwarten können', foto_b64: null, content: p.kacheln?.[2]?.content || '' },
+        ]
+      }));
+      return;
+    }
+  } catch(e) {}
+  profiles = [1,2,3,4,5].map(i => ({
+    id: i, name: 'Vorname Nachname', titel: 'Kundenberater:in',
+    kacheln: [
+      { titel: 'Wer ich bin', foto_b64: null, content: '' },
+      { titel: 'Was ich mag', foto_b64: null, content: '' },
+      { titel: 'Was Sie von mir erwarten können', foto_b64: null, content: '' },
+    ]
+  }));
+}
+
+function persist() {
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(profiles));
+  const cur = BBZ.get('aktiverBerater') || 1;
+  const p = profiles.find(x => x.id === cur);
+  if (p) {
+    BBZ.merge({ beraterName: p.name, beraterTitel: p.titel });
+    const texte = {};
+    p.kacheln.forEach((k, i) => { texte[i+1] = k.content || ''; });
+    BBZ.merge({ [`berater_texte_${p.id}`]: texte });
   }
+}
 
-  const BBZ = {
+function renderSidebar() {
+  const list = document.getElementById('sidebarList');
+  list.innerHTML = '';
+  profiles.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'berater-item' + (p.id === activeId ? ' active' : '');
+    div.onclick = () => openProfile(p.id);
+    const avatarInner = p.kacheln?.[0]?.foto_b64 ? `<img src="${p.kacheln[0].foto_b64}" alt="">` : getInitials(p.name);
+    div.innerHTML = `<div class="bi-avatar">${avatarInner}</div><div class="bi-info"><div class="bi-name">${esc(p.name)}</div><div class="bi-titel">${esc(p.titel)}</div></div>`;
+    list.appendChild(div);
+  });
+}
 
-    get(key) {
-      const data = _load();
-      if (key in data) return data[key];
-      return (SCHEMA[key] || {}).default ?? null;
-    },
+function getInitials(name) {
+  const parts = (name||'').split(' ').filter(Boolean);
+  return parts.length >= 2 ? (parts[0][0]+parts[parts.length-1][0]).toUpperCase() : (name||'?').slice(0,2).toUpperCase();
+}
 
-    set(key, value) {
-      const data = _load();
-      data[key] = _coerce(key, value);
-      _save(data);
-    },
+function openProfile(id) {
+  if (activeId !== null) flushEditor();
+  activeId = id; activeKachel = 1;
+  const p = profiles.find(x => x.id === id);
+  document.getElementById('chTitle').textContent    = p.name;
+  document.getElementById('chSubtitle').textContent = p.titel;
+  document.getElementById('fieldName').value  = p.name;
+  document.getElementById('fieldTitel').value = p.titel;
+  renderSidebar();
+  renderFotos(p);
+  renderKachelTabs(p);
+  renderKachelEditor(p);
+}
 
-    merge(obj) {
-      const data = _load();
-      Object.entries(obj).forEach(([k, v]) => { data[k] = _coerce(k, v); });
-      _save(data);
-    },
+function renderFotos(p) {
+  document.getElementById('fotoRow').innerHTML = [0,1,2].map(i => {
+    const k = p.kacheln[i], hasImg = !!k.foto_b64;
+    return `<div class="foto-thumb-wrap">
+      <div class="foto-thumb ${hasImg?'has-img':''}" onclick="openFotoModal(${i})">
+        ${hasImg ? `<img src="${esc(k.foto_b64)}" alt="">` :
+          `<svg class="foto-empty-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+           <span class="foto-empty-hint">Hochladen</span>`}
+        <div class="foto-thumb-hover"><span>${hasImg?'Bearbeiten':'Hochladen'}</span></div>
+      </div>
+      <div class="foto-thumb-label">${esc(k.titel)}</div>
+    </div>`;
+  }).join('');
+}
 
-    all() { return _load(); },
+function openFotoModal(idx) {
+  fotoModalIdx = idx;
+  const p = profiles.find(x => x.id === activeId), k = p.kacheln[idx];
+  document.getElementById('fmTitle').textContent = `Foto — ${k.titel}`;
+  const img = document.getElementById('fmImg'), empty = document.getElementById('fmEmpty');
+  if (k.foto_b64) { img.src = k.foto_b64; img.style.display = 'block'; empty.style.display = 'none'; }
+  else            { img.style.display = 'none'; empty.style.display = 'flex'; }
+  document.getElementById('fmBtnRemove').disabled = !k.foto_b64;
+  document.getElementById('fotoModalBg').classList.add('open');
+}
 
-    setIfEmpty(key, value) {
-      const cur = this.get(key);
-      if (cur === null || cur === '' || cur === undefined) this.set(key, value);
-    },
+function closeFotoModal() {
+  document.getElementById('fotoModalBg').classList.remove('open');
+  fotoModalIdx = null;
+}
 
-    clearSession() {
-      // bbzData: nur config-Keys behalten
-      const data = _load();
-      const kept = {};
-      Object.entries(SCHEMA).forEach(([k, def]) => {
-        if (def.scope === 'config' && k in data) kept[k] = data[k];
-      });
-      // Berater-Texte (beratervorstellung_N) und Admin-Texte (berater_texte_N) sind
-      // nicht im Schema, müssen aber als Config erhalten bleiben
-      Object.keys(data).forEach(k => {
-        if (k.startsWith('beratervorstellung_') || k.startsWith('berater_texte_')) {
-          kept[k] = data[k];
-        }
-      });
-      _save(kept);
+function triggerFotoUpload() { document.getElementById('fotoFileInput').click(); }
 
-      // bbzCockpit: Session-Felder löschen, Config-Felder behalten
-      try {
-        const ck = JSON.parse(localStorage.getItem('bbzCockpit') || '{}');
-        const ckKept = {};
-        if (ck.aktiverBerater !== undefined) ckKept.aktiverBerater = ck.aktiverBerater;
-        if (ck.disabled !== undefined)       ckKept.disabled = ck.disabled;
-        if (ck.branches !== undefined)       ckKept.branches = ck.branches;
-        // beratungsdatum ist session → nicht behalten
-        localStorage.setItem('bbzCockpit', JSON.stringify(ckKept));
-      } catch (e) {}
-
-      // bbzBgImage: session → löschen
-      try { localStorage.removeItem('bbzBgImage'); } catch (e) {}
-    },
-
-    clearAll() {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-    },
-
-    async getProfile(id) {
-      try {
-        const activeId = id || this.get('aktiverBerater') || 1;
-        const res = await fetch('data/berater.json');
-        if (!res.ok) return null;
-        const profiles = await res.json();
-        return profiles.find(p => p.id === activeId) || profiles[0] || null;
-      } catch (e) { return null; }
-    },
-
-    async getAllProfiles() {
-      try {
-        const res = await fetch('data/berater.json');
-        if (!res.ok) return [];
-        return await res.json();
-      } catch (e) { return []; }
-    },
-
-    setAktiveBerater(id) {
-      this.set('aktiverBerater', Number(id));
-    },
-
-    // ── Hilfsfunktionen ──────────────────────────────────────────────────
-    fmt(n, decimals = 0) {
-      if (n === null || n === undefined || isNaN(n)) return '–';
-      const abs = Math.abs(n).toFixed(decimals).split('.');
-      abs[0] = abs[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
-      return (n < 0 ? '-' : '') + abs.join('.');
-    },
-
-    parseNum(s) {
-      if (typeof s === 'number') return s;
-      return parseFloat(String(s || '').replace(/['\s]/g, '').replace(',', '.')) || 0;
-    },
-
-    fmtDate(iso) {
-      if (!iso) return '–';
-      try {
-        return new Date(iso).toLocaleDateString('de-CH', {
-          day: '2-digit', month: '2-digit', year: 'numeric'
-        });
-      } catch (e) { return iso; }
-    },
-
-    age(isoDate) {
-      if (!isoDate) return null;
-      const geb   = new Date(isoDate);
-      const heute = new Date();
-      const alter = heute.getFullYear() - geb.getFullYear()
-        - (heute < new Date(heute.getFullYear(), geb.getMonth(), geb.getDate()) ? 1 : 0);
-      return alter > 0 && alter < 130 ? alter : null;
-    },
-
-    SCHEMA,
+function onFotoFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file || fotoModalIdx === null) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const p = profiles.find(x => x.id === activeId);
+    p.kacheln[fotoModalIdx].foto_b64 = ev.target.result;
+    persist(); renderFotos(p); renderSidebar();
+    const img = document.getElementById('fmImg'), empty = document.getElementById('fmEmpty');
+    img.src = ev.target.result; img.style.display = 'block'; empty.style.display = 'none';
+    document.getElementById('fmBtnRemove').disabled = false;
+    showToast('Foto gespeichert');
   };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
 
-  global.BBZ = BBZ;
+function removeFotoModal() {
+  if (fotoModalIdx === null) return;
+  const p = profiles.find(x => x.id === activeId);
+  p.kacheln[fotoModalIdx].foto_b64 = null;
+  persist(); renderFotos(p); renderSidebar();
+  document.getElementById('fmImg').style.display = 'none';
+  document.getElementById('fmEmpty').style.display = 'flex';
+  document.getElementById('fmBtnRemove').disabled = true;
+  showToast('Foto entfernt');
+}
 
-})(window);
+function renderKachelTabs(p) {
+  document.getElementById('kachelTabs').innerHTML = p.kacheln.map((k,i) =>
+    `<div class="kachel-tab ${activeKachel===i+1?'active':''}" onclick="switchKachel(${i+1})">${esc(k.titel||`Kachel ${i+1}`)}</div>`
+  ).join('');
+}
+
+function switchKachel(n) {
+  flushEditor(); activeKachel = n;
+  const p = profiles.find(x => x.id === activeId);
+  renderKachelTabs(p); renderKachelEditor(p);
+}
+
+function renderKachelEditor(p) {
+  const k = p.kacheln[activeKachel - 1];
+  document.getElementById('kachelEditorWrap').innerHTML = `
+    <div class="kachel-title-row">
+      <span class="kachel-title-label">Kachel-Titel</span>
+      <input type="text" class="kachel-title-input" id="kachelTitleInput"
+        value="${esc(k.titel)}" placeholder="Kachel-Titel" oninput="onKachelTitleChange()">
+    </div>
+    <div class="editor-toolbar">
+      <button class="tb-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="tb-btn" onclick="execCmd('italic')"><i style="font-style:italic">I</i></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="execCmd('formatBlock','h3')">H</button>
+      <button class="tb-btn" onclick="execCmd('formatBlock','p')">¶</button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="execCmd('insertUnorderedList')">•</button>
+    </div>
+    <div class="kachel-editor" id="kachelEditor" contenteditable="true"
+      data-placeholder="Inhalt für «${esc(k.titel)}» …">${k.content || ''}</div>`;
+}
+
+function flushEditor() {
+  if (activeId === null) return;
+  const editor = document.getElementById('kachelEditor'), titleEl = document.getElementById('kachelTitleInput');
+  if (!editor) return;
+  const p = profiles.find(x => x.id === activeId);
+  p.kacheln[activeKachel-1].content = stripStyles(editor.innerHTML.trim());
+  if (titleEl) p.kacheln[activeKachel-1].titel = titleEl.value.trim();
+}
+
+function execCmd(cmd, val) {
+  document.execCommand(cmd, false, val||null);
+  document.getElementById('kachelEditor')?.focus();
+}
+
+function stripStyles(html) {
+  return html.replace(/\s*style="[^"]*"/gi,'').replace(/\s*style='[^']*'/gi,'')
+    .replace(/<font[^>]*>/gi,'').replace(/<\/font>/gi,'').replace(/<span>([^<]*)<\/span>/gi,'$1');
+}
+
+function onNameChange() {
+  const val = document.getElementById('fieldName').value;
+  const p = profiles.find(x => x.id === activeId); if (!p) return;
+  p.name = val; document.getElementById('chTitle').textContent = val; renderSidebar();
+}
+
+function onTitelChange() {
+  const val = document.getElementById('fieldTitel').value;
+  const p = profiles.find(x => x.id === activeId); if (!p) return;
+  p.titel = val; document.getElementById('chSubtitle').textContent = val; renderSidebar();
+}
+
+function onKachelTitleChange() {
+  const val = document.getElementById('kachelTitleInput')?.value || '';
+  const p = profiles.find(x => x.id === activeId); if (!p) return;
+  p.kacheln[activeKachel-1].titel = val;
+  const tabs = document.querySelectorAll('.kachel-tab');
+  if (tabs[activeKachel-1]) tabs[activeKachel-1].textContent = val || `Kachel ${activeKachel}`;
+  renderFotos(p);
+}
+
+function saveAll() {
+  flushEditor(); persist(); renderSidebar();
+  const btn = document.getElementById('btnSave');
+  btn.classList.add('saved');
+  btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>&nbsp;Gespeichert`;
+  setTimeout(() => {
+    btn.classList.remove('saved');
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>&nbsp;Speichern`;
+  }, 2000);
+  showToast('Profil gespeichert');
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
