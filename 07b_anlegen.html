@@ -1095,7 +1095,7 @@
         if (stateA.esg !== null) BBZ.set('anlage_esg', stateA.esg);
     }
 
-    function selectESG(id) { stateA.esg = id; renderESG(); }
+    function selectESG(id) { stateA.esg = stateA.esg === id ? null : id; renderESG(); }
 
     // ── Conclusion Logic ──
     function getHorizonMaxStrategyIdx() {
