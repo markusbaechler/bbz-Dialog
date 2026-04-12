@@ -235,8 +235,14 @@ window.onload = async () => {
 
 async function loadProfiles() {
   try {
-    const saved = JSON.parse(localStorage.getItem(ADMIN_KEY) || 'null');
-    if (saved && Array.isArray(saved) && saved.length > 0) { profiles = saved; return; }
+    const raw = localStorage.getItem(ADMIN_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      // Admin speichert als Array; bbzData-Merge kann ein Objekt hinterlassen – beides abfangen
+      if (Array.isArray(saved) && saved.length > 0) { profiles = saved; return; }
+      // Falls bbzAdmin ein Objekt ist das ein profiles-Array enthält
+      if (saved && Array.isArray(saved.profiles) && saved.profiles.length > 0) { profiles = saved.profiles; return; }
+    }
   } catch(e) {}
   try {
     const res = await fetch('data/berater.json');
@@ -264,7 +270,9 @@ async function loadProfiles() {
 }
 
 function persist() {
+  // bbzAdmin immer als reines Array speichern – nie als Objekt
   localStorage.setItem(ADMIN_KEY, JSON.stringify(profiles));
+  // Aktiven Berater in bbzData spiegeln (separater Key, bbzAdmin bleibt unberührt)
   const cur = BBZ.get('aktiverBerater') || 1;
   const p = profiles.find(x => x.id === cur);
   if (p) {
