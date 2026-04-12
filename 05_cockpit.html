@@ -720,8 +720,22 @@ function calc() {
 
   // Werte in bbzData persistieren (Downstream-Module)
   if (typeof BBZ !== 'undefined') {
-    BBZ.set('cockpit_anlage_f', S.anlegen.volumen || 0);
-    BBZ.set('cockpit_einkommen', (S.ausgaben.eMann||0) + (S.ausgaben.eFrau||0));
+    const freq = S.ausgaben.freq || 'mtl';
+    const mult = freq === 'mtl' ? 12 : 1;
+
+    // Einkommen p.a. (hochgerechnet falls monatlich)
+    const einkommenPA = ((S.ausgaben.eMann || 0) + (S.ausgaben.eFrau || 0)) * mult;
+
+    // Verpflichtungen p.a.: nur Leasing + Unterhalt (ohne Haushalt & übrige)
+    const verpflichtungenPA = ((S.ausgaben.leasing || 0) + (S.ausgaben.unterhalt || 0)) * mult;
+
+    BBZ.set('cockpit_einkommen',      einkommenPA);
+    BBZ.set('cockpit_verpflichtungen', verpflichtungenPA);
+    BBZ.set('cockpit_pk_saldo',        S.vorsorgen.pkSaldo || 0);
+    BBZ.set('cockpit_anlage_f',        S.anlegen.volumen || 0);
+
+    // Vollständiger State für Reload (verhindert Datenverlust beim Tab-Wechsel)
+    BBZ.set('cockpit_data', JSON.parse(JSON.stringify(S)));
   }
 }
 
@@ -1038,7 +1052,20 @@ function save(t){
   calc(); closeModal();
 }
 
-window.onload = () => calc();
+// ── State aus bbzData laden (verhindert Datenverlust beim Tab-Wechsel) ──
+function loadFromBBZ() {
+  if (typeof BBZ === 'undefined') return;
+  try {
+    const d = BBZ.get('cockpit_data');
+    if (!d || typeof d !== 'object') return;
+    // Tief-mergen: nur vorhandene Keys überschreiben
+    ['zahlen','sparen','vorsorgen','anlegen','ausgaben','finanzieren','chart'].forEach(k => {
+      if (d[k] && typeof d[k] === 'object') Object.assign(S[k], d[k]);
+    });
+  } catch(e) {}
+}
+
+window.onload = () => { loadFromBBZ(); calc(); };
 </script>
 </body>
 </html>
