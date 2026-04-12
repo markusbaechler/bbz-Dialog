@@ -1332,7 +1332,7 @@
         if (savedWish !== null && savedWish !== undefined && savedWish !== '') stateA.stratIdx = parseInt(savedWish, 10);
         if (savedKnowledge) stateA.knowledge = normalizeKnowledgeState(savedKnowledge);
         if (savedStress)    stateA.stress = { ...stateA.stress, ...savedStress };
-        if (savedESG)       stateA.esg = savedESG;
+        // ESG absichtlich nicht restored — wird jede Session neu erfasst
         if (savedConclusion && savedConclusion.finaleStrategie) {
             const finalIdx = STRATS.findIndex(s => s.name === savedConclusion.finaleStrategie);
             if (finalIdx >= 0) { stateA.finalStrategy = finalIdx; stateA.finalStrategyTouched = true; }
