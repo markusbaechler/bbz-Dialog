@@ -430,6 +430,7 @@
                                 style="border: none; outline: none; font-family: var(--font); font-size: 4vh; font-weight: 800; color: var(--blue); flex: 1; background: transparent; width: 100%;">
                         </div>
                         <p style="font-size: 0.62vw; color: var(--ink-4); line-height: 1.5; margin-top: 0.5vh;">Der Betrag fliesst in die Stresstest-Simulation ein und gibt dem Beratungsgespräch einen konkreten Ankerpunkt.</p>
+                        <p id="cockpitAmtHint" style="display:none; font-size: 0.62vw; color: var(--ink-3); font-weight: 600; line-height: 1.5;"></p>
                     </div>
                 </div>
                 <div class="screen-btn-row" style="justify-content: flex-end;">
@@ -1296,7 +1297,15 @@
     window.onload = () => {
         // Teil A: restore from localStorage
         const saved = BBZ.get('cockpit_anlage_f');
-        if (saved) { stateA.amount = parseInt(saved); document.getElementById('amtInput').value = stateA.amount.toLocaleString('de-CH'); }
+        if (saved) {
+            stateA.amount = parseInt(saved);
+            document.getElementById('amtInput').value = stateA.amount.toLocaleString('de-CH');
+            const hint = document.getElementById('cockpitAmtHint');
+            if (hint) {
+                hint.textContent = 'Ihr anlagefähiges Kapital aus dem Finanz-Cockpit: CHF ' + parseInt(saved).toLocaleString('de-CH');
+                hint.style.display = 'block';
+            }
+        }
         const savedWish       = BBZ.get('anlage_strategiewunsch');
         const savedKnowledge  = BBZ.get('anlage_kenntnisse');
         const savedStress     = BBZ.get('anlage_stresstest');
