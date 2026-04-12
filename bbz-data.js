@@ -137,6 +137,13 @@
       Object.entries(SCHEMA).forEach(([k, def]) => {
         if (def.scope === 'config' && k in data) kept[k] = data[k];
       });
+      // Berater-Texte (beratervorstellung_N) und Admin-Texte (berater_texte_N) sind
+      // nicht im Schema, müssen aber als Config erhalten bleiben
+      Object.keys(data).forEach(k => {
+        if (k.startsWith('beratervorstellung_') || k.startsWith('berater_texte_')) {
+          kept[k] = data[k];
+        }
+      });
       _save(kept);
 
       // bbzCockpit: Session-Felder löschen, Config-Felder behalten
