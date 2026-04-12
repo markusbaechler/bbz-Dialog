@@ -412,14 +412,14 @@
                     <div style="display: flex; flex-direction: column; gap: 1vh;">
                         <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Anlagehorizont</div>
                         <div style="display: flex; align-items: baseline; gap: 0.6vw;">
-                            <div id="hzDisplay" style="font-size: 7vh; font-weight: 800; color: var(--blue); line-height: 1;">10</div>
+                            <div id="hzDisplay" style="font-size: 7vh; font-weight: 800; color: var(--blue); line-height: 1;">–</div>
                             <span style="font-size: 2vh; font-weight: 600; color: var(--ink-3);">Jahre</span>
                         </div>
-                        <input type="range" class="hz-slider" id="hzInput" min="1" max="35" value="10" oninput="updateHz(this.value)" style="margin: 1.5vh 0 0.5vh;">
+                        <input type="range" class="hz-slider" id="hzInput" min="1" max="35" value="1" oninput="updateHz(this.value)" style="margin: 1.5vh 0 0.5vh;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.58vw; color: var(--ink-4); font-weight: 600;">
                             <span>1 Jahr</span><span>15 Jahre</span><span>30+ Jahre</span>
                         </div>
-                        <div id="hzHint" style="margin-top: 1.5vh; font-size: 0.68vw; font-weight: 700; color: var(--blue);">Mittlerer bis langer Horizont: Wachstumsorientierung denkbar.</div>
+                        <div id="hzHint" style="margin-top: 1.5vh; font-size: 0.68vw; font-weight: 700; color: var(--blue);"></div>
                     </div>
                     <!-- Rechts: Betrag -->
                     <div style="display: flex; flex-direction: column; gap: 1vh;">
@@ -890,12 +890,12 @@
     ];
 
     let stateA = {
-        horizon: 10, amount: 100000, stratIdx: 2, stressStep: 0,
+        horizon: null, amount: 0, stratIdx: null, stressStep: 0,
         maxUnlockedStep: 1,
         stress: { react: null, wait: null, exp: null },
         knowledge: { anleihen: [], aktien: [], fonds: [], hebel: [], krypto: [] },
-        esg: 'nachrangig',
-        riskFromStress: 2, recommendation: 2, finalStrategy: 2, finalStrategyTouched: false
+        esg: null,
+        riskFromStress: null, recommendation: null, finalStrategy: null, finalStrategyTouched: false
     };
 
     let volChartObj = null;
@@ -964,10 +964,18 @@
     function formatAmt(input) { let val = input.value.replace(/\D/g, ''); stateA.amount = val ? parseInt(val) : 0; input.value = stateA.amount ? stateA.amount.toLocaleString('de-CH') : ''; updateSimulation(); }
 
     // ── Strategy ──
-    function renderStrats() { document.getElementById('stratGrid').innerHTML = STRATS.map((s, i) => `<div class="strat-card ${i === stateA.stratIdx ? 'active' : ''}" onclick="selectStrat(${i})"><div class="strat-name">${s.name}</div><div class="strat-yield">${s.yield.toFixed(2)}% – ${(s.yield + 0.5).toFixed(2)}%</div></div>`).join(''); }
+    function renderStrats() { document.getElementById('stratGrid').innerHTML = STRATS.map((s, i) => `<div class="strat-card ${stateA.stratIdx !== null && i === stateA.stratIdx ? 'active' : ''}" onclick="selectStrat(${i})"><div class="strat-name">${s.name}</div><div class="strat-yield">${s.yield.toFixed(2)}% – ${(s.yield + 0.5).toFixed(2)}%</div></div>`).join(''); }
     function selectStrat(idx) { stateA.stratIdx = idx; BBZ.set('anlage_strategiewunsch', idx); renderStrats(); updateSimulation(); updateVolChart(); }
 
     function updateSimulation() {
+        if (stateA.stratIdx === null || stateA.horizon === null) {
+            ['simEndAmt','simGain','bandRange','stratDesc'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.innerText = '–';
+            });
+            const note = document.getElementById('behavioralNote');
+            if (note) note.style.display = 'none';
+            return;
+        }
         const strat = STRATS[stateA.stratIdx];
         const endAmt = stateA.amount * Math.pow(1 + (strat.yield / 100), stateA.horizon);
         const sigmaScale = (strat.vol / 100) * Math.sqrt(stateA.horizon);
@@ -993,6 +1001,7 @@
 
     function updateVolChart() {
         if (!volChartObj) return;
+        if (stateA.stratIdx === null || stateA.horizon === null) { volChartObj.data.labels = []; volChartObj.data.datasets.forEach(d => d.data = []); volChartObj.update(); return; }
         const strat = STRATS[stateA.stratIdx]; const horizon = stateA.horizon; const startAmt = stateA.amount || 100000;
         const labels = [], expectedP = [], upperP = [], lowerP = [];
         for (let i = 0; i <= horizon; i++) {
@@ -1082,14 +1091,15 @@
 
     // ── ESG ──
     function renderESG() {
-        document.getElementById('esgOptions').innerHTML = ESG_OPTIONS.map(opt => `<button class="esg-option ${stateA.esg === opt.id ? 'active' : ''}" onclick="selectESG('${opt.id}')"><div class="esg-radio"></div><div><div class="esg-title">${opt.title}</div><div class="esg-desc">${opt.desc}</div></div></button>`).join('');
-        BBZ.set('anlage_esg', stateA.esg);
+        document.getElementById('esgOptions').innerHTML = ESG_OPTIONS.map(opt => `<button class="esg-option ${stateA.esg !== null && stateA.esg === opt.id ? 'active' : ''}" onclick="selectESG('${opt.id}')"><div class="esg-radio"></div><div><div class="esg-title">${opt.title}</div><div class="esg-desc">${opt.desc}</div></div></button>`).join('');
+        if (stateA.esg !== null) BBZ.set('anlage_esg', stateA.esg);
     }
 
     function selectESG(id) { stateA.esg = id; renderESG(); }
 
     // ── Conclusion Logic ──
     function getHorizonMaxStrategyIdx() {
+        if (stateA.horizon === null) return 4;
         if (stateA.horizon <= 2) return 1; if (stateA.horizon <= 5) return 2;
         if (stateA.horizon <= 9) return 3; return 4;
     }
@@ -1107,6 +1117,11 @@
     }
 
     function calculateRecommendation() {
+        if (stateA.stratIdx === null || stateA.horizon === null) {
+            stateA.riskFromStress = null; stateA.recommendation = null;
+            if (!stateA.finalStrategyTouched) stateA.finalStrategy = null;
+            return null;
+        }
         const horizonMax = getHorizonMaxStrategyIdx();
         const wishIdx = Math.min(stateA.stratIdx, horizonMax);
         const stressIdx = getStressStrategyIdx();
@@ -1122,7 +1137,7 @@
 
     function getESGConclusionText() {
         const map = { none: 'Nachhaltigkeit hat keine besondere Bedeutung.', nachrangig: 'Nachhaltigkeit wird als ergänzender Faktor berücksichtigt.', gleichwertig: 'Nachhaltigkeit und Rendite sind gleich wichtig.', vorrangig: 'Es sollen ausschliesslich nachhaltigkeitsorientierte Anlagen berücksichtigt werden.' };
-        return map[stateA.esg] || map.nachrangig;
+        return stateA.esg ? (map[stateA.esg] || '') : '';
     }
 
     function getRecommendationLead() {
@@ -1144,22 +1159,25 @@
 
     function renderConclusion() {
         calculateRecommendation();
-        document.getElementById('recommendedStrategyLabel').innerText = STRATS[stateA.recommendation].name;
-        document.getElementById('recommendationLead').innerText = getRecommendationLead();
-        document.getElementById('customerWishLine').innerText = STRATS[stateA.stratIdx].name;
+        const rec = stateA.recommendation;
+        const fin = stateA.finalStrategy;
+        document.getElementById('recommendedStrategyLabel').innerText = rec !== null ? STRATS[rec].name : '–';
+        document.getElementById('recommendationLead').innerText = rec !== null ? getRecommendationLead() : '–';
+        document.getElementById('customerWishLine').innerText = stateA.stratIdx !== null ? STRATS[stateA.stratIdx].name : '–';
         document.getElementById('recommendationReason').innerText = getRecommendationReason();
         document.getElementById('esgConclusionText').innerText = getESGConclusionText();
-        document.getElementById('finalStratGrid').innerHTML = STRATS.map((s, i) => `<div class="strat-card ${i === stateA.finalStrategy ? 'active' : ''} ${i === stateA.recommendation ? 'recommended' : ''}" onclick="selectFinalStrategy(${i})"><div class="strat-name">${s.name}</div><div class="strat-yield">${s.yield.toFixed(2)}% – ${(s.yield + 0.5).toFixed(2)}%</div></div>`).join('');
-        document.getElementById('deviationNote').style.display = stateA.finalStrategy !== stateA.recommendation ? 'block' : 'none';
+        document.getElementById('finalStratGrid').innerHTML = STRATS.map((s, i) => `<div class="strat-card ${fin !== null && i === fin ? 'active' : ''} ${rec !== null && i === rec ? 'recommended' : ''}" onclick="selectFinalStrategy(${i})"><div class="strat-name">${s.name}</div><div class="strat-yield">${s.yield.toFixed(2)}% – ${(s.yield + 0.5).toFixed(2)}%</div></div>`).join('');
+        document.getElementById('deviationNote').style.display = fin !== null && rec !== null && fin !== rec ? 'block' : 'none';
     }
 
     function selectFinalStrategy(idx) { stateA.finalStrategyTouched = true; stateA.finalStrategy = idx; renderConclusion(); }
 
     function persistConclusion() {
+        if (stateA.stratIdx === null || stateA.recommendation === null || stateA.finalStrategy === null) return;
         calculateRecommendation();
         BBZ.set('anlage_konklusion', {
             strategiewunsch: STRATS[stateA.stratIdx].name,
-            stresstest: STRATS[stateA.riskFromStress].name,
+            stresstest: stateA.riskFromStress !== null ? STRATS[stateA.riskFromStress].name : '–',
             horizonMax: STRATS[getHorizonMaxStrategyIdx()].name,
             empfehlung: STRATS[stateA.recommendation].name,
             finaleStrategie: STRATS[stateA.finalStrategy].name,
