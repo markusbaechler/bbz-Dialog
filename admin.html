@@ -233,11 +233,6 @@ window.onload = async () => {
   });
 };
 
-// Auto-Save bei Seitenverlassen
-window.addEventListener('beforeunload', () => {
-  if (activeId !== null) { flushEditor(); persist(); }
-});
-
 async function loadProfiles() {
   try {
     const raw = localStorage.getItem(ADMIN_KEY);
@@ -411,7 +406,8 @@ function renderKachelEditor(p) {
       <button class="tb-btn" onclick="execCmd('insertUnorderedList')">•</button>
     </div>
     <div class="kachel-editor" id="kachelEditor" contenteditable="true"
-      data-placeholder="Inhalt für «${esc(k.titel)}» …">${k.content || ''}</div>`;
+      data-placeholder="Inhalt für «${esc(k.titel)}» …"
+      oninput="autoSave()">${k.content || ''}</div>`;
 }
 
 function flushEditor() {
@@ -431,6 +427,17 @@ function execCmd(cmd, val) {
 function stripStyles(html) {
   return html.replace(/\s*style="[^"]*"/gi,'').replace(/\s*style='[^']*'/gi,'')
     .replace(/<font[^>]*>/gi,'').replace(/<\/font>/gi,'').replace(/<span>([^<]*)<\/span>/gi,'$1');
+}
+
+function autoSave() {
+  if (activeId === null) return;
+  const editor = document.getElementById('kachelEditor');
+  const titleEl = document.getElementById('kachelTitleInput');
+  if (!editor) return;
+  const p = profiles.find(x => x.id === activeId);
+  p.kacheln[activeKachel-1].content = stripStyles(editor.innerHTML.trim());
+  if (titleEl) p.kacheln[activeKachel-1].titel = titleEl.value.trim();
+  persist();
 }
 
 function onNameChange() {
