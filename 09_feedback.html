@@ -632,6 +632,12 @@ function loadData() {
     if (d.fb_q_text_1) $('q-text-1').textContent = d.fb_q_text_1;
   } catch(e) {}
   if (ratings.length !== erwartungen.length) ratings = erwartungen.map(() => 7);
+  // Modulbild aus bbzAdmin laden
+  try {
+    const admin = JSON.parse(localStorage.getItem('bbzAdmin') || 'null');
+    const mbImg = (!Array.isArray(admin) && admin?.modulbilder?.feedback) || null;
+    if (mbImg) { customImages[0] = mbImg; customImages[1] = mbImg; }
+  } catch(e) {}
 }
 
 function saveData() {
@@ -765,8 +771,9 @@ function showQuestion(idx) {
   bg.style.opacity = '0';
   setTimeout(() => { bg.style.backgroundImage = `url('${src}')`; bg.style.opacity = '1'; }, 300);
 
+  $('btn-q-next').style.display = idx === 1 ? 'none' : '';
   $('btn-q-next').innerHTML = idx === 1
-    ? `Abschliessen <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`
+    ? ''
     : `Nächste Frage <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`;
 
   renderS3Indicators();
