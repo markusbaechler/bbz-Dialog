@@ -507,27 +507,58 @@
 
   // ── INIT ─────────────────────────────────────────────────────
   window.addEventListener('load', async () => {
-    // Aktives Profil aus berater.json laden
-    const profil = await BBZ.getProfile();
-    aktiverId    = BBZ.get('aktiverBerater') || 1;
+    aktiverId = BBZ.get('aktiverBerater') || 1;
 
-    // Berater-Name in Topbar
-    if (profil && profil.name) {
-      document.getElementById('logo-name').textContent = profil.name;
+    // 1. Admin-Profile aus bbzAdmin laden (Vorrang vor berater.json)
+    let adminProfile = null;
+    try {
+      const saved = JSON.parse(localStorage.getItem('bbzAdmin') || 'null');
+      if (saved && Array.isArray(saved)) {
+        adminProfile = saved.find(p => p.id === aktiverId) || null;
+      }
+    } catch(e) {}
+
+    if (adminProfile) {
+      // Name
+      document.getElementById('logo-name').textContent = adminProfile.name || 'Vorstellung';
+      // Fotos + Titel aus Admin
+      [1,2,3].forEach(i => {
+        const k = adminProfile.kacheln[i-1];
+        if (k && k.titel) TITLES[i] = k.titel;
+        if (k && k.foto_b64) loadPhotoFromBase64(i, k.foto_b64);
+      });
+      // Texte: zuerst beratervorstellung_N (in Modul gespeichert), sonst Admin-Content
+      const savedTexte = BBZ.get('beratervorstellung_' + aktiverId);
+      [1,2,3].forEach(i => {
+        const saved = savedTexte && savedTexte[i];
+        const adminContent = adminProfile.kacheln[i-1]?.content || '';
+        kacheln[i].content = saved || adminContent;
+        renderPreview(i);
+      });
+    } else {
+      // Fallback: berater.json + Datei-Pfad-Fotos
+      const profil = await BBZ.getProfile();
+      if (profil && profil.name) {
+        document.getElementById('logo-name').textContent = profil.name;
+      }
+      const fotoBuchstaben = ['a', 'b', 'c'];
+      [1, 2, 3].forEach(i => {
+        const foto = 'img/berater/berater' + aktiverId + fotoBuchstaben[i-1] + '.jpg';
+        loadPhotoFromUrl(i, foto);
+      });
+      restore();
+      [1,2,3].forEach(i => renderPreview(i));
     }
-
-    // Fotos aus img/berater/ laden (Dateiname-Konvention: beraterXa/b/c.jpg)
-    const fotoBuchstaben = ['a', 'b', 'c'];
-    [1, 2, 3].forEach((i) => {
-      const foto = 'img/berater/berater' + aktiverId + fotoBuchstaben[i-1] + '.jpg';
-      loadPhotoFromUrl(i, foto);
-    });
-
-    // Gespeicherte Texte laden (beratervorstellung pro Berater-ID)
-    restore();
   });
 
   // ── FOTOS ─────────────────────────────────────────────────────
+  function loadPhotoFromBase64(id, b64) {
+    const el = document.getElementById('photo-' + id);
+    el.style.backgroundImage = 'url(' + b64 + ')';
+    el.classList.add('loaded');
+    kacheln[id].photo = b64;
+  }
+
   function loadPhotoFromUrl(id, url) {
     const el = document.getElementById('photo-' + id);
     const img = new Image();
@@ -536,9 +567,7 @@
       el.classList.add('loaded');
       kacheln[id].photo = url;
     };
-    img.onerror = () => {
-      // Kein Foto vorhanden — Placeholder bleibt (blauer Hintergrund)
-    };
+    img.onerror = () => { /* Kein Foto vorhanden */ };
     img.src = url;
   }
 
