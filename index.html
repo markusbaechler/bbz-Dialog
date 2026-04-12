@@ -490,8 +490,17 @@ function saveState() {
 
 // ── BERATER-PICKER ─────────────────────────────────────────────────────────
 async function loadProfiles() {
+  // 1. bbzAdmin hat Vorrang (Admin-gepflegte Daten)
+  try {
+    const saved = JSON.parse(localStorage.getItem('bbzAdmin') || 'null');
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      profiles = saved;
+      renderBeraterPicker();
+      return;
+    }
+  } catch(e) {}
+  // 2. Fallback: berater.json
   profiles = await BBZ.getAllProfiles();
-  // Fallback wenn berater.json noch leer/nicht vorhanden
   if (!profiles.length) {
     profiles = [{ id: 1, name: 'Berater:in', titel: 'bbz bank', foto: null }];
   }
@@ -514,8 +523,8 @@ function renderBeraterPicker() {
       ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
       : (p.name || '?').slice(0, 2).toUpperCase();
 
-    const avatarContent = p.foto
-      ? '<img src="' + p.foto + '" alt="" onerror="this.style.display=\'none\'">'
+    const avatarContent = (p.foto_b64 || p.foto)
+      ? '<img src="' + (p.foto_b64 || p.foto) + '" alt="" onerror="this.style.display=\'none\'">'
       : initials;
 
     div.innerHTML =
