@@ -446,7 +446,7 @@ let D = {};
 
 // ── LOAD ──────────────────────────────────────────────────────────────────
 function load() {
-  try { D = JSON.parse(localStorage.getItem('bbzData') || '{}'); } catch(e) { D = {}; }
+  try { D = BBZ.all(); } catch(e) { D = {}; }
 
   // Active branches
   try {
@@ -459,8 +459,8 @@ function load() {
     activeBranches = D.activeBranches.map(b => b.replace('b',''));
   }
 
-  // Background
-  const savedBg = localStorage.getItem(BG_KEY);
+  // Background — bevorzuge bbzData, Fallback auf Legacy-Key bbzBgImage
+  const savedBg = D.abschluss_bgImage || localStorage.getItem(BG_KEY);
   document.getElementById('heroBg').style.backgroundImage =
     'url(' + (savedBg || DEFAULT_BG) + ')';
 
@@ -484,7 +484,10 @@ function handleBgUpload(e) {
   reader.onload = ev => {
     const dataUrl = ev.target.result;
     document.getElementById('heroBg').style.backgroundImage = 'url(' + dataUrl + ')';
-    try { localStorage.setItem(BG_KEY, dataUrl); } catch(err) {}
+    try {
+      localStorage.setItem(BG_KEY, dataUrl);
+      BBZ.set('abschluss_bgImage', dataUrl);
+    } catch(err) {}
   };
   reader.readAsDataURL(file);
 }
