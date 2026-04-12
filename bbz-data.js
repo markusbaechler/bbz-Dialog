@@ -63,15 +63,16 @@
     // ── Vereinbarungen (08) ──────────────────────────────────────────────
     vereinbarungen:       { type: 'array',   scope: 'session', default: [] },
     vereinbarungen_v1:    { type: 'object',  scope: 'session', default: null },
-    vereinbarungenHeroImage: { type: 'string', scope: 'session', default: '' },
+    vereinbarungenHeroImage: { type: 'string', scope: 'config', default: '' },
 
     // ── Feedback (09) ────────────────────────────────────────────────────
     fb_ratings:           { type: 'array',   scope: 'session', default: [] },
     fb_q_text_0:          { type: 'string',  scope: 'session', default: '' },
     fb_q_text_1:          { type: 'string',  scope: 'session', default: '' },
+    fb_s1_img:            { type: 'string',  scope: 'config',  default: '' },
 
     // ── Abschluss (10) ───────────────────────────────────────────────────
-    abschluss_bgImage:    { type: 'string',  scope: 'session', default: '' },
+    abschluss_bgImage:    { type: 'string',  scope: 'config',  default: '' },
 
     // ── Config (bleibt bei clearSession) ────────────────────────────────
     aktiverBerater:       { type: 'number',  scope: 'config',  default: 1 },
