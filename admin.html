@@ -245,9 +245,9 @@ async function loadProfiles() {
       profiles = json.map(p => ({
         id: p.id, name: p.name || 'Vorname Nachname', titel: p.titel || 'Kundenberater:in',
         kacheln: [
-          { titel: p.kacheln?.[0]?.titel || 'Wer ich bin',                    foto_b64: null, content: p.kacheln?.[0]?.content || '' },
-          { titel: p.kacheln?.[1]?.titel || 'Was ich mag',                    foto_b64: null, content: p.kacheln?.[1]?.content || '' },
-          { titel: p.kacheln?.[2]?.titel || 'Was Sie von mir erwarten können', foto_b64: null, content: p.kacheln?.[2]?.content || '' },
+          { titel: 'Wer ich bin',                    foto_b64: null, content: p.kacheln?.[0]?.content || '' },
+          { titel: 'Was ich mag',                    foto_b64: null, content: p.kacheln?.[1]?.content || '' },
+          { titel: 'Was Sie von mir erwarten können', foto_b64: null, content: p.kacheln?.[2]?.content || '' },
         ]
       }));
       return;
