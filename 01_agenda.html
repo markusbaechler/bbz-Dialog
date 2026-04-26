@@ -383,14 +383,20 @@
             String(now.getHours()).padStart(2,'0') + ':' +
             String(now.getMinutes()).padStart(2,'0') + ' Uhr';
 
-        // Kundennamen aus bbzData laden
-        const p1name = BBZ.get('p1name');
-        const p2name = BBZ.get('p2name');
-        if (p1name) {
-            const greeting = p2name
-                ? 'Herzlich willkommen, ' + p1name + ' & ' + p2name
-                : 'Herzlich willkommen, ' + p1name;
-            document.getElementById('welcomeName').innerText = greeting;
+        // Kundennamen aus bbzData laden — aber nur als Default, falls der
+        // User den Welcome-Titel noch nicht selbst editiert hat.
+        const savedWelcome = BBZ.get('agenda_welcome');
+        if (typeof savedWelcome === 'string' && savedWelcome.trim()) {
+            document.getElementById('welcomeName').innerText = savedWelcome;
+        } else {
+            const p1name = BBZ.get('p1name');
+            const p2name = BBZ.get('p2name');
+            if (p1name) {
+                const greeting = p2name
+                    ? 'Herzlich willkommen, ' + p1name + ' & ' + p2name
+                    : 'Herzlich willkommen, ' + p1name;
+                document.getElementById('welcomeName').innerText = greeting;
+            }
         }
 
         // Gespeicherte Daten laden (Default nur wenn noch nichts existiert)
@@ -412,6 +418,7 @@
         hydrateText('meta-duration', 'agenda_duration');
 
         // Live-Persistence der editierbaren Texte (debounced)
+        bindTextPersist('welcomeName',   'agenda_welcome');
         bindTextPersist('goal-text',     'agenda_goal');
         bindTextPersist('welcomeSub',    'agenda_welcome_sub');
         bindTextPersist('meta-duration', 'agenda_duration');
