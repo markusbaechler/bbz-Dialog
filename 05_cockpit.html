@@ -589,23 +589,19 @@ function calc() {
   const ausgGesM = S.ausgaben.haushalt + S.ausgaben.leasing
                  + S.ausgaben.unterhalt + S.ausgaben.uebrige;
 
-  // Cashflow-Saldo (nur wenn Einkommen erfasst)
+  // Cashflow-Saldo (nur wenn Einkommen erfasst) — rein indikativ zur
+  // Plausibilisierung, fliesst NICHT in die effektive Sparquote ein.
   const hasSpar = sparLayerM > 0;
   const hasCF   = einkGesM > 0;
+  const hasAusg = ausgGesM > 0;
   const cashflowSaldoM = hasCF ? einkGesM - ausgGesM : null;
   const verzehr = hasCF && ausgGesM > einkGesM;
 
-  // Effektive Sparquote = tieferer Betrag beider Erfassungen (konservativ)
-  let effSparM;
-  if (hasSpar && hasCF) {
-    effSparM = Math.max(0, Math.min(sparLayerM, cashflowSaldoM));
-  } else if (hasSpar) {
-    effSparM = sparLayerM * sparSign;
-  } else if (hasCF) {
-    effSparM = Math.max(0, cashflowSaldoM);
-  } else {
-    effSparM = 0;
-  }
+  // Effektive Sparquote = ausschliesslich aus dem Sparen-Modal.
+  // Der Cashflow (Einkommen − Ausgaben) hat nur indikativen Charakter zur
+  // Plausibilisierung und wird im Anzeige-Text als Warnung genutzt, falls
+  // er die deklarierte Sparquote nicht decken kann. Er ersetzt sie nicht.
+  const effSparM = hasSpar ? sparLayerM * sparSign : 0;
   const sparNetto = effSparM;
 
   // Finanzierung
@@ -676,22 +672,40 @@ function calc() {
       ueberEl.style.width = '0%';
     }
 
-    // Sparquote-Zeile
+    // Sparquote-Zeile — die Quelle für die Sparquote ist immer das Sparen-Modal.
+    // Der Cashflow wird nur als Plausibilisierung danebengestellt:
+    //   - reicht der Cashflow, um die Sparquote zu decken? → grün
+    //   - reicht er nicht? → orange Warnung
+    //   - keine Sparquote erfasst? → grauer Hinweis, Cashflow als Indiz
     const dot = $('spar-dot'), txt = $('spar-txt');
     if(dot && txt){
-      const cfLimitiert = hasSpar && hasCF && cashflowSaldoM < sparLayerM;
+      const cfDecktSparquote = hasSpar && hasCF && hasAusg && cashflowSaldoM >= sparLayerM;
+      const cfLimitiert      = hasSpar && hasCF && hasAusg && cashflowSaldoM < sparLayerM;
+
       if(verzehr){
         dot.style.background='#e53e3e'; txt.style.color='#e53e3e';
-        txt.textContent = 'Kapitalverzehr – Ausgaben übersteigen Einkommen um '+CHF(ausgGesM-einkGesM);
-      } else if(effSparM > 0 && cfLimitiert){
+        txt.textContent = 'Kapitalverzehr – Ausgaben übersteigen Einkommen um '+CHF(ausgGesM-einkGesM)+' / mtl.';
+      } else if(hasSpar && cfLimitiert){
+        // Sparquote erfasst, aber Cashflow reicht nicht → Plausibilisierung warnt
         dot.style.background='#d97706'; txt.style.color='#d97706';
-        txt.textContent = 'Effektive Sparquote: '+CHF(effSparM)+' / mtl. (Cashflow limitiert Sparen-Layer von '+CHF(sparLayerM)+')';
-      } else if(effSparM > 0){
+        txt.textContent = 'Sparquote: '+CHF(effSparM)+' / mtl. – Cashflow ('+CHF(Math.max(0,cashflowSaldoM))+') deckt die Sparquote nicht';
+      } else if(hasSpar && cfDecktSparquote){
         dot.style.background='#16a34a'; txt.style.color='#16a34a';
-        txt.textContent = 'Effektive Sparquote: '+CHF(effSparM)+' / mtl.';
+        txt.textContent = 'Sparquote: '+CHF(effSparM)+' / mtl. – durch Cashflow ('+CHF(cashflowSaldoM)+') gedeckt';
+      } else if(hasSpar){
+        // Sparquote erfasst, aber Cashflow nicht vollständig erfasst (Plausibilisierung nicht möglich)
+        dot.style.background='#16a34a'; txt.style.color='#16a34a';
+        txt.textContent = 'Sparquote: '+CHF(effSparM)+' / mtl.';
+      } else if(hasCF && hasAusg && cashflowSaldoM > 0){
+        // Keine Sparquote erfasst, aber Cashflow positiv → Hinweis (rein indikativ)
+        dot.style.background='#94a3b8'; txt.style.color='#94a3b8';
+        txt.textContent = 'Sparquote im Sparen-Layer erfassen (Cashflow-Indikation: +'+CHF(cashflowSaldoM)+' / mtl.)';
+      } else if(hasCF && !hasAusg){
+        dot.style.background='#94a3b8'; txt.style.color='#94a3b8';
+        txt.textContent = 'Ausgaben erfassen für Cashflow-Plausibilisierung';
       } else {
         dot.style.background='#94a3b8'; txt.style.color='#94a3b8';
-        txt.textContent = 'Kein Sparspielraum – Budget ausgeglichen';
+        txt.textContent = 'Sparquote im Sparen-Layer erfassen';
       }
     }
   } else {
@@ -915,7 +929,7 @@ function rSet(key,val,btn){
 }
 function toggleStrat(){const w=$('strat-wrap');if(w)w.style.display=S.vorsorgen.s3Form==='Konto'?'none':'';}
 
-/* Live-Vorschau Cashflow im Modal */
+/* Live-Vorschau Cashflow im Modal — rein indikativ, fliesst NICHT in Berechnung ein */
 function prevCF(){
   const p=$('cf-prev'), h=$('cf-hint'), e=$('cf-eff'); if(!p)return;
   const freq=S.ausgaben.freq;
@@ -925,31 +939,43 @@ function prevCF(){
   const ausg=pN(gv('f-haushalt'))+pN(gv('f-leasing'))+pN(gv('f-unterhalt'))+pN(gv('f-uebrige'));
   const saldo=eink-ausg;
   const sparLayer=S.sparen.quoteFreq==='mtl'?S.sparen.quoteBetrag:S.sparen.quoteBetrag/12;
+  const hasEink=eink>0, hasAusg=ausg>0, hasSparLay=sparLayer>0;
 
   // Cashflow-Saldo Anzeige
-  p.textContent = eink>0 ? (saldo>=0?'+ ':'– ')+CHF(Math.abs(saldo))+' / Monat' : '–';
-  p.className='calc-val '+(saldo>=0&&eink>0?'pos':saldo<0&&eink>0?'neg':'');
+  p.textContent = hasEink ? (saldo>=0?'+ ':'– ')+CHF(Math.abs(saldo))+' / Monat' : '–';
+  p.className='calc-val '+(saldo>=0&&hasEink?'pos':saldo<0&&hasEink?'neg':'');
 
   // Hinweis Sparen-Layer Vergleich
-  if(h && eink>0 && sparLayer>0){
-    if(saldo < sparLayer){
-      h.textContent='⚠ Cashflow ('+CHF(Math.max(0,saldo))+') liegt unter Sparen-Layer ('+CHF(sparLayer)+').';
-      h.style.color='#d97706';
+  if(h){
+    if(hasEink && hasAusg && hasSparLay){
+      if(saldo < sparLayer){
+        h.textContent='⚠ Cashflow ('+CHF(Math.max(0,saldo))+') liegt unter Sparen-Layer ('+CHF(sparLayer)+').';
+        h.style.color='#d97706';
+      } else {
+        h.textContent='✓ Cashflow deckt Sparen-Layer ('+CHF(sparLayer)+' / mtl.) vollständig.';
+        h.style.color='#16a34a';
+      }
     } else {
-      h.textContent='✓ Cashflow deckt Sparen-Layer ('+CHF(sparLayer)+' / mtl.) vollständig.';
-      h.style.color='#16a34a';
+      h.textContent='Cashflow ist indikativ. Die Sparquote wird im Sparen-Layer erfasst.';
+      h.style.color='';
     }
-  } else if(h){ h.textContent='Sparquote wird im Sparen-Layer erfasst.'; h.style.color=''; }
+  }
 
-  // Effektive Sparquote = MIN(Sparen-Layer, Cashflow-Saldo), min. 0
+  // Plausibilisierungs-Status (kein Wert mehr — die Sparquote kommt allein aus dem Sparen-Modal)
   if(e){
-    let eff;
-    if(sparLayer>0 && eink>0)      eff = Math.max(0, Math.min(sparLayer, saldo));
-    else if(sparLayer>0)           eff = sparLayer;
-    else if(eink>0)                eff = Math.max(0, saldo);
-    else                           eff = 0;
-    e.textContent = (eff>0?'+ ':'')+CHF(eff)+' / mtl.';
-    e.style.color = eff>0?'#16a34a':eff<0?'#e53e3e':'#94a3b8';
+    if(!hasSparLay){
+      e.textContent = 'Sparen-Layer nicht erfasst';
+      e.style.color = '#94a3b8';
+    } else if(!hasEink || !hasAusg){
+      e.textContent = 'Einkommen + Ausgaben für Plausibilisierung erfassen';
+      e.style.color = '#94a3b8';
+    } else if(saldo < sparLayer){
+      e.textContent = 'Cashflow deckt Sparquote nicht';
+      e.style.color = '#d97706';
+    } else {
+      e.textContent = 'Cashflow deckt Sparquote ✓';
+      e.style.color = '#16a34a';
+    }
   }
 }
 function set3aEinz(val,btn){S.vorsorgen.s3Einz=val;btn.parentNode.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');$('s3bw').style.display=val==='anderer'?'':'none';}
@@ -1038,10 +1064,10 @@ function buildForm(t){
       <div class="calc-box">
         <span class="calc-lbl">Cashflow-Saldo = Einkommen – Ausgaben total</span>
         <span class="calc-val" id="cf-prev">–</span>
-        <span class="hint" id="cf-hint">Sparquote wird im Sparen-Layer erfasst.</span>
+        <span class="hint" id="cf-hint">Cashflow ist indikativ. Die Sparquote wird im Sparen-Layer erfasst.</span>
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--blue-lt);display:flex;justify-content:space-between;align-items:baseline;">
-          <span style="font-size:12px;font-weight:700;color:var(--ink-3);">Effektive Sparquote (= tieferer Betrag)</span>
-          <span style="font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;" id="cf-eff">–</span>
+          <span style="font-size:12px;font-weight:700;color:var(--ink-3);">Plausibilisierung Sparen-Layer</span>
+          <span style="font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;" id="cf-eff">–</span>
         </div>
       </div>
       <div class="ig f2"><label>Kommentar</label><textarea id="f-kommentar">${esc(S.ausgaben.kommentar)}</textarea></div>
