@@ -281,7 +281,7 @@
     <div class="welcome-row">
         <div class="welcome-left">
             <div class="welcome-name" id="welcomeName" contenteditable="true">Herzlich willkommen</div>
-            <div class="welcome-sub" contenteditable="true">Schön, dass Sie heute bei uns sind.</div>
+            <div class="welcome-sub" id="welcomeSub" contenteditable="true">Schön, dass Sie heute bei uns sind.</div>
         </div>
         <div class="meta-grid">
             <div class="meta-stat">
@@ -294,7 +294,7 @@
             </div>
             <div class="meta-stat">
                 <div class="meta-key">Dauer</div>
-                <span class="meta-val" contenteditable="true">60 Min.</span>
+                <span class="meta-val" id="meta-duration" contenteditable="true">60 Min.</span>
             </div>
         </div>
     </div>
@@ -405,7 +405,40 @@
             expectationsData = saved.agenda_erwartungen;
         }
 
+        // Editierbare Texte hydrieren (Gesprächsziel, Welcome-Sub, Dauer).
+        // Standard-Texte stehen im HTML und greifen, wenn noch nichts gespeichert ist.
+        hydrateText('goal-text',     'agenda_goal');
+        hydrateText('welcomeSub',    'agenda_welcome_sub');
+        hydrateText('meta-duration', 'agenda_duration');
+
+        // Live-Persistence der editierbaren Texte (debounced)
+        bindTextPersist('goal-text',     'agenda_goal');
+        bindTextPersist('welcomeSub',    'agenda_welcome_sub');
+        bindTextPersist('meta-duration', 'agenda_duration');
+
         refresh();
+    }
+
+    function hydrateText(id, key) {
+        const el = document.getElementById(id);
+        const v  = BBZ.get(key);
+        if (el && typeof v === 'string' && v.trim()) el.innerText = v;
+    }
+
+    const _txtTimers = {};
+    function bindTextPersist(id, key) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => {
+            clearTimeout(_txtTimers[id]);
+            _txtTimers[id] = setTimeout(() => {
+                BBZ.set(key, el.innerText);
+            }, 200);
+        });
+        // Enter beendet Edit statt <br> einzufügen
+        el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+        });
     }
 
     // ── RENDER ────────────────────────────────────────────────────────────────

@@ -33,6 +33,10 @@
     // ── Agenda (01) ──────────────────────────────────────────────────────
     agenda_traktanden:    { type: 'array',   scope: 'session', default: [] },
     agenda_erwartungen:   { type: 'array',   scope: 'session', default: [] },
+    agenda_goal:          { type: 'string',  scope: 'session', default: '' },
+    agenda_welcome:       { type: 'string',  scope: 'session', default: '' },
+    agenda_welcome_sub:   { type: 'string',  scope: 'session', default: '' },
+    agenda_duration:      { type: 'string',  scope: 'session', default: '' },
 
     // ── Bank (02) — config, bleibt bei clearSession ──────────────────────
     bankTexts:            { type: 'object',  scope: 'config',  default: {} },
