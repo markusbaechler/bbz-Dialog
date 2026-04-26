@@ -400,7 +400,7 @@ input[type=range]::-webkit-slider-thumb {
       <div class="field"><label>Bruttoeinkommen p.a.</label><div class="f-row"><input type="text" id="income" class="ni" value="" placeholder="aus Finanzcockpit"><span class="f-suf">CHF</span></div></div>
       <div class="field"><label>Verpflichtungen p.a.</label><div class="f-row"><input type="text" id="obligations" class="ni" value="" placeholder="aus Finanzcockpit"><span class="f-suf">CHF</span></div></div>
       <div class="field"><label>Aktuelle Wohnkosten (mtl.)</label><div class="f-row"><input type="text" id="currentRent" class="ni" value="" placeholder="hier erfassen"><span class="f-suf">CHF</span></div></div>
-      <div class="field"><label>Alter</label><div class="f-row"><input type="text" id="age" value="42" placeholder="aus Stammdaten"><span class="f-suf">Jahre</span></div></div>
+      <div class="field"><label>Alter</label><div class="f-row"><input type="text" id="age" value="" placeholder="aus Stammdaten"><span class="f-suf">Jahre</span></div></div>
       <div class="sec-lbl">Objekt &amp; Eigenmittel</div>
       <div class="field"><label>Kaufpreis</label><div class="f-row"><input type="text" id="price" class="ni" value="" placeholder="aus Ziele &amp; Wünsche"><span class="f-suf">CHF</span></div></div>
       <div class="field"><label>Barmittel</label><div class="f-row"><input type="text" id="cashEquity" class="ni" value="" placeholder="hier erfassen"><span class="f-suf">CHF</span></div></div>
@@ -789,6 +789,70 @@ function calculate(){
        pensVp,totalAnn,price,affordPct,h2ForAmort,limit1,y65,age};
   updateAnalysis();
   updateVariants();
+  schedulePersist();
+}
+
+// ── PERSISTENZ ─────────────────────────────────────────────────────────────
+// Sammelt alle Input-Felder + Varianten + Rates und schreibt sie als ein
+// Sammel-Objekt 'finanzierung_data' nach BBZ. Debounced (200ms), weil
+// calculate() bei jedem Tastendruck feuert.
+let _persistTimer = null;
+function schedulePersist(){
+  clearTimeout(_persistTimer);
+  _persistTimer = setTimeout(persist, 200);
+}
+function persist(){
+  try {
+    const inputs = {};
+    ['income','obligations','currentRent','age','price','cashEquity',
+     'pensionWithdraw','pensionPledge','calcRate','sideRate'].forEach(id => {
+      const el = $(id);
+      if (el) inputs[id] = el.value;
+    });
+    BBZ.set('finanzierung_data', {
+      inputs,
+      variants: S.variants.map(v => ({
+        id: v.id,
+        tranches: v.tranches.map(t => ({ p: t.p, a: t.a }))
+      })),
+      rates: { ...S.rates }
+    });
+  } catch(e) { /* silent */ }
+}
+
+function hydrate(){
+  try {
+    const d = BBZ.get('finanzierung_data');
+    if (!d || typeof d !== 'object') return false;
+
+    // Inputs zurückschreiben (formatiert wo nötig)
+    if (d.inputs && typeof d.inputs === 'object') {
+      Object.entries(d.inputs).forEach(([id, val]) => {
+        const el = $(id);
+        if (el && val !== '' && val != null) el.value = val;
+      });
+    }
+    // Varianten (Tranchen-Beträge & Produkte)
+    if (Array.isArray(d.variants)) {
+      d.variants.forEach((sv, vi) => {
+        if (S.variants[vi] && Array.isArray(sv.tranches)) {
+          sv.tranches.forEach((st, ti) => {
+            if (S.variants[vi].tranches[ti]) {
+              S.variants[vi].tranches[ti].p = st.p || S.variants[vi].tranches[ti].p;
+              S.variants[vi].tranches[ti].a = Number(st.a) || 0;
+            }
+          });
+        }
+      });
+    }
+    // Zinssätze (Admin)
+    if (d.rates && typeof d.rates === 'object') {
+      Object.entries(d.rates).forEach(([k, v]) => {
+        if (k in S.rates) S.rates[k] = Number(v) || S.rates[k];
+      });
+    }
+    return true;
+  } catch(e) { return false; }
 }
 
 function updateAnalysis(){
@@ -1092,6 +1156,9 @@ function renderVariants(){
 }
 
 window.onload=()=>{
+  // Persistierte Werte zurückschreiben (überschreibt Cockpit-Defaults aus preload(),
+  // sofern der User schon eigene Werte gespeichert hat)
+  hydrate();
   renderVariants();
   document.querySelectorAll('.ni').forEach(inp=>{
     inp.oninput=e=>{

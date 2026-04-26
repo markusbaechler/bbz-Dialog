@@ -498,6 +498,23 @@
         });
     }
 
+    // Schreibt alle aktuell im DOM editierten contenteditable-Werte zurück
+    // ins State-Array, BEVOR das DOM neu gerendert wird. Verhindert Datenverlust,
+    // wenn der User auf "+ Hinzufügen" / "X" klickt, während er noch in einem
+    // Titel-Feld editiert (blur feuert sonst zu spät bzw. gar nicht).
+    function commitPendingEdits() {
+        const list = document.getElementById('modal-list');
+        if (!list) return;
+        const items = Array.from(list.querySelectorAll('.modal-input'))
+            .map(el => el.innerText.trim());
+        if (!items.length) return;
+        const target = activeModal === 'agenda' ? agendaData : expectationsData;
+        // Nur überschreiben falls Länge übereinstimmt (Sicherheitsnetz)
+        if (items.length === target.length) {
+            for (let i = 0; i < items.length; i++) target[i] = items[i];
+        }
+    }
+
     function dataUpdate(i, text) {
         const t = text.trim();
         if (activeModal === 'agenda') agendaData[i] = t; else expectationsData[i] = t;
@@ -505,11 +522,13 @@
     }
 
     function dataDelete(i) {
+        commitPendingEdits();
         if (activeModal === 'agenda') agendaData.splice(i,1); else expectationsData.splice(i,1);
         renderModalList(); persist(); refresh();
     }
 
     function dataAdd() {
+        commitPendingEdits();
         if (activeModal === 'agenda') agendaData.push('Neues Thema …');
         else expectationsData.push('Neue Erwartung …');
         renderModalList(); persist(); refresh();
@@ -527,6 +546,7 @@
     }
 
     function closeModal() {
+        commitPendingEdits();
         document.getElementById('modal-overlay').style.display = 'none';
         persist(); refresh(); activeModal = null;
     }

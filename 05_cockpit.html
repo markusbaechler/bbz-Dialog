@@ -860,6 +860,18 @@ const TITLES={
 const RED_M=['ausgaben','finanzieren'];
 
 function openModal(t){
+  // Snapshot der modal-relevanten Sub-States anlegen.
+  // Wird benötigt, weil rSet()/setEinkFreq() etc. direkt in S schreiben.
+  // Bei Cancel (closeModal ohne save) muss der State zurückgerollt werden,
+  // sonst korrumpiert ein Klick "ja → nein" + Hintergrund-Schliessen den State
+  // (z. B. finanzieren.vorhanden='nein' → renderFin zeigt "Keine vorhanden",
+  // betrag bleibt zwar in S, wird aber durch finBetrag-Logik unterdrückt).
+  S._modalSnapshot = JSON.parse(JSON.stringify({
+    zahlen:S.zahlen, sparen:S.sparen, vorsorgen:S.vorsorgen,
+    anlegen:S.anlegen, ausgaben:S.ausgaben, finanzieren:S.finanzieren
+  }));
+  S._modalType = t;
+  S._modalSaved = false;
   $('mttl').textContent=TITLES[t]||t;
   $('mttl').className='mttl'+(RED_M.includes(t)?' red':'');
   $('mbody').innerHTML=buildForm(t);
@@ -876,7 +888,20 @@ function openModal(t){
     if(t==='vorsorgen') toggleStrat();
   },30);
 }
-function closeModal(){$('mbg').style.display='none';}
+function closeModal(){
+  // Rollback wenn Modal ohne Save geschlossen wurde
+  if(S._modalSnapshot && !S._modalSaved){
+    Object.assign(S.zahlen,      S._modalSnapshot.zahlen);
+    Object.assign(S.sparen,      S._modalSnapshot.sparen);
+    Object.assign(S.vorsorgen,   S._modalSnapshot.vorsorgen);
+    Object.assign(S.anlegen,     S._modalSnapshot.anlegen);
+    Object.assign(S.ausgaben,    S._modalSnapshot.ausgaben);
+    Object.assign(S.finanzieren, S._modalSnapshot.finanzieren);
+  }
+  S._modalSnapshot = null;
+  S._modalSaved = false;
+  $('mbg').style.display='none';
+}
 function bgClick(e){if(e.target===$('mbg'))closeModal();}
 
 function rb(key,val,cur){return `<button class="rb ${cur===val?'on':''}" onclick="rSet('${key}','${val}',this)">${val}</button>`;}
@@ -1049,6 +1074,7 @@ function save(t){
     S.ausgaben.kommentar=gv('f-kommentar');
   }
   else if(t==='finanzieren'){S.finanzieren.betrag=gn('f-betrag');S.finanzieren.form=gv('f-form');S.finanzieren.laufzeit=gv('f-laufzeit');S.finanzieren.kommentar=gv('f-kommentar');S.finanzieren._touched=true;}
+  S._modalSaved = true;
   calc(); closeModal();
 }
 

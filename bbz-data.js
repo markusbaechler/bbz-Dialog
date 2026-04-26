@@ -60,6 +60,9 @@
     anlage_esg:           { type: 'object',  scope: 'session', default: null },
     anlage_impl:          { type: 'object',  scope: 'session', default: null },
 
+    // ── Finanzieren (07a) ────────────────────────────────────────────────
+    finanzierung_data:    { type: 'object',  scope: 'session', default: null },
+
     // ── Vereinbarungen (08) ──────────────────────────────────────────────
     vereinbarungen:       { type: 'array',   scope: 'session', default: [] },
     vereinbarungen_v1:    { type: 'object',  scope: 'session', default: null },
