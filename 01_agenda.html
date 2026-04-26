@@ -471,21 +471,46 @@
             list.innerHTML = '<p class="empty-hint">Noch keine Einträge. Klicken Sie "+ Hinzufügen".</p>';
             return;
         }
+        // Live-binding via oninput statt onblur: jede Tastatur-Eingabe schreibt
+        // sofort ins State-Array. Damit gibt es keinen Race mit dataAdd/dataDelete/
+        // closeModal/Drag-and-Drop mehr.
         list.innerHTML = data.map((t,i) =>
-            '<div class="modal-row">' +
+            '<div class="modal-row" data-idx="' + i + '">' +
                 '<span class="drag-grip">⋮⋮</span>' +
                 '<span class="modal-num">' + String(i+1).padStart(2,'0') + '</span>' +
-                '<span class="modal-input" contenteditable="true" onblur="dataUpdate(' + i + ', this.innerText)">' + esc(t) + '</span>' +
+                '<span class="modal-input" contenteditable="true">' + esc(t) + '</span>' +
                 '<button class="btn-del" onclick="dataDelete(' + i + ')">' +
                     '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>' +
                 '</button>' +
             '</div>'
         ).join('');
 
+        // Live-Binding: bei jeder Eingabe direkt Position im DOM ermitteln und
+        // ins State-Array schreiben. Dadurch funktioniert es auch nach Drag-Drop
+        // (Position kann sich verschoben haben, Index aus dem HTML wäre stale).
+        list.querySelectorAll('.modal-input').forEach(el => {
+            el.addEventListener('input', () => {
+                const row = el.closest('.modal-row');
+                if (!row) return;
+                const idx = Array.from(list.querySelectorAll('.modal-row')).indexOf(row);
+                if (idx < 0) return;
+                const t = el.innerText;
+                const target = activeModal === 'agenda' ? agendaData : expectationsData;
+                target[idx] = t;
+                // persist + refresh main view (nicht das Modal selbst!)
+                persist();
+                refresh();
+            });
+            // Enter soll keinen <br> einfügen, sondern den Edit beenden
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+            });
+        });
+
         Sortable.create(list, {
             handle: '.drag-grip', animation: 120, ghostClass: 'sortable-ghost',
             onEnd: () => {
-                const items = Array.from(list.querySelectorAll('.modal-input')).map(el => el.innerText.trim());
+                const items = Array.from(list.querySelectorAll('.modal-input')).map(el => el.innerText);
                 if (activeModal === 'agenda') agendaData = items; else expectationsData = items;
                 persist(); refresh(); renumber(list);
             }
@@ -498,27 +523,18 @@
         });
     }
 
-    // Schreibt alle aktuell im DOM editierten contenteditable-Werte zurück
-    // ins State-Array, BEVOR das DOM neu gerendert wird. Verhindert Datenverlust,
-    // wenn der User auf "+ Hinzufügen" / "X" klickt, während er noch in einem
-    // Titel-Feld editiert (blur feuert sonst zu spät bzw. gar nicht).
+    // Sicherheitsnetz: schreibt aktuelle DOM-Werte zurück ins State-Array.
+    // Mit dem oninput-Live-Binding nicht mehr zwingend nötig, schadet aber nicht.
     function commitPendingEdits() {
         const list = document.getElementById('modal-list');
         if (!list) return;
         const items = Array.from(list.querySelectorAll('.modal-input'))
-            .map(el => el.innerText.trim());
+            .map(el => el.innerText);
         if (!items.length) return;
         const target = activeModal === 'agenda' ? agendaData : expectationsData;
-        // Nur überschreiben falls Länge übereinstimmt (Sicherheitsnetz)
         if (items.length === target.length) {
             for (let i = 0; i < items.length; i++) target[i] = items[i];
         }
-    }
-
-    function dataUpdate(i, text) {
-        const t = text.trim();
-        if (activeModal === 'agenda') agendaData[i] = t; else expectationsData[i] = t;
-        persist(); refresh();
     }
 
     function dataDelete(i) {
