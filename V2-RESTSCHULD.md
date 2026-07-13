@@ -55,3 +55,24 @@ oder `clamp()` definieren, statt Literal.
 - Modul-spezifische `:root`-Variablen ohne Theme-Pendant blieben erhalten:
   `04_philosophie` (`--phase-1..4`), `05_cockpit` (`--red-dk`, `--red-lt`),
   `06_ziele` (`--red-lt`, `--green-lt`, `--amber-lt`).
+
+---
+
+## 4. Vor-Merge-Gate: Layout-Befunde (rem-Schrift in fixen vh-Zeilen)
+
+Automatisierte Overflow-/Clip-Messung (iframe bei **exakt** 1920×1080 und 1366×768)
++ visuelle Kontrolle, jeweils gegen die main-Baseline (vh-Original) verglichen.
+**Kein** Struktur-Overflow (keine horizontale Scrollbar, kein Canvas über Viewport,
+kein Grid-Sprengen) auf **keiner** der 13 Seiten. Drei Elemente klippen vertikal;
+**nicht gefixt** (keine Layout-Chirurgie in diesem Repo) — Entscheid pro Befund beim v2.
+
+| # | Seite | Element | Baseline (vh) | Branch (rem) | Migrations-verursacht? | Betroffener Inhalt / Schwere |
+|---|---|---|---|---|---|---|
+| B1 | `01_agenda` | `.trak-col` | cut 14–19px | cut 17–18px | **Nein** (Baseline klippt gleich) | Kein sichtbarer Textverlust; zentrierte Spalte. **Keine Regression.** |
+| B2 | `02_bank` | `.pillar-card` ×4 | cut 19–25px | cut 35–39px | Teilweise (+~15px durch rem) | Geklippt: Hover-Link «Mehr erfahren →» — **auch im Original geklippt** (Design-Intent). Sichtbar (Icon/Label/Ziffer) unversehrt. Schwere: **kosmetisch/tief.** |
+| B3 | `05_cockpit` | `.chart-ctrl` (+`.chart-main` +9px) | 0 (sauber) | cut 27px @768 | **Ja** (neu durch rem) | Nur ≤768px Höhe: Steuer-Panel der Simulation klippt ~27px; die Zeile «Sparquote einbeziehen: Ja/Nein» sitzt an/knapp hinter der Klippkante. Bei 1080px sauber. Schwere: **tief–mittel** (Control kann auf Laptop teils verdeckt sein). |
+
+**Ursache B2/B3:** rem-Label/-Werte minim höher als die früheren `vh`-Werte → in
+fix gehöhten Karten/Grid-Zeilen entsteht wenige px mehr Klipp. **v2-Fix** (im
+Shell-/Layout-Umbau, hier bewusst nicht): Kartenhöhe/Grid-Zeile auf `auto`/`min-content`
+bzw. Panel scrollbar (`overflow-y:auto`) statt fixer `vh`-Höhe.
