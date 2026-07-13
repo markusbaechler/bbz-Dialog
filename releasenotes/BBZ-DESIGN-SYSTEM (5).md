@@ -1,6 +1,12 @@
 # BBZ Beratungsplattform — Design System Referenz
 Version 2.3 | April 2026
 
+> ⚠️ **STAND v2.1 (Typografie migriert).** Shell-/Nav-/Layout-Regeln dieses Dokuments
+> sind **DEPRECATED** und werden durch `docs/DESIGN-SYSTEM.md` im Nachfolge-Repo
+> **bbz-dialog-v2** ersetzt. Dieses Repo dient nur noch als Portierungsquelle.
+> Gültig bleibt: `font-size` ausschliesslich über `--fs-*`-Tokens aus `bbz-theme.css`
+> (siehe Abschnitt *Typografie*); Ausnahmen in `V2-RESTSCHULD.md`.
+
 Dieses Dokument ist die **verbindliche und vollständige Grundlage** für alle interaktiven Module der bbz-Beratungsreihe. Es enthält nicht nur die Regeln, sondern auch die Begründungen dahinter – damit neue Chats bei Edge Cases richtig entscheiden, nicht raten.
 
 ---
@@ -45,7 +51,7 @@ Modulare Web-App für Beratungsgespräche der bbz bank st.gallen. Jedes Modul is
 | Charts | Chart.js via CDN (cdn.jsdelivr.net) | Für Balken- und Vergleichsvisualisierungen |
 | Framework | Keins – vanilla HTML/CSS/JS | Maximale Portabilität |
 | Layout | 16:9 Canvas | Präsentationsformat |
-| Einheiten | `vh`/`vw` für alle Schriftgrössen | Skaliert proportional mit Canvas |
+| Einheiten | Text: `--fs-*`-Tokens (rem/clamp) aus `bbz-theme.css`; `vw`/`vh` nur für Layout | Lesbar auf PC, kein Kollabieren; ~~vh/vw für Schrift~~ (deprecated) |
 | Entwicklung | GitHub Pages oder Live Server | `file://` unterstützt kein localStorage |
 
 ### Pflicht-Einbindungen im `<head>` (Reihenfolge einhalten)
@@ -424,16 +430,21 @@ index.html  →  p1geb                        →  07a_finanzieren (Alter)
 
 **Schrift: DM Sans – keine andere.**
 
-| Element | Grösse | Gewicht | Kontext |
-|---|---|---|---|
-| Haupttitel | 5.8vh | 800 | Willkommen, grosse Headlines |
-| Untertitel | 2.4vh | 400 | Begleittext zu Titeln |
-| Spalten-Labels | 1vw | 700 | «Traktanden», «Erwartungen» |
-| Metadaten-Labels | 1.1vh | 600 | «Datum», «Uhrzeit» |
-| Metadaten-Werte | 2.8vh | 700 | «11.04.2026» |
-| Gesprächsziel | 1.5vw | 700 | Weiss auf Blau |
-| Kunden-Zitate | 2vh | 500 | Rot, Border-Left |
-| Nav-Tabs | 0.52vw | 600/700 | Bottom-Nav |
+> **Regel (v2.1):** `font-size` ausschliesslich via `--fs-*`-Tokens aus `bbz-theme.css`;
+> `vw`/`vh` für Text **verboten**. Ausnahmen (dynamische fit-to-canvas-Schriften,
+> dekorative Glyphen) siehe `V2-RESTSCHULD.md`. `vw`/`vh` bleiben nur für Layout
+> (Breiten, Gaps, Grid-Zeilen) zulässig.
+
+| Element | Token (neu) | war (vh/vw) | Gewicht | Kontext |
+|---|---|---|---|---|
+| Haupttitel | `var(--fs-3xl)` / `h1` | 5.8vh | 800 | Willkommen, grosse Headlines |
+| Untertitel | `var(--fs-lg)` / `.t-subtitle` | 2.4vh | 400 | Begleittext zu Titeln |
+| Spalten-Labels | `var(--fs-base)` | 1vw | 700 | «Traktanden», «Erwartungen» |
+| Metadaten-Labels | `var(--fs-sm)` / `.t-label` | 1.1vh | 600 | «Datum», «Uhrzeit» |
+| Metadaten-Werte | `var(--fs-xl)` / `.t-value` | 2.8vh | 700 | «11.04.2026» |
+| Gesprächsziel | `var(--fs-lg)` | 1.5vw | 700 | Weiss auf Blau |
+| Kunden-Zitate | `var(--fs-base)` / `.t-quote` | 2vh | 500 | Rot, Border-Left |
+| Nav-Tabs | `var(--fs-sm)` | 0.52vw | 600/700 | Bottom-Nav |
 
 **Verbote:**
 
@@ -442,8 +453,8 @@ index.html  →  p1geb                        →  07a_finanzieren (Alter)
 | `text-transform: uppercase` | Wirkt aggressiv |
 | `letter-spacing > 0` auf Brand-Text | Explizit abgelehnt |
 | `font-style: italic` bei echten Inhalten | Nur für Platzhalter/Hints |
-| `px` oder `rem` für Schriftgrössen | Nur `vh`/`vw` |
-| `clamp()` | Ausnahme: nur auf Hero-Overlay-Text erlaubt |
+| `vw`/`vh` für Text-`font-size` | **Deprecated** — nur `--fs-*`-Tokens (rem/clamp) |
+| Rohe `px` für Text-`font-size` | Tokens verwenden; `rem`/`clamp()` stecken in den Tokens |
 
 ---
 
@@ -602,7 +613,7 @@ Lokale `fmt`-Funktionen in Modulen sind Legacy-Code — bei Überarbeitungen dur
 - [ ] Bottom-Nav: Finanzieren/Anlegen als `.nav-tab-split` ohne Trenner
 - [ ] Kein `text-transform: uppercase`
 - [ ] Kein `letter-spacing > 0` auf Brand-Text
-- [ ] Alle Schriftgrössen in `vh`/`vw`
+- [ ] Alle Text-`font-size` via `--fs-*`-Tokens (kein `vw`/`vh` für Text)
 - [ ] Beträge als `number` in localStorage (nie als String)
 - [ ] Modals ausserhalb des Canvas
 - [ ] Click-Events mit `mousedown + capture:true` (SVG)
