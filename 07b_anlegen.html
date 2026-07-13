@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bbz bank – Anlegen</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="bbz-theme.css">
     <script>
         window.BBZ = window.BBZ || {
             get: (key) => {
@@ -25,15 +26,6 @@
     <script src="bbz-data.js" onerror="console.warn('bbz-data.js not found, using fallback')"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --blue: #004078; --blue-dk: #002d57; --blue-lt: #dce8f4;
-            --red: #950e13; --green: #15803d; --amber: #b45309;
-            --ink: #0f172a; --ink-2: #334155; --ink-3: #64748b; --ink-4: #94a3b8;
-            --surface: #ffffff; --bg: #f1f5f9; --line: #e2e8f0; --font: 'DM Sans', sans-serif;
-            --slate: #475569;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: var(--font); background: var(--blue-dk); display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
 
         .canvas {
@@ -50,12 +42,12 @@
         .logo { display: flex; align-items: center; gap: 0.6vw; }
         .logo-mark {
             width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
-            font-size: 0.68vw; font-weight: 900;
+            font-size: var(--fs-sm); font-weight: 900;
             display: flex; align-items: center; justify-content: center; border-radius: 3px;
         }
-        .logo-name { font-weight: 800; font-size: 0.9vw; }
+        .logo-name { font-weight: 800; font-size: var(--fs-sm); }
         .topbar-right { display: flex; align-items: center; gap: 0.6vw; flex-shrink: 0; }
-        .topbar-brand { color: rgba(255,255,255,0.18); font-size: 0.5vw; font-weight: 600; }
+        .topbar-brand { color: rgba(255,255,255,0.18); font-size: var(--fs-sm); font-weight: 600; }
         .home-btn {
             background: rgba(255,255,255,0.12); border: none; border-radius: 5px;
             padding: 0.42vh 0.42vw; cursor: pointer; color: white;
@@ -80,12 +72,12 @@
         .step-link {
             display: flex; align-items: center; gap: 0.8vw; padding: 1.5vh 1vw;
             border-radius: 8px; cursor: pointer; transition: 0.2s;
-            color: var(--ink-4); text-decoration: none; font-weight: 600; font-size: 0.7vw;
+            color: var(--ink-4); text-decoration: none; font-weight: 600; font-size: var(--fs-sm);
         }
         .step-link.active { background: var(--blue-lt); color: var(--blue); }
         .step-link.done { color: var(--ink-2); }
         .step-link.disabled { opacity: 0.4; cursor: not-allowed; }
-        .step-circle { width: 1.2vw; height: 1.2vw; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 0.5vw; font-weight: 800; }
+        .step-circle { width: 1.2vw; height: 1.2vw; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 800; }
 
         /* ── MAIN LAYOUT (Teil B) ── */
         .part-b { display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
@@ -94,7 +86,7 @@
         .step-indicator { display: flex; gap: 0.7vw; margin-bottom: 2vh; }
         .step-chip {
             padding: 0.9vh 0.95vw; border-radius: 999px; background: white; border: 1px solid var(--line);
-            font-size: 0.62vw; font-weight: 700; color: var(--ink-4);
+            font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4);
         }
         .step-chip.active { background: var(--blue-lt); color: var(--blue); border-color: transparent; }
 
@@ -103,8 +95,8 @@
         .screen.active { display: flex; }
         .screen-b { display: none; flex: 1; min-height: 0; }
         .screen-b.active { display: flex; flex-direction: column; }
-        h1 { font-size: 3.2vh; font-weight: 800; color: var(--ink); margin-bottom: 0.5vh; }
-        .subtitle { font-size: 1.6vh; color: var(--ink-3); margin-bottom: 3vh; line-height: 1.45; max-width: 72vw; }
+        h1 { font-size: var(--fs-xl); font-weight: 800; color: var(--ink); margin-bottom: 0.5vh; }
+        .subtitle { font-size: var(--fs-sm); color: var(--ink-3); margin-bottom: 3vh; line-height: 1.45; max-width: 72vw; }
 
         /* ── TEIL A: STEP STYLES ── */
         .split-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 3vw; flex: 1; min-height: 0; }
@@ -112,27 +104,27 @@
 
         .param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; }
         .input-group { display: flex; flex-direction: column; gap: 1vh; }
-        label { font-size: 0.7vw; font-weight: 800; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.05em; }
-        .big-input { width: 100%; padding: 2vh 1.5vw; border: 2px solid var(--line); border-radius: 12px; font-size: 2.5vh; font-weight: 800; color: var(--blue); outline: none; font-family: var(--font); }
+        label { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.05em; }
+        .big-input { width: 100%; padding: 2vh 1.5vw; border: 2px solid var(--line); border-radius: 12px; font-size: var(--fs-lg); font-weight: 800; color: var(--blue); outline: none; font-family: var(--font); }
         .hz-slider { width: 100%; height: 8px; border-radius: 4px; background: var(--line); -webkit-appearance: none; margin: 2vh 0; }
         .hz-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--blue); border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         .strat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1vw; }
         .strat-card { background: white; border: 1.5px solid var(--line); border-radius: 12px; padding: 1.2vh; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 0.5vh; }
         .strat-card.active { border-color: var(--blue); background: var(--blue-lt); box-shadow: 0 10px 30px rgba(0,64,120,0.1); }
-        .strat-name { font-size: 0.75vw; font-weight: 800; color: var(--blue); }
-        .strat-yield { font-size: 1.1vw; font-weight: 900; color: var(--green); }
+        .strat-name { font-size: var(--fs-sm); font-weight: 800; color: var(--blue); }
+        .strat-yield { font-size: var(--fs-base); font-weight: 900; color: var(--green); }
 
         .sim-container { margin-top: 2.5vh; background: var(--surface); border-radius: 15px; padding: 2.5vh; border: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr 1.8fr; gap: 2vw; flex: 1; }
-        .sim-val { font-size: 3.2vh; font-weight: 800; color: var(--ink); line-height: 1.2; }
-        .sim-label { font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; margin-bottom: 0.5vh; }
+        .sim-val { font-size: var(--fs-xl); font-weight: 800; color: var(--ink); line-height: 1.2; }
+        .sim-label { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-transform: uppercase; margin-bottom: 0.5vh; }
 
         .vol-chart-wrap { position: relative; height: 100%; display: flex; flex-direction: column; }
         .legend { display: flex; gap: 1vw; margin-top: 0.5vh; }
-        .legend-item { display: flex; align-items: center; gap: 0.3vw; font-size: 0.55vw; font-weight: 600; color: var(--ink-3); }
+        .legend-item { display: flex; align-items: center; gap: 0.3vw; font-size: var(--fs-sm); font-weight: 600; color: var(--ink-3); }
         .legend-dot { width: 0.5vw; height: 0.5vw; border-radius: 2px; }
 
-        .behavioral-note { margin-top: 1.2vh; padding: 1vh 1vw; background: rgba(149, 14, 19, 0.05); border-radius: 8px; font-size: 0.65vw; color: var(--red); font-weight: 700; display: flex; align-items: center; gap: 0.6vw; border-left: 3px solid var(--red); }
+        .behavioral-note { margin-top: 1.2vh; padding: 1vh 1vw; background: rgba(149, 14, 19, 0.05); border-radius: 8px; font-size: var(--fs-sm); color: var(--red); font-weight: 700; display: flex; align-items: center; gap: 0.6vw; border-left: 3px solid var(--red); }
         .behavioral-note svg { width: 0.9vw; height: 0.9vw; fill: currentColor; flex-shrink: 0; }
 
         .option-btn {
@@ -142,37 +134,37 @@
         }
         .option-btn:hover { border-color: var(--blue); background: var(--bg); }
         .option-btn.active { border-color: var(--blue); background: var(--blue-lt); }
-        .opt-title { font-size: 0.8vw; font-weight: 800; color: var(--blue); }
-        .opt-desc { font-size: 0.65vw; color: var(--ink-3); font-weight: 500; }
+        .opt-title { font-size: var(--fs-sm); font-weight: 800; color: var(--blue); }
+        .opt-desc { font-size: var(--fs-sm); color: var(--ink-3); font-weight: 500; }
         .loss-badge { background: var(--red); color: white; padding: 2vh; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
 
         .knowledge-grid { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.1vh 2vw; overflow: hidden; display: flex; flex-direction: column; }
         .knowledge-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .knowledge-table thead th { font-size: 0.64vw; font-weight: 700; color: var(--ink-4); text-align: center; padding: 1.2vh 0.4vw 1.8vh; }
+        .knowledge-table thead th { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-align: center; padding: 1.2vh 0.4vw 1.8vh; }
         .knowledge-table thead th:first-child { text-align: left; width: 34%; }
         .knowledge-table tbody tr { border-top: 1px solid var(--line); }
         .knowledge-table tbody td { padding: 2vh 0.6vw; vertical-align: middle; text-align: center; }
-        .knowledge-table tbody td:first-child { text-align: left; font-size: 0.92vw; font-weight: 800; color: var(--ink); padding-left: 1vw; }
+        .knowledge-table tbody td:first-child { text-align: left; font-size: var(--fs-base); font-weight: 800; color: var(--ink); padding-left: 1vw; }
         .k-check { width: 1.45vw; height: 1.45vw; border-radius: 0.45vw; border: 2px solid var(--line); background: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.18s; }
         .k-check:hover { border-color: var(--blue); background: var(--bg); }
         .k-check.active { border-color: var(--blue); background: var(--blue-lt); }
         .k-check.active::after { content: ''; width: 0.62vw; height: 0.62vw; border-radius: 0.18vw; background: var(--blue); display: block; }
         .knowledge-note { margin-top: auto; background: var(--bg); padding: 1.5vh 1vw; border-radius: 10px; }
-        .knowledge-note p { font-size: 0.6vw; color: var(--ink-3); line-height: 1.5; }
+        .knowledge-note p { font-size: var(--fs-sm); color: var(--ink-3); line-height: 1.5; }
 
         .pyramid-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2vh; }
         .pyramid-step {
             width: var(--w); height: 5vh; border-radius: 8px; margin-bottom: 8px;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 800; font-size: 0.68vw; transition: 0.25s;
+            color: white; font-weight: 800; font-size: var(--fs-sm); transition: 0.25s;
             background: #d9e1ea; transform: scale(0.97);
         }
         .pyramid-step.active { transform: scale(1); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
 
         .esg-info-box { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.5vh; display: flex; flex-direction: column; gap: 1.6vh; }
-        .esg-lead { font-size: 0.76vw; color: var(--ink-2); line-height: 1.6; }
+        .esg-lead { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.6; }
         .esg-points { display: flex; flex-direction: column; gap: 1vh; margin-top: 0.6vh; }
-        .esg-point { background: var(--bg); border-radius: 10px; padding: 1.3vh 1vw; border-left: 3px solid var(--blue); font-size: 0.65vw; color: var(--ink-2); line-height: 1.45; }
+        .esg-point { background: var(--bg); border-radius: 10px; padding: 1.3vh 1vw; border-left: 3px solid var(--blue); font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.45; }
         .esg-options { display: flex; flex-direction: column; gap: 1.5vh; }
         .esg-option { background: white; border: 1.5px solid var(--line); border-radius: 14px; padding: 2vh 1.5vw; cursor: pointer; display: flex; align-items: flex-start; gap: 1vw; transition: 0.2s; font-family: var(--font); }
         .esg-option:hover { border-color: var(--blue); background: var(--bg); }
@@ -180,20 +172,20 @@
         .esg-radio { width: 1.35vw; height: 1.35vw; border-radius: 50%; border: 2px solid var(--line); margin-top: 0.2vh; flex-shrink: 0; position: relative; }
         .esg-option.active .esg-radio { border-color: var(--blue); }
         .esg-option.active .esg-radio::after { content: ''; position: absolute; inset: 0.22vw; background: var(--blue); border-radius: 50%; }
-        .esg-title { font-size: 0.95vw; font-weight: 800; color: var(--blue); margin-bottom: 0.5vh; }
-        .esg-desc { font-size: 0.72vw; color: var(--ink-3); line-height: 1.4; }
+        .esg-title { font-size: var(--fs-base); font-weight: 800; color: var(--blue); margin-bottom: 0.5vh; }
+        .esg-desc { font-size: var(--fs-sm); color: var(--ink-3); line-height: 1.4; }
 
         .conclusion-layout { display: grid; grid-template-columns: 1.08fr 1fr; gap: 2vw; flex: 1; min-height: 0; }
         .summary-card { background: var(--surface); border-radius: 15px; border: 1px solid var(--line); padding: 2.2vh 1.6vw; display: flex; flex-direction: column; gap: 1.5vh; }
-        .summary-kicker { font-size: 0.62vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
-        .summary-reco { font-size: 2.15vw; font-weight: 900; color: var(--blue); line-height: 1.05; }
-        .summary-intro { font-size: 0.76vw; color: var(--ink-2); line-height: 1.55; }
-        .summary-body { font-size: 0.72vw; color: var(--ink-2); line-height: 1.6; }
+        .summary-kicker { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
+        .summary-reco { font-size: var(--fs-xl); font-weight: 900; color: var(--blue); line-height: 1.05; }
+        .summary-intro { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.55; }
+        .summary-body { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.6; }
         .summary-section { background: var(--bg); border-radius: 12px; padding: 1.4vh 1vw; display: flex; flex-direction: column; gap: 0.55vh; }
-        .summary-section-label { font-size: 0.58vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
-        .summary-section-value { font-size: 0.78vw; color: var(--ink); font-weight: 700; }
-        .summary-section-text { font-size: 0.7vw; color: var(--ink-2); line-height: 1.55; }
-        .deviation-note { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 1.1vh 0.9vw; font-size: 0.68vw; color: var(--ink-3); font-weight: 700; }
+        .summary-section-label { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
+        .summary-section-value { font-size: var(--fs-sm); color: var(--ink); font-weight: 700; }
+        .summary-section-text { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.55; }
+        .deviation-note { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 1.1vh 0.9vw; font-size: var(--fs-sm); color: var(--ink-3); font-weight: 700; }
         .recommendation-frame { border: 1px solid var(--line); border-radius: 14px; padding: 1.7vh 1.2vw; background: linear-gradient(180deg, rgba(220,232,244,0.55) 0%, rgba(255,255,255,1) 100%); }
         .strat-card.recommended { box-shadow: inset 0 0 0 2px var(--blue); }
 
@@ -209,9 +201,9 @@
         .choice-panel.active .node-bullet { background: var(--blue); color: white; }
         .choice-panel.active .flow-node { border-color: rgba(0,64,120,0.2); background: white; }
         .choice-panel.active .panel-note { background: white; border-color: rgba(0,64,120,0.15); }
-        .eyebrow { font-size: 0.56vw; font-weight: 800; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
-        .panel-title { font-size: 1.18vw; font-weight: 800; color: var(--ink); line-height: 1.2; margin-top: 0.55vh; }
-        .panel-intro { font-size: 0.72vw; color: var(--ink-3); line-height: 1.45; margin-top: 0.9vh; margin-bottom: 1.6vh; }
+        .eyebrow { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; }
+        .panel-title { font-size: var(--fs-lg); font-weight: 800; color: var(--ink); line-height: 1.2; margin-top: 0.55vh; }
+        .panel-intro { font-size: var(--fs-sm); color: var(--ink-3); line-height: 1.45; margin-top: 0.9vh; margin-bottom: 1.6vh; }
         .vertical-flow { display: flex; flex-direction: column; gap: 0.9vh; width: 100%; max-width: 24vw; }
         .flow-node {
             background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); border: 1px solid var(--line);
@@ -220,29 +212,29 @@
         .node-bullet {
             width: 1.7vw; height: 1.7vw; min-width: 24px; min-height: 24px; border-radius: 999px;
             background: var(--blue-lt); color: var(--blue); display: flex; align-items: center; justify-content: center;
-            font-size: 0.66vw; font-weight: 800;
+            font-size: var(--fs-sm); font-weight: 800;
         }
-        .node-text { font-size: 0.76vw; font-weight: 700; color: var(--ink-2); line-height: 1.35; }
+        .node-text { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-2); line-height: 1.35; }
         .flow-line { width: 1px; height: 1.2vh; background: var(--line); margin-left: 0.82vw; }
         .panel-note {
             margin-top: auto; background: #f8fbfd; border: 1px solid var(--line); border-radius: 14px;
-            padding: 1.2vh 0.95vw; font-size: 0.68vw; color: var(--ink-3); line-height: 1.45;
+            padding: 1.2vh 0.95vw; font-size: var(--fs-sm); color: var(--ink-3); line-height: 1.45;
         }
 
         .matrix-wrap { background: white; border: 1px solid var(--line); border-radius: 18px; }
         .matrix { display: grid; grid-template-columns: 1.05fr 1fr 1fr; border-radius: 18px; overflow: hidden; }
         .m-cell { padding: 1.4vh 1.2vw; border-bottom: 1px solid var(--line); min-height: 6vh; display: flex; align-items: center; line-height: 1.45; }
-        .m-head { font-size: 0.88vw; font-weight: 800; min-height: 7vh; padding: 0 1.2vw; display: flex; align-items: center; }
+        .m-head { font-size: var(--fs-sm); font-weight: 800; min-height: 7vh; padding: 0 1.2vw; display: flex; align-items: center; }
         .m-head.col-empty { background: #f8fafc; }
         .m-head.col-advisory { background: var(--blue); color: white; }
         .m-head.col-vv { background: var(--ink-2); color: white; }
         .m-cell.col-advisory { background: #f0f6fc; }
         .m-cell.col-vv { background: #f6f7f9; }
-        .m-label { font-size: 0.72vw; font-weight: 800; color: var(--ink); background: #fcfdff; display: flex; align-items: center; gap: 0.65vw; }
-        .m-label-icon { width: 1.5vw; height: 1.5vw; min-width: 22px; min-height: 22px; border-radius: 999px; background: var(--bg); color: var(--ink-3); display: flex; align-items: center; justify-content: center; font-size: 0.75vw; font-weight: 800; }
-        .m-value { font-size: 0.74vw; color: var(--ink-2); font-weight: 500; }
+        .m-label { font-size: var(--fs-sm); font-weight: 800; color: var(--ink); background: #fcfdff; display: flex; align-items: center; gap: 0.65vw; }
+        .m-label-icon { width: 1.5vw; height: 1.5vw; min-width: 22px; min-height: 22px; border-radius: 999px; background: var(--bg); color: var(--ink-3); display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 800; }
+        .m-value { font-size: var(--fs-sm); color: var(--ink-2); font-weight: 500; }
         .matrix-footer { padding: 1.3vh 0.95vw; display: flex; justify-content: flex-end; background: white; border-top: 1px solid var(--line); border-radius: 0 0 18px 18px; }
-        .cost-link { background: none; border: none; padding: 0; color: var(--ink-3); font-size: 0.72vw; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-family: var(--font); }
+        .cost-link { background: none; border: none; padding: 0; color: var(--ink-3); font-size: var(--fs-sm); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-family: var(--font); }
         .cost-link:hover { color: var(--ink-2); }
 
         .selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2vw; }
@@ -254,11 +246,11 @@
         .selection-card.active { border-color: var(--blue); background: var(--blue-lt); box-shadow: 0 18px 40px rgba(0,64,120,0.12); }
         .selection-card.active .selection-title { color: var(--blue); }
         .selection-card.active .selection-anchor { color: var(--blue); border-top-color: rgba(0,64,120,0.2); }
-        .selection-title { font-size: 1.08vw; font-weight: 800; color: var(--ink); line-height: 1.2; }
-        .selection-sub { font-size: 0.74vw; color: var(--ink-3); line-height: 1.5; }
-        .selection-anchor { margin-top: auto; border-top: 1px solid var(--line); padding-top: 1.1vh; font-size: 0.72vw; color: var(--ink-2); font-weight: 700; }
+        .selection-title { font-size: var(--fs-base); font-weight: 800; color: var(--ink); line-height: 1.2; }
+        .selection-sub { font-size: var(--fs-sm); color: var(--ink-3); line-height: 1.5; }
+        .selection-anchor { margin-top: auto; border-top: 1px solid var(--line); padding-top: 1.1vh; font-size: var(--fs-sm); color: var(--ink-2); font-weight: 700; }
         .card-check {
-            display: none; margin-top: auto; font-size: 8vw; font-weight: 900;
+            display: none; margin-top: auto; font-size: 12rem; font-weight: 900;
             color: rgba(0,64,120,0.12); text-align: center; line-height: 1;
             transition: 0.2s;
         }
@@ -269,18 +261,18 @@
             padding: 2vh 1.5vw; display: none; align-items: center; gap: 1vw;
         }
         .confirmation.show { display: flex; }
-        .confirm-mark { width: 2vw; height: 2vw; min-width: 28px; min-height: 28px; border-radius: 999px; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 1vw; font-weight: 800; flex-shrink: 0; }
-        .confirmation-title { font-size: 0.95vw; font-weight: 800; color: white; margin-bottom: 0.3vh; }
-        .confirmation-text { font-size: 0.7vw; color: rgba(255,255,255,0.75); line-height: 1.45; }
+        .confirm-mark { width: 2vw; height: 2vw; min-width: 28px; min-height: 28px; border-radius: 999px; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: var(--fs-base); font-weight: 800; flex-shrink: 0; }
+        .confirmation-title { font-size: var(--fs-base); font-weight: 800; color: white; margin-bottom: 0.3vh; }
+        .confirmation-text { font-size: var(--fs-sm); color: rgba(255,255,255,0.75); line-height: 1.45; }
 
         /* Teil B footer nav */
         .footer-b { background: var(--bg); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5vw; height: 6vh; flex-shrink: 0; }
-        .footer-b-center { font-size: 0.6vw; color: var(--ink-4); font-weight: 700; }
+        .footer-b-center { font-size: var(--fs-sm); color: var(--ink-4); font-weight: 700; }
 
         /* ── BUTTONS ── */
-        .btn-primary { background: var(--blue); color: white; border: none; padding: 0.9vh 1.6vw; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.72vw; transition: 0.2s; font-family: var(--font); }
+        .btn-primary { background: var(--blue); color: white; border: none; padding: 0.9vh 1.6vw; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: var(--fs-sm); transition: 0.2s; font-family: var(--font); }
         .btn-primary:hover { background: var(--blue-dk); transform: translateY(-1px); }
-        .btn-outline { background: none; border: 1px solid var(--line); color: var(--ink-3); padding: 0.8vh 1.3vw; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.68vw; font-family: var(--font); }
+        .btn-outline { background: none; border: 1px solid var(--line); color: var(--ink-3); padding: 0.8vh 1.3vw; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: var(--fs-sm); font-family: var(--font); }
         /* Screens 1–6 button row spacing */
         .screen-btn-row { margin-top: 3vh; display: flex; justify-content: space-between; }
 
@@ -292,7 +284,7 @@
         .nav-tab {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.75vw;
-            font-size: 0.52vw; font-weight: 600; color: var(--ink-4);
+            font-size: var(--fs-sm); font-weight: 600; color: var(--ink-4);
             white-space: nowrap; flex-shrink: 0; text-decoration: none;
             border-radius: 3px; transition: color 0.15s, background 0.15s;
         }
@@ -302,14 +294,14 @@
         .nav-tab-half {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.65vw;
-            font-size: 0.52vw; font-weight: 600; color: var(--ink-4);
+            font-size: var(--fs-sm); font-weight: 600; color: var(--ink-4);
             white-space: nowrap; text-decoration: none;
             transition: color 0.15s, background 0.15s;
         }
         .nav-tab-half:hover { color: var(--ink-3); background: var(--bg); }
         .nav-tab-half.active { background: var(--blue-lt); color: var(--blue); font-weight: 700; }
         .nav-spacer { flex: 1; }
-        .nav-brand { font-size: 0.48vw; color: var(--line); font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
+        .nav-brand { font-size: var(--fs-sm); color: var(--line); font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
 
         /* ── MODALS ── */
         .modal-ov {
@@ -325,27 +317,27 @@
             padding: 1.5vh 1.3vw; background: var(--blue); color: white;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .modal-title { font-size: 0.92vw; font-weight: 800; }
-        .close-btn { background: rgba(255,255,255,0.14); color: white; border: none; border-radius: 8px; width: 2vw; height: 2vw; min-width: 28px; min-height: 28px; cursor: pointer; font-size: 1.1vw; }
+        .modal-title { font-size: var(--fs-base); font-weight: 800; }
+        .close-btn { background: rgba(255,255,255,0.14); color: white; border: none; border-radius: 8px; width: 2vw; height: 2vw; min-width: 28px; min-height: 28px; cursor: pointer; font-size: var(--fs-base); }
         .modal-body { padding: 2vh 1.3vw 2.2vh; }
         .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vw; }
         .panel { background: #fbfdff; border: 1px solid var(--line); border-radius: 16px; padding: 1.5vh 1vw; }
-        .panel h3 { margin: 0 0 1.05vh; font-size: 0.9vw; color: var(--ink); }
+        .panel h3 { margin: 0 0 1.05vh; font-size: var(--fs-sm); color: var(--ink); }
         .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1vh 0.8vw; }
         .field { display: flex; flex-direction: column; gap: 0.45vh; }
-        .field label { font-size: 0.58vw; }
-        input[type="number"], input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 1vh 0.8vw; font-family: var(--font); font-size: 0.72vw; font-weight: 700; color: var(--ink); }
+        .field label { font-size: var(--fs-sm); }
+        input[type="number"], input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 1vh 0.8vw; font-family: var(--font); font-size: var(--fs-sm); font-weight: 700; color: var(--ink); }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1vw; margin-top: 1.1vh; }
         .result-card { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 1.15vh 0.9vw; }
-        .result-label { font-size: 0.58vw; font-weight: 800; color: var(--ink-4); text-transform: uppercase; margin-bottom: 0.45vh; }
-        .result-value { font-size: 1.45vw; font-weight: 900; color: var(--ink); line-height: 1.1; }
-        .result-sub { font-size: 0.64vw; color: var(--ink-3); margin-top: 0.45vh; line-height: 1.4; }
+        .result-label { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); text-transform: uppercase; margin-bottom: 0.45vh; }
+        .result-value { font-size: var(--fs-lg); font-weight: 900; color: var(--ink); line-height: 1.1; }
+        .result-sub { font-size: var(--fs-sm); color: var(--ink-3); margin-top: 0.45vh; line-height: 1.4; }
         .bar-compare { margin-top: 1.15vh; background: white; border: 1px solid var(--line); border-radius: 14px; padding: 1vh 0.9vw; }
         .bar-row { margin-top: 0.75vh; }
         .bar-row:first-child { margin-top: 0; }
         .bar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35vh; }
-        .bar-name { font-size: 0.66vw; font-weight: 800; color: var(--ink-2); }
-        .bar-value { font-size: 0.64vw; font-weight: 700; color: var(--ink-3); }
+        .bar-name { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-2); }
+        .bar-value { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-3); }
         .bar-bg { height: 1.2vh; background: var(--bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
         .bar-fill { height: 100%; border-radius: 999px; background: var(--blue); }
         .bar-fill.alt { background: #8aa8c0; }
@@ -404,33 +396,33 @@
         <section class="content-a">
             <!-- SCREEN 0: Parameter -->
             <div class="screen active" id="scr0">
-                <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6vh;">Schritt 1 von 6</div>
+                <div style="font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6vh;">Schritt 1 von 6</div>
                 <h1>Ausgangslage</h1>
                 <p class="subtitle">Wie lange soll das Kapital arbeiten — und wie viel steht zur Verfügung?</p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5vw; flex: 1; min-height: 0; align-content: end; padding-bottom: 2vh;">
                     <!-- Links: Horizont -->
                     <div style="display: flex; flex-direction: column; gap: 1vh;">
-                        <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Anlagehorizont</div>
+                        <div style="font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Anlagehorizont</div>
                         <div style="display: flex; align-items: baseline; gap: 0.6vw;">
-                            <div id="hzDisplay" style="font-size: 7vh; font-weight: 800; color: var(--blue); line-height: 1;">–</div>
-                            <span style="font-size: 2vh; font-weight: 600; color: var(--ink-3);">Jahre</span>
+                            <div id="hzDisplay" style="font-size: var(--fs-3xl); font-weight: 800; color: var(--blue); line-height: 1;">–</div>
+                            <span style="font-size: var(--fs-base); font-weight: 600; color: var(--ink-3);">Jahre</span>
                         </div>
                         <input type="range" class="hz-slider" id="hzInput" min="1" max="35" value="1" oninput="updateHz(this.value)" style="margin: 1.5vh 0 0.5vh;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.58vw; color: var(--ink-4); font-weight: 600;">
+                        <div style="display: flex; justify-content: space-between; font-size: var(--fs-sm); color: var(--ink-4); font-weight: 600;">
                             <span>1 Jahr</span><span>15 Jahre</span><span>30+ Jahre</span>
                         </div>
-                        <div id="hzHint" style="margin-top: 1.5vh; font-size: 0.68vw; font-weight: 700; color: var(--blue);"></div>
+                        <div id="hzHint" style="margin-top: 1.5vh; font-size: var(--fs-sm); font-weight: 700; color: var(--blue);"></div>
                     </div>
                     <!-- Rechts: Betrag -->
                     <div style="display: flex; flex-direction: column; gap: 1vh;">
-                        <div style="font-size: 0.65vw; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Investitionsbetrag</div>
+                        <div style="font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.04em;">Investitionsbetrag</div>
                         <div style="background: white; border: 1.5px solid var(--line); border-radius: 12px; padding: 1.8vh 1.5vw; display: flex; align-items: center; gap: 1vw;">
-                            <span style="font-size: 1.4vh; font-weight: 700; color: var(--ink-3);">CHF</span>
+                            <span style="font-size: var(--fs-sm); font-weight: 700; color: var(--ink-3);">CHF</span>
                             <input type="text" id="amtInput" placeholder="100'000" oninput="formatAmt(this)"
-                                style="border: none; outline: none; font-family: var(--font); font-size: 4vh; font-weight: 800; color: var(--blue); flex: 1; background: transparent; width: 100%;">
+                                style="border: none; outline: none; font-family: var(--font); font-size: var(--fs-2xl); font-weight: 800; color: var(--blue); flex: 1; background: transparent; width: 100%;">
                         </div>
-                        <p style="font-size: 0.62vw; color: var(--ink-4); line-height: 1.5; margin-top: 0.5vh;">Der Betrag fliesst in die Stresstest-Simulation ein und gibt dem Beratungsgespräch einen konkreten Ankerpunkt.</p>
-                        <p id="cockpitAmtHint" style="display:none; font-size: 0.62vw; color: var(--ink-3); font-weight: 600; line-height: 1.5;"></p>
+                        <p style="font-size: var(--fs-sm); color: var(--ink-4); line-height: 1.5; margin-top: 0.5vh;">Der Betrag fliesst in die Stresstest-Simulation ein und gibt dem Beratungsgespräch einen konkreten Ankerpunkt.</p>
+                        <p id="cockpitAmtHint" style="display:none; font-size: var(--fs-sm); color: var(--ink-3); font-weight: 600; line-height: 1.5;"></p>
                     </div>
                 </div>
                 <div class="screen-btn-row" style="justify-content: flex-end;">
@@ -448,16 +440,16 @@
                         <div>
                             <div class="sim-label">Erwarteter Endwert (Median)</div>
                             <div class="sim-val" id="simEndAmt">CHF 0</div>
-                            <div id="simGain" style="font-weight: 700; color: var(--green); font-size: 0.8vw;">+ CHF 0 Gewinn</div>
+                            <div id="simGain" style="font-weight: 700; color: var(--green); font-size: var(--fs-sm);">+ CHF 0 Gewinn</div>
                         </div>
                         <div style="background: var(--bg); padding: 1.5vh; border-radius: 8px;">
                             <div class="sim-label">Wahrscheinliche Bandbreite (95%)</div>
-                            <div id="bandRange" style="font-size: 0.72vw; font-weight: 800; color: var(--ink-2);">CHF 0 — CHF 0</div>
+                            <div id="bandRange" style="font-size: var(--fs-sm); font-weight: 800; color: var(--ink-2);">CHF 0 — CHF 0</div>
                         </div>
                     </div>
                     <div style="border-right: 1px solid var(--line); padding-right: 1.5vw; padding-left: 0.5vw;">
                         <div class="sim-label">Charakteristik</div>
-                        <p id="stratDesc" style="font-size: 0.7vw; line-height: 1.5; color: var(--ink-2); margin-top: 1vh;">Wählen Sie eine Strategie.</p>
+                        <p id="stratDesc" style="font-size: var(--fs-sm); line-height: 1.5; color: var(--ink-2); margin-top: 1vh;">Wählen Sie eine Strategie.</p>
                         <div id="behavioralNote" class="behavioral-note" style="display:none; margin-top: 2vh;">
                             <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
                             <span id="behavioralText">Zwischenzeitliche Verluste von 20–40% sind möglich.</span>
@@ -529,7 +521,7 @@
                         </div>
                         <div style="margin-top:auto; background:var(--bg); padding:1.4vh 1vw; border-radius:10px;">
                             <label>Einordnung</label>
-                            <p style="font-size:0.64vw; color:var(--ink-3); line-height:1.5;">Ihre Präferenz beeinflusst nicht die Risikohöhe der Strategie, sondern die inhaltliche Ausrichtung der späteren Anlagelösung.</p>
+                            <p style="font-size: var(--fs-sm); color:var(--ink-3); line-height:1.5;">Ihre Präferenz beeinflusst nicht die Risikohöhe der Strategie, sondern die inhaltliche Ausrichtung der späteren Anlagelösung.</p>
                         </div>
                     </div>
                     <div class="esg-options" id="esgOptions"></div>
@@ -638,38 +630,38 @@
                         <thead>
                             <tr>
                                 <th style="padding:1.8vh 1.2vw; background:#cbd5e1; border-right:1px solid var(--line);"></th>
-                                <th style="padding:1.8vh 1.5vw; background:#004078; color:white; font-size:0.95vw; font-weight:800; text-align:left; letter-spacing:0;">Beratungsdepot</th>
-                                <th style="padding:1.8vh 1.5vw; background:#1a6098; color:white; font-size:0.95vw; font-weight:800; text-align:left; border-left:2px solid rgba(255,255,255,0.25); letter-spacing:0;">Vermögensverwaltung</th>
+                                <th style="padding:1.8vh 1.5vw; background:#004078; color:white; font-size: var(--fs-base); font-weight:800; text-align:left; letter-spacing:0;">Beratungsdepot</th>
+                                <th style="padding:1.8vh 1.5vw; background:#1a6098; color:white; font-size: var(--fs-base); font-weight:800; text-align:left; border-left:2px solid rgba(255,255,255,0.25); letter-spacing:0;">Vermögensverwaltung</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
-                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">↗</span>Entscheidung</span>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size: var(--fs-sm); font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size: var(--fs-sm);">↗</span>Entscheidung</span>
                                 </td>
-                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Sie treffen die Anlageentscheide selbst.</td>
-                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Die Anlageentscheide erfolgen durch die Bank.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Sie treffen die Anlageentscheide selbst.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Die Anlageentscheide erfolgen durch die Bank.</td>
                             </tr>
                             <tr>
-                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
-                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">↻</span>Umsetzung</span>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size: var(--fs-sm); font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size: var(--fs-sm);">↻</span>Umsetzung</span>
                                 </td>
-                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Anpassungen erfolgen situativ und nach Bedarf.</td>
-                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Die Strategie wird laufend umgesetzt.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Anpassungen erfolgen situativ und nach Bedarf.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Die Strategie wird laufend umgesetzt.</td>
                             </tr>
                             <tr>
-                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
-                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">✦</span>Betreuung</span>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size: var(--fs-sm); font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size: var(--fs-sm);">✦</span>Betreuung</span>
                                 </td>
-                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Begleitung im Gespräch und bei konkreten Fragen.</td>
-                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Strukturierte Begleitung ohne laufenden Entscheidungsbedarf.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Begleitung im Gespräch und bei konkreten Fragen.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Strukturierte Begleitung ohne laufenden Entscheidungsbedarf.</td>
                             </tr>
                             <tr>
-                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size:0.72vw; font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
-                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size:0.65vw;">◔</span>Kostenstruktur</span>
+                                <td style="padding:1.3vh 1.2vw; background:#f8fafc; border-top:1px solid var(--line); border-right:1px solid var(--line); font-size: var(--fs-sm); font-weight:800; color:var(--ink); vertical-align:middle; white-space:nowrap;">
+                                    <span style="display:inline-flex;align-items:center;gap:0.5vw;"><span style="width:1.3vw;height:1.3vw;border-radius:999px;background:#e2e8f0;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;font-size: var(--fs-sm);">◔</span>Kostenstruktur</span>
                                 </td>
-                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Depotgebühr, Transaktionen und Zusatzleistungen werden separat ausgewiesen.</td>
-                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size:0.73vw; color:var(--ink-2); vertical-align:middle;">Die Dienstleistung wird über einen All-in-Fee-Ansatz abgebildet.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#f0f6fc; border-top:1px solid #d4e6f5; font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Depotgebühr, Transaktionen und Zusatzleistungen werden separat ausgewiesen.</td>
+                                <td style="padding:1.3vh 1.5vw; background:#eaf2f8; border-top:1px solid #c8dff0; border-left:2px solid rgba(26,96,152,0.15); font-size: var(--fs-sm); color:var(--ink-2); vertical-align:middle;">Die Dienstleistung wird über einen All-in-Fee-Ansatz abgebildet.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1024,15 +1016,15 @@
         const visBox = document.getElementById('stressVis');
         visBox.innerHTML = '';
         if (step.vis === 'crash') {
-            visBox.innerHTML = `<div class="sim-label">Beispielhafter Verlauf (-20%)</div><div style="flex:1;"><canvas id="stressChart"></canvas></div><div class="loss-badge"><div><div style="font-size:0.6vw; opacity:0.8; font-weight:700;">DEPOTVERLUST</div><div style="font-size:1.8vw; font-weight:900;">CHF -${Math.round(stateA.amount * 0.2).toLocaleString('de-CH')}</div></div><div style="text-align:right;"><div style="font-size:0.6vw; opacity:0.8; font-weight:700;">RESTWERT</div><div style="font-size:1.2vw; font-weight:800;">CHF ${Math.round(stateA.amount * 0.8).toLocaleString('de-CH')}</div></div></div>`;
+            visBox.innerHTML = `<div class="sim-label">Beispielhafter Verlauf (-20%)</div><div style="flex:1;"><canvas id="stressChart"></canvas></div><div class="loss-badge"><div><div style="font-size: var(--fs-sm); opacity:0.8; font-weight:700;">DEPOTVERLUST</div><div style="font-size: var(--fs-xl); font-weight:900;">CHF -${Math.round(stateA.amount * 0.2).toLocaleString('de-CH')}</div></div><div style="text-align:right;"><div style="font-size: var(--fs-sm); opacity:0.8; font-weight:700;">RESTWERT</div><div style="font-size: var(--fs-lg); font-weight:800;">CHF ${Math.round(stateA.amount * 0.8).toLocaleString('de-CH')}</div></div></div>`;
             setTimeout(initStressChart, 50);
         } else if (step.vis === 'recovery') {
-            visBox.innerHTML = `<div class="sim-label">Historische Erholungszeiten</div><div style="display:flex; flex-direction:column; gap:2vh; margin-top:2vh;"><p style="font-size:0.75vw; line-height:1.5;">Je nach Strategie dauert es unterschiedlich lange, bis ein Verlust wieder aufgeholt ist.</p><div style="background:var(--bg); padding:2vh; border-radius:10px;"><div class="sim-label" style="color:var(--blue);">Ø Erholung bei -20%</div><div style="font-size:1.5vw; font-weight:800; color:var(--ink);">~ 18 bis 36 Monate</div><p style="font-size:0.6vw; color:var(--ink-4); margin-top:1vh;">Basierend auf historischen Aktienmarkt-Daten.</p></div></div>`;
+            visBox.innerHTML = `<div class="sim-label">Historische Erholungszeiten</div><div style="display:flex; flex-direction:column; gap:2vh; margin-top:2vh;"><p style="font-size: var(--fs-sm); line-height:1.5;">Je nach Strategie dauert es unterschiedlich lange, bis ein Verlust wieder aufgeholt ist.</p><div style="background:var(--bg); padding:2vh; border-radius:10px;"><div class="sim-label" style="color:var(--blue);">Ø Erholung bei -20%</div><div style="font-size: var(--fs-lg); font-weight:800; color:var(--ink);">~ 18 bis 36 Monate</div><p style="font-size: var(--fs-sm); color:var(--ink-4); margin-top:1vh;">Basierend auf historischen Aktienmarkt-Daten.</p></div></div>`;
         } else {
-            visBox.innerHTML = `<div class="sim-label">Grosse Marktereignisse</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:1vh; margin-top:1vh;"><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Dotcom (2000)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-50% in 2 Jahren</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Finanzkrise (2008)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-55% in 1.5 Jahren</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Corona (2020)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-35% in 4 Wochen</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size:0.7vw;">Ukraine (2022)</div><div style="color:var(--red); font-weight:700; font-size:0.6vw;">-25% in 10 Monaten</div></div></div>`;
+            visBox.innerHTML = `<div class="sim-label">Grosse Marktereignisse</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:1vh; margin-top:1vh;"><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size: var(--fs-sm);">Dotcom (2000)</div><div style="color:var(--red); font-weight:700; font-size: var(--fs-sm);">-50% in 2 Jahren</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size: var(--fs-sm);">Finanzkrise (2008)</div><div style="color:var(--red); font-weight:700; font-size: var(--fs-sm);">-55% in 1.5 Jahren</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size: var(--fs-sm);">Corona (2020)</div><div style="color:var(--red); font-weight:700; font-size: var(--fs-sm);">-35% in 4 Wochen</div></div><div style="background:#f8fafc; padding:1.5vh; border-radius:8px; border-left:3px solid var(--slate);"><div style="font-weight:800; font-size: var(--fs-sm);">Ukraine (2022)</div><div style="color:var(--red); font-weight:700; font-size: var(--fs-sm);">-25% in 10 Monaten</div></div></div>`;
         }
         const qBox = document.getElementById('stressQuestions');
-        qBox.innerHTML = `<h2 style="font-size:1.4vw; font-weight:800; color:var(--ink); margin-bottom:1vh;">${step.subtitle}</h2><div style="display:flex; flex-direction:column; gap:1.2vh;">${step.options.map(o => `<button class="option-btn ${stateA.stress[Object.keys(stateA.stress)[stateA.stressStep]] === o.id ? 'active' : ''}" onclick="selectStressOpt('${o.id}')"><span class="opt-title">${o.t}</span><span class="opt-desc">${o.d}</span></button>`).join('')}</div>`;
+        qBox.innerHTML = `<h2 style="font-size: var(--fs-lg); font-weight:800; color:var(--ink); margin-bottom:1vh;">${step.subtitle}</h2><div style="display:flex; flex-direction:column; gap:1.2vh;">${step.options.map(o => `<button class="option-btn ${stateA.stress[Object.keys(stateA.stress)[stateA.stressStep]] === o.id ? 'active' : ''}" onclick="selectStressOpt('${o.id}')"><span class="opt-title">${o.t}</span><span class="opt-desc">${o.d}</span></button>`).join('')}</div>`;
         document.getElementById('stressPrevBtn').style.visibility = stateA.stressStep === 0 ? 'hidden' : 'visible';
         document.getElementById('stressNextBtn').innerText = stateA.stressStep === 2 ? 'Weiter zu Kenntnissen' : 'Nächste Frage';
     }
