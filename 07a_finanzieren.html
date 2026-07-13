@@ -6,26 +6,9 @@
 <title>bbz bank – Eigenheimfinanzierung</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="bbz-theme.css">
   <script src="bbz-data.js"></script>
 <style>
-:root {
-  --blue:    #004078;
-  --blue-dk: #002d57;
-  --blue-lt: #dce8f4;
-  --red:     #950e13;
-  --green:   #15803d;
-  --amber:   #b45309;
-  --ink:     #0f172a;
-  --ink-2:   #334155;
-  --ink-3:   #64748b;
-  --ink-4:   #94a3b8;
-  --surface: #ffffff;
-  --bg:      #f1f5f9;
-  --line:    #e2e8f0;
-  --font:    'DM Sans', sans-serif;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
   font-family: var(--font);
   background: var(--blue-dk);
@@ -50,10 +33,10 @@ body {
 .logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
 .logo-mark {
   width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
-  font-size: 0.68vw; font-weight: 900;
+  font-size: var(--fs-sm); font-weight: 900;
   display: flex; align-items: center; justify-content: center; border-radius: 3px;
 }
-.logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
+.logo-name { color: white; font-size: var(--fs-sm); font-weight: 800; letter-spacing: -0.02em; }
 
 .mod-nav {
   display: flex; align-items: center; gap: 0.15vw;
@@ -62,16 +45,16 @@ body {
 .mod-chip {
   display: flex; align-items: center; gap: 0.2vw;
   padding: 0.3vh 0.48vw; border-radius: 4px;
-  font-size: 0.52vw; font-weight: 700;
+  font-size: var(--fs-sm); font-weight: 700;
   color: rgba(255,255,255,0.35); text-decoration: none;
   white-space: nowrap; transition: color 0.15s, background 0.15s; flex-shrink: 0;
 }
 .mod-chip:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.07); }
 .mod-chip.active { background: white; color: var(--blue); }
-.chip-num { font-size: 0.44vw; font-weight: 900; opacity: 0.55; }
+.chip-num { font-size: var(--fs-sm); font-weight: 900; opacity: 0.55; }
 .mod-chip.active .chip-num { opacity: 0.45; }
 .nav-sep { width: 1px; height: 1.8vh; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 0.18vw; }
-.topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; flex-shrink: 0; }
+.topbar-brand { color: rgba(255,255,255,0.2); font-size: var(--fs-sm); font-weight: 600; flex-shrink: 0; }
 .gear-btn {
   background: rgba(255,255,255,0.1); border: none; border-radius: 5px;
   padding: 0.42vh 0.42vw; cursor: pointer; color: white;
@@ -102,7 +85,7 @@ body {
 }
 .tab-btn {
   flex: 1; padding: 0.55vh 0;
-  font-size: 0.62vw; font-weight: 700;
+  font-size: var(--fs-sm); font-weight: 700;
   border: none; background: none; cursor: pointer;
   border-radius: 4px; color: var(--ink-3);
   transition: all 0.15s; font-family: var(--font);
@@ -110,7 +93,7 @@ body {
 .tab-btn.on { background: white; color: var(--blue); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
 .sec-lbl {
-  font-size: 0.5vw; font-weight: 800; color: var(--blue);
+  font-size: var(--fs-sm); font-weight: 800; color: var(--blue);
   display: flex; align-items: center; gap: 0.3vw; margin-top: 0.15vh;
 }
 .sec-lbl::before {
@@ -118,18 +101,18 @@ body {
   background: var(--red); border-radius: 2px;
 }
 .field { display: flex; flex-direction: column; gap: 0.1vh; }
-.field label { font-size: 0.52vw; font-weight: 700; color: var(--ink-3); }
+.field label { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-3); }
 .f-row { display: flex; align-items: center; gap: 0.25vw; }
 .f-row input {
   flex: 1; min-width: 0; padding: 0.38vh 0.45vw;
   background: var(--bg); border: 1px solid var(--line);
-  border-radius: 4px; font-size: 0.7vw; font-weight: 700;
+  border-radius: 4px; font-size: var(--fs-sm); font-weight: 700;
   color: var(--blue); outline: none; font-family: var(--font);
   transition: border-color 0.15s, background 0.15s;
 }
 .f-row input:focus { border-color: var(--blue); background: white; }
-.f-row input::placeholder { color: var(--ink-4); font-style: italic; font-size: 0.6vw; font-weight: 500; }
-.f-suf { font-size: 0.5vw; font-weight: 800; color: var(--ink-4); flex-shrink: 0; }
+.f-row input::placeholder { color: var(--ink-4); font-style: italic; font-size: var(--fs-sm); font-weight: 500; }
+.f-suf { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); flex-shrink: 0; }
 .f-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4vw; }
 
 /* CONTENT */
@@ -142,7 +125,7 @@ body {
 
 .status-banner {
   padding: 0.65vh 1vw; border-radius: 6px;
-  font-size: 0.66vw; font-weight: 700;
+  font-size: var(--fs-sm); font-weight: 700;
   display: flex; align-items: center; gap: 0.5vw;
   flex-shrink: 0; transition: all 0.3s;
 }
@@ -158,9 +141,9 @@ body {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: 6px; padding: 0.6vh 0.7vw;
 }
-.kpi-l { font-size: 0.46vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.2vh; }
-.kpi-v { font-size: 1.85vh; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; line-height: 1; }
-.kpi-s { font-size: 0.44vw; color: var(--ink-4); margin-top: 0.18vh; }
+.kpi-l { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); margin-bottom: 0.2vh; }
+.kpi-v { font-size: var(--fs-base); font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; line-height: 1; }
+.kpi-s { font-size: var(--fs-sm); color: var(--ink-4); margin-top: 0.18vh; }
 .kpi-v.warn { color: var(--amber); }
 .kpi-v.crit { color: var(--red); }
 
@@ -174,12 +157,12 @@ body {
   border-radius: 6px; padding: 0.7vh 0.9vw;
   display: flex; flex-direction: column; min-height: 0;
 }
-.card-title { font-size: 0.49vw; font-weight: 800; color: var(--blue); margin-bottom: 0.25vh; flex-shrink: 0; }
+.card-title { font-size: var(--fs-sm); font-weight: 800; color: var(--blue); margin-bottom: 0.25vh; flex-shrink: 0; }
 .viz-body {
   flex: 1; display: flex; align-items: center;
   justify-content: center; min-height: 0; flex-direction: column; gap: 0.3vh;
 }
-.viz-big { font-size: 5.5vh; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+.viz-big { font-size: var(--fs-3xl); font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
 
 /* Amort card */
 .amort-card {
@@ -190,8 +173,8 @@ body {
 }
 .amort-top { display: flex; gap: 2vw; flex-shrink: 0; margin-bottom: 0.5vh; }
 .amort-kv { display: flex; flex-direction: column; }
-.amort-l { font-size: 0.46vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.12vh; }
-.amort-v { font-size: 1.35vh; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.amort-l { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); margin-bottom: 0.12vh; }
+.amort-v { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .amort-v.red { color: var(--ink-3); }
 .amort-bars {
   flex: 1; display: flex; align-items: flex-end; gap: 3px;
@@ -199,10 +182,10 @@ body {
 }
 .a-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
 .a-seg { width: 100%; transition: height 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
-.a-lbl { font-size: 0.42vw; font-weight: 700; color: var(--ink-4); text-align: center; margin-top: 2px; }
+.a-lbl { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-4); text-align: center; margin-top: 2px; }
 .amort-badge {
   background: var(--bg); color: var(--blue);
-  font-size: 0.44vw; font-weight: 800;
+  font-size: var(--fs-sm); font-weight: 800;
   padding: 0.22vh 0.4vw; border-radius: 3px;
   border: 1px solid var(--line); display: inline-block;
 }
@@ -212,7 +195,7 @@ body {
 .warn-pill {
   background: #fffbeb; border: 1px solid #fef3c7;
   padding: 0.38vh 0.7vw; border-radius: 4px;
-  font-size: 0.54vw; color: #92400e;
+  font-size: var(--fs-sm); color: #92400e;
   display: flex; align-items: center; gap: 0.35vw;
 }
 
@@ -232,18 +215,18 @@ body {
 .v-ref { background: var(--bg); border-style: dashed; cursor: default; }
 .v-head {
   padding: 0.85vh 0.8vw; background: var(--blue); color: white;
-  font-weight: 800; font-size: 0.7vw; text-align: center; flex-shrink: 0;
+  font-weight: 800; font-size: var(--fs-sm); text-align: center; flex-shrink: 0;
 }
 .v-head.ref-head { background: var(--ink-3); }
 
 .v-tranches { flex-shrink: 0; }
 .t-box { padding: 0.6vh 0.8vw; border-bottom: 1px solid var(--bg); transition: all 0.2s; }
 .t-box.inactive { display: none; }
-.t-lbl { display: flex; justify-content: space-between; font-size: 0.45vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.22vh; }
+.t-lbl { display: flex; justify-content: space-between; font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); margin-bottom: 0.22vh; }
 .t-inputs { display: flex; gap: 0.22vw; margin-bottom: 0.28vh; align-items: center; }
 .t-inputs select, .t-inputs input[type=text] {
   padding: 0.26vh 0.32vw; background: var(--bg); border: 1px solid var(--line);
-  border-radius: 3px; font-size: 0.5vw; font-weight: 700;
+  border-radius: 3px; font-size: var(--fs-sm); font-weight: 700;
   font-family: var(--font); outline: none;
 }
 .t-inputs select { flex: 1; color: var(--blue); }
@@ -258,8 +241,8 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .ref-item { padding: 0.58vh 0.8vw; border-bottom: 1px solid var(--bg); }
-.ref-item-l { font-size: 0.45vw; font-weight: 800; color: var(--ink-4); margin-bottom: 0.1vh; }
-.ref-item-v { font-size: 1.3vh; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ref-item-l { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); margin-bottom: 0.1vh; }
+.ref-item-v { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
 .v-chart-area {
   position: relative;
@@ -278,11 +261,11 @@ input[type=range]::-webkit-slider-thumb {
   border-top: 1px solid var(--line); background: var(--bg); flex-shrink: 0;
 }
 .v-foot-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.1vh; }
-.v-foot-l { font-size: 0.44vw; font-weight: 800; color: var(--ink-4); }
-.v-total { font-size: 2.1vh; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; text-align: right; }
+.v-foot-l { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); }
+.v-total { font-size: var(--fs-base); font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; text-align: right; }
 .v-total.ref-total { color: var(--ink-3); text-align: left; }
 .v-diff {
-  font-size: 0.58vw; font-weight: 800;
+  font-size: var(--fs-sm); font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 .v-diff.saving { color: var(--green); }
@@ -294,35 +277,35 @@ input[type=range]::-webkit-slider-thumb {
   backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 500;
 }
 .modal-box { background: white; border-radius: 10px; width: 34vw; padding: 2.2vh 1.8vw; box-shadow: 0 30px 60px rgba(0,0,0,0.38); }
-.modal-hd { font-size: 1.5vh; font-weight: 800; color: var(--blue); margin-bottom: 1.4vh; display: flex; justify-content: space-between; align-items: center; }
-.modal-close { background: none; border: none; cursor: pointer; color: var(--ink-4); font-size: 1.1vh; transition: color 0.15s; }
+.modal-hd { font-size: var(--fs-sm); font-weight: 800; color: var(--blue); margin-bottom: 1.4vh; display: flex; justify-content: space-between; align-items: center; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--ink-4); font-size: var(--fs-sm); transition: color 0.15s; }
 .modal-close:hover { color: var(--red); }
 .rates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7vh 0.8vw; }
-.r-field label { font-size: 0.5vw; font-weight: 700; color: var(--ink-3); display: block; margin-bottom: 0.1vh; }
+.r-field label { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-3); display: block; margin-bottom: 0.1vh; }
 .r-row { display: flex; align-items: center; gap: 0.25vw; }
-.r-row input { flex: 1; padding: 0.35vh 0.4vw; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; font-size: 0.65vw; font-weight: 700; color: var(--blue); font-family: var(--font); outline: none; }
-.r-suf { font-size: 0.5vw; font-weight: 800; color: var(--ink-4); }
-.modal-btn { margin-top: 1.5vh; width: 100%; padding: 0.8vh; background: var(--blue); color: white; font-size: 0.7vw; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-family: var(--font); transition: background 0.15s; }
+.r-row input { flex: 1; padding: 0.35vh 0.4vw; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; font-size: var(--fs-sm); font-weight: 700; color: var(--blue); font-family: var(--font); outline: none; }
+.r-suf { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); }
+.modal-btn { margin-top: 1.5vh; width: 100%; padding: 0.8vh; background: var(--blue); color: white; font-size: var(--fs-sm); font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-family: var(--font); transition: background 0.15s; }
 .modal-btn:hover { background: var(--blue-dk); }
 .detail-t { display: flex; justify-content: space-between; align-items: center; padding: 0.65vh 0.7vw; background: var(--bg); border-radius: 5px; margin-bottom: 0.4vh; }
-.dt-l { font-size: 0.5vw; font-weight: 800; color: var(--ink-4); }
-.dt-v { font-size: 1.35vh; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
+.dt-l { font-size: var(--fs-sm); font-weight: 800; color: var(--ink-4); }
+.dt-v { font-size: var(--fs-sm); font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
 .dt-sep { height: 1px; background: var(--line); margin: 0.9vh 0; }
 
 /* FOOTER */
 .footer { background: var(--surface); border-top: 1px solid var(--line); padding: 0 3.2vw; display: flex; align-items: center; justify-content: space-between; }
-.footer-copy { font-size: 0.58vw; font-weight: 500; color: var(--ink-4); }
-.footer-live { display: flex; align-items: center; gap: 0.35vw; font-size: 0.52vw; font-weight: 700; color: #16a34a; }
+.footer-copy { font-size: var(--fs-sm); font-weight: 500; color: var(--ink-4); }
+.footer-live { display: flex; align-items: center; gap: 0.35vw; font-size: var(--fs-sm); font-weight: 700; color: #16a34a; }
 .dot-live { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2.5s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
 #gaugePath,#houseFill { transition: all 0.55s cubic-bezier(0.34,1.56,0.64,1); }
 
         /* ── TOPBAR ADMIN ── */
         .topbar-right { display: flex !important; align-items: center; gap: 0.6vw; flex-shrink: 0; }
-        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: 0.5vw; font-weight: 600; }
+        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: var(--fs-sm); font-weight: 600; }
         .edit-btn {
             background: none !important; border: none; cursor: pointer;
-            color: rgba(255,255,255,0.28); font-size: 0.5vw;
+            color: rgba(255,255,255,0.28); font-size: var(--fs-sm);
             font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 0;
             transition: color 0.15s; white-space: nowrap;
         }
@@ -345,7 +328,7 @@ input[type=range]::-webkit-slider-thumb {
         .nav-tab {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.75vw;
-            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            font-size: var(--fs-sm); font-weight: 600; color: #94a3b8;
             white-space: nowrap; flex-shrink: 0; text-decoration: none;
             border-radius: 3px; transition: color 0.15s, background 0.15s;
         }
@@ -355,14 +338,14 @@ input[type=range]::-webkit-slider-thumb {
         .nav-tab-half {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.65vw;
-            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            font-size: var(--fs-sm); font-weight: 600; color: #94a3b8;
             white-space: nowrap; text-decoration: none;
             transition: color 0.15s, background 0.15s;
         }
         .nav-tab-half:hover { color: #64748b; background: #f1f5f9; }
         .nav-tab-half.active { background: #dce8f4; color: #004078; font-weight: 700; }
         .nav-spacer { flex: 1; }
-        .nav-brand { font-size: 0.48vw; color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
+        .nav-brand { font-size: var(--fs-sm); color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -406,7 +389,7 @@ input[type=range]::-webkit-slider-thumb {
       <div class="field"><label>Barmittel</label><div class="f-row"><input type="text" id="cashEquity" class="ni" value="" placeholder="hier erfassen"><span class="f-suf">CHF</span></div></div>
       <div class="field"><label>2. Säule (Vorbezug)</label><div class="f-row"><input type="text" id="pensionWithdraw" class="ni" value="" placeholder="hier erfassen"><span class="f-suf">CHF</span></div></div>
       <div class="field"><label>2. Säule (Verpfändung)</label><div class="f-row"><input type="text" id="pensionPledge" class="ni" value="0"><span class="f-suf">CHF</span></div></div>
-      <div id="pk-info-label" style="display:none; margin-top:0.3vh; font-size:1.1vh; color:#94a3b8; font-weight:500;"></div>
+      <div id="pk-info-label" style="display:none; margin-top:0.3vh; font-size: var(--fs-sm); color:#94a3b8; font-weight:500;"></div>
     </div>
   </aside>
 
@@ -443,9 +426,9 @@ input[type=range]::-webkit-slider-thumb {
                 stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.6"/>
             </svg>
             <div style="display:flex;justify-content:space-between;width:92%;max-width:16vh;">
-              <span style="font-size:0.44vw;font-weight:700;color:var(--ink-4);">0%</span>
-              <span style="font-size:0.44vw;font-weight:800;color:var(--ink-3);">Limit 33.5%</span>
-              <span style="font-size:0.44vw;font-weight:700;color:var(--red);">60%</span>
+              <span style="font-size: var(--fs-sm);font-weight:700;color:var(--ink-4);">0%</span>
+              <span style="font-size: var(--fs-sm);font-weight:800;color:var(--ink-3);">Limit 33.5%</span>
+              <span style="font-size: var(--fs-sm);font-weight:700;color:var(--red);">60%</span>
             </div>
           </div>
         </div>
@@ -488,7 +471,7 @@ input[type=range]::-webkit-slider-thumb {
           <div id="amortTooltip" style="
             display:none; position:absolute; z-index:100;
             background:var(--blue); color:white;
-            font-size:0.55vw; font-weight:700;
+            font-size: var(--fs-sm); font-weight:700;
             padding:0.4vh 0.6vw; border-radius:5px;
             pointer-events:none; white-space:nowrap;
             box-shadow:0 4px 12px rgba(0,0,0,0.2);
@@ -556,8 +539,8 @@ input[type=range]::-webkit-slider-thumb {
   <div class="modal-box" style="width:38vw;">
     <div class="modal-hd">
       <div>
-        <div id="detailTitle" style="font-size:1.4vh;font-weight:800;color:var(--blue);">Detail</div>
-        <div style="font-size:0.5vw;color:var(--ink-4);">Effektive Belastung pro Monat</div>
+        <div id="detailTitle" style="font-size: var(--fs-sm);font-weight:800;color:var(--blue);">Detail</div>
+        <div style="font-size: var(--fs-sm);color:var(--ink-4);">Effektive Belastung pro Monat</div>
       </div>
       <button class="modal-close" onclick="closeDetail()">✕</button>
     </div>
@@ -568,22 +551,22 @@ input[type=range]::-webkit-slider-thumb {
     <div class="dt-sep"></div>
 
     <!-- Cost comparison table: Kalk / Aktuell / Neu -->
-    <div style="font-size:0.5vw;font-weight:800;color:var(--ink-4);margin-bottom:0.7vh;">Gegenüberstellung Monatliche Kosten</div>
+    <div style="font-size: var(--fs-sm);font-weight:800;color:var(--ink-4);margin-bottom:0.7vh;">Gegenüberstellung Monatliche Kosten</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5vw;">
       <div style="background:var(--bg);border-radius:6px;padding:0.8vh 0.8vw;border-left:3px solid #dce8f4;">
-        <div style="font-size:0.46vw;font-weight:800;color:var(--ink-4);margin-bottom:0.3vh;">Kalkulatorisch</div>
-        <div id="dtKalk" style="font-size:1.6vh;font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;">–</div>
-        <div id="dtKalkPct" style="font-size:0.48vw;font-weight:700;color:var(--ink-4);margin-top:0.2vh;"></div>
+        <div style="font-size: var(--fs-sm);font-weight:800;color:var(--ink-4);margin-bottom:0.3vh;">Kalkulatorisch</div>
+        <div id="dtKalk" style="font-size: var(--fs-sm);font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;">–</div>
+        <div id="dtKalkPct" style="font-size: var(--fs-sm);font-weight:700;color:var(--ink-4);margin-top:0.2vh;"></div>
       </div>
       <div id="dtAktuellBox" style="background:var(--bg);border-radius:6px;padding:0.8vh 0.8vw;border-left:3px solid #cbd5e1;">
-        <div style="font-size:0.46vw;font-weight:800;color:var(--ink-4);margin-bottom:0.3vh;">Aktuelle Wohnkosten</div>
-        <div id="dtAktuell" style="font-size:1.6vh;font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;">–</div>
-        <div id="dtAktuellPct" style="font-size:0.48vw;font-weight:700;color:var(--ink-4);margin-top:0.2vh;"></div>
+        <div style="font-size: var(--fs-sm);font-weight:800;color:var(--ink-4);margin-bottom:0.3vh;">Aktuelle Wohnkosten</div>
+        <div id="dtAktuell" style="font-size: var(--fs-sm);font-weight:800;color:var(--ink-3);font-variant-numeric:tabular-nums;">–</div>
+        <div id="dtAktuellPct" style="font-size: var(--fs-sm);font-weight:700;color:var(--ink-4);margin-top:0.2vh;"></div>
       </div>
       <div style="background:var(--blue-lt);border-radius:6px;padding:0.8vh 0.8vw;border-left:3px solid var(--blue);">
-        <div style="font-size:0.46vw;font-weight:800;color:var(--blue);margin-bottom:0.3vh;">Diese Variante</div>
-        <div id="dtNeu" style="font-size:1.6vh;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;">–</div>
-        <div id="dtNeuPct" style="font-size:0.48vw;font-weight:700;margin-top:0.2vh;"></div>
+        <div style="font-size: var(--fs-sm);font-weight:800;color:var(--blue);margin-bottom:0.3vh;">Diese Variante</div>
+        <div id="dtNeu" style="font-size: var(--fs-sm);font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;">–</div>
+        <div id="dtNeuPct" style="font-size: var(--fs-sm);font-weight:700;margin-top:0.2vh;"></div>
       </div>
     </div>
   </div>
@@ -717,7 +700,7 @@ function openDetail(vIdx){
     if(t.a<=0)return;
     const mi=(t.a*(S.rates[t.p]/100))/12;
     html+=`<div class="detail-t"><div><div class="dt-l">Tranche ${i+1}: ${t.p} (${S.rates[t.p].toFixed(2)}%)</div>
-    <div style="font-size:1.1vh;font-weight:700;color:var(--ink-2);">CHF ${fmt(t.a)}</div></div>
+    <div style="font-size: var(--fs-sm);font-weight:700;color:var(--ink-2);">CHF ${fmt(t.a)}</div></div>
     <div style="text-align:right;"><div class="dt-l">Zins / Monat</div><div class="dt-v">CHF ${fmt(mi)}</div></div></div>`;
   });
   html+=`<div class="detail-t"><div><div class="dt-l">Amortisation / Monat</div></div>
@@ -953,7 +936,7 @@ function updateAnalysis(){
 function renderAmortChart(h2,y65,age,pVerp){
   const el=$('amortChart'),maxVal=h2+pVerp;
   if(maxVal<=0.01){
-    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;width:100%;font-size:0.55vw;color:var(--ink-4);font-style:italic;">Keine Amortisation erforderlich</div>';
+    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;width:100%;font-size: var(--fs-sm);color:var(--ink-4);font-style:italic;">Keine Amortisation erforderlich</div>';
     return;
   }
   const steps=Math.max(y65,15),aH2=h2/Math.min(15,y65),aP=pVerp/y65;
