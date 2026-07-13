@@ -5,24 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bbz bank – Wer wir sind</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="bbz-theme.css">
     <script src="bbz-data.js"></script>
     <style>
-        :root {
-            --blue:    #004078;
-            --blue-dk: #002d57;
-            --blue-lt: #dce8f4;
-            --red:     #950e13;
-            --ink:     #0f172a;
-            --ink-2:   #334155;
-            --ink-3:   #64748b;
-            --ink-4:   #94a3b8;
-            --surface: #ffffff;
-            --bg:      #f1f5f9;
-            --line:    #e2e8f0;
-            --font:    'DM Sans', sans-serif;
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: var(--font);
             background: var(--blue-dk);
@@ -47,12 +32,12 @@
         .logo { display: flex; align-items: center; gap: 0.55vw; flex-shrink: 0; }
         .logo-mark {
             width: 2.1vw; height: 2.1vw; background: white; color: var(--blue);
-            font-size: 0.68vw; font-weight: 900;
+            font-size: var(--fs-sm); font-weight: 900;
             display: flex; align-items: center; justify-content: center; border-radius: 3px;
         }
-        .logo-name { color: white; font-size: 0.82vw; font-weight: 800; letter-spacing: -0.02em; }
+        .logo-name { color: white; font-size: var(--fs-sm); font-weight: 800; letter-spacing: -0.02em; }
         .topbar-right { display: flex; align-items: center; gap: 0.7vw; flex-shrink: 0; }
-        .topbar-brand { color: rgba(255,255,255,0.2); font-size: 0.58vw; font-weight: 600; }
+        .topbar-brand { color: rgba(255,255,255,0.2); font-size: var(--fs-sm); font-weight: 600; }
         .home-btn {
             background: rgba(255,255,255,0.1); border: none; border-radius: 5px;
             padding: 0.42vh 0.42vw; cursor: pointer; color: white;
@@ -91,21 +76,21 @@
             z-index: 0;
         }
         .hero-placeholder svg { width: 4.5vh; height: 4.5vh; color: rgba(255,255,255,0.18); }
-        .hero-placeholder span { font-size: 1.6vh; font-weight: 600; color: rgba(255,255,255,0.28); }
+        .hero-placeholder span { font-size: var(--fs-sm); font-weight: 600; color: rgba(255,255,255,0.28); }
         .hero-text {
             position: absolute; bottom: 0; left: 0; right: 0;
             padding: 4vh 3.5vw; z-index: 2;
         }
         .hero-eyebrow {
-            font-size: clamp(8px, 1.1vh, 14px); font-weight: 700;
+            font-size: var(--fs-sm); font-weight: 700;
             color: rgba(255,255,255,0.5); letter-spacing: 0.12em; margin-bottom: 1vh;
         }
         .hero-title {
-            font-size: clamp(28px, 7vh, 90px); font-weight: 800;
+            font-size: var(--fs-3xl); font-weight: 800;
             color: white; letter-spacing: -0.04em; line-height: 0.95;
         }
         .hero-sub {
-            font-size: clamp(10px, 1.9vh, 22px); font-weight: 400;
+            font-size: var(--fs-base); font-weight: 400;
             color: rgba(255,255,255,0.6); margin-top: 1.4vh; line-height: 1.45;
         }
         .hero-sub[contenteditable] {
@@ -125,10 +110,10 @@
             display: flex; flex-direction: column; justify-content: center;
         }
         .mission-label {
-            font-size: 1.1vh; font-weight: 700; color: var(--blue);
+            font-size: var(--fs-sm); font-weight: 700; color: var(--blue);
             letter-spacing: 0.08em; margin-bottom: 1.4vh; opacity: 0.6;
         }
-        .mission-text { font-size: 1.9vh; font-weight: 400; color: var(--ink-2); line-height: 1.6; }
+        .mission-text { font-size: var(--fs-base); font-weight: 400; color: var(--ink-2); line-height: 1.6; }
         .mission-text strong { color: var(--blue); font-weight: 700; }
 
         /* Vier Quadranten */
@@ -149,7 +134,7 @@
 
         .pillar-deco {
             position: absolute; right: 0.8vw; bottom: -0.5vh;
-            font-size: 13vh; font-weight: 900; line-height: 1;
+            font-size: 12rem; font-weight: 900; line-height: 1;
             opacity: 0.045; user-select: none; pointer-events: none; letter-spacing: -0.04em;
         }
         .pillar-card.p-blue .pillar-deco { color: var(--blue); }
@@ -165,14 +150,14 @@
         .pillar-card.p-red:hover    .pillar-icon { filter: drop-shadow(0 6px 14px rgba(149,14,19,0.3)); }
         .pillar-card.p-violet:hover .pillar-icon { filter: drop-shadow(0 6px 14px rgba(109,40,217,0.3)); }
 
-        .pillar-title { font-size: 2.2vh; font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; white-space: nowrap; }
+        .pillar-title { font-size: var(--fs-base); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; white-space: nowrap; }
         .pillar-card.p-blue .pillar-title   { color: var(--blue); }
         .pillar-card.p-sky  .pillar-title   { color: #0369a1; }
         .pillar-card.p-red  .pillar-title   { color: var(--red); }
         .pillar-card.p-violet .pillar-title { color: #6d28d9; }
 
         .pillar-cta {
-            font-size: 1.3vh; font-weight: 600; color: var(--ink-4);
+            font-size: var(--fs-sm); font-weight: 600; color: var(--ink-4);
             opacity: 0; transform: translateY(4px); transition: opacity 0.2s, transform 0.2s;
         }
         .pillar-card:hover .pillar-cta { opacity: 1; transform: translateY(0); }
@@ -182,8 +167,8 @@
             background: var(--surface); border-top: 1px solid var(--line);
             padding: 0 3.5vw; display: flex; align-items: center; justify-content: space-between; z-index: 10;
         }
-        .footer-copy { font-size: 0.6vw; font-weight: 500; color: var(--ink-4); }
-        .status { display: flex; align-items: center; gap: 0.4vw; font-size: 0.55vw; font-weight: 700; color: #16a34a; }
+        .footer-copy { font-size: var(--fs-sm); font-weight: 500; color: var(--ink-4); }
+        .status { display: flex; align-items: center; gap: 0.4vw; font-size: var(--fs-sm); font-weight: 700; color: #16a34a; }
         .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2.5s ease-in-out infinite; }
         @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}50%{box-shadow:0 0 0 4px rgba(34,197,94,0);} }
 
@@ -224,8 +209,8 @@
         }
         .modal-bg-icon svg { width: 100%; height: 100%; }
         .modal-hero-left { z-index: 1; }
-        .modal-eyebrow { font-size: 1.1vh; font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 0.1em; margin-bottom: 0.8vh; }
-        .modal-title { font-size: 5vh; font-weight: 800; color: white; letter-spacing: -0.04em; line-height: 1.0; }
+        .modal-eyebrow { font-size: var(--fs-sm); font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 0.1em; margin-bottom: 0.8vh; }
+        .modal-title { font-size: var(--fs-3xl); font-weight: 800; color: white; letter-spacing: -0.04em; line-height: 1.0; }
         .modal-icon-badge {
             width: 7vh; height: 7vh; border-radius: 14px;
             background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
@@ -245,12 +230,12 @@
         .modal-close svg { width: 1.6vh; height: 1.6vh; }
         .modal-body { background: white; padding: 3vh 3vw 3.5vh; }
         .modal-edit-hint {
-            font-size: 1.1vh; font-weight: 600; color: var(--ink-4);
+            font-size: var(--fs-sm); font-weight: 600; color: var(--ink-4);
             display: flex; align-items: center; gap: 0.4vw; margin-bottom: 1vh;
         }
         .modal-edit-hint svg { width: 1.4vh; height: 1.4vh; }
         .modal-text-editable {
-            font-size: 2.2vh; font-weight: 400; color: var(--ink-2); line-height: 1.72;
+            font-size: var(--fs-base); font-weight: 400; color: var(--ink-2); line-height: 1.72;
             outline: none; border-radius: 8px; padding: 1.5vh 1.5vw;
             border: 1.5px dashed transparent; transition: border-color 0.15s, background 0.15s;
             width: 100%; display: block; cursor: text;
@@ -265,10 +250,10 @@
     
         /* ── TOPBAR ADMIN ── */
         .topbar-right { display: flex !important; align-items: center; gap: 0.6vw; flex-shrink: 0; }
-        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: 0.5vw; font-weight: 600; }
+        .topbar-brand { color: rgba(255,255,255,0.18) !important; font-size: var(--fs-sm); font-weight: 600; }
         .edit-btn {
             background: none !important; border: none; cursor: pointer;
-            color: rgba(255,255,255,0.28); font-size: 0.5vw;
+            color: rgba(255,255,255,0.28); font-size: var(--fs-sm);
             font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 0;
             transition: color 0.15s; white-space: nowrap;
         }
@@ -291,7 +276,7 @@
         .nav-tab {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.75vw;
-            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            font-size: var(--fs-sm); font-weight: 600; color: #94a3b8;
             white-space: nowrap; flex-shrink: 0; text-decoration: none;
             border-radius: 3px; transition: color 0.15s, background 0.15s;
         }
@@ -301,14 +286,14 @@
         .nav-tab-half {
             display: flex; align-items: center; justify-content: center;
             height: 100%; padding: 0 0.65vw;
-            font-size: 0.52vw; font-weight: 600; color: #94a3b8;
+            font-size: var(--fs-sm); font-weight: 600; color: #94a3b8;
             white-space: nowrap; text-decoration: none;
             transition: color 0.15s, background 0.15s;
         }
         .nav-tab-half:hover { color: #64748b; background: #f1f5f9; }
         .nav-tab-half.active { background: #dce8f4; color: #004078; font-weight: 700; }
         .nav-spacer { flex: 1; }
-        .nav-brand { font-size: 0.48vw; color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
+        .nav-brand { font-size: var(--fs-sm); color: #e2e8f0; font-weight: 600; padding: 0 0.3vw; flex-shrink: 0; }
     </style>
 </head>
 <body>
