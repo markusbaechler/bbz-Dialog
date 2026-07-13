@@ -3,7 +3,7 @@ Version 2.3 | April 2026
 
 > ⚠️ **STAND v2.1 (Typografie migriert).** Shell-/Nav-/Layout-Regeln dieses Dokuments
 > sind **DEPRECATED** und werden durch `docs/DESIGN-SYSTEM.md` im Nachfolge-Repo
-> **bbz-dialog-v2** ersetzt. Dieses Repo dient nur noch als Portierungsquelle.
+> **bbz360** ersetzt. Dieses Repo dient nur noch als Portierungsquelle.
 > Gültig bleibt: `font-size` ausschliesslich über `--fs-*`-Tokens aus `bbz-theme.css`
 > (siehe Abschnitt *Typografie*); Ausnahmen in `V2-RESTSCHULD.md`.
 
